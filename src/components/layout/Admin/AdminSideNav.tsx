@@ -1,0 +1,46 @@
+import { NavLink } from "react-router-dom";
+import { useState } from "react";
+
+function AdminSideNav() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="side-nav">
+      <div className="side-nav-inner">
+        <ul className="side-nav-menu scrollable">
+          <li className={`nav-item dropdown ${open ? "open" : ""}`}>
+            <a
+              href="#"
+              className="dropdown-toggle"
+              onClick={(e) => {
+                e.preventDefault();
+                setOpen(!open);
+              }}
+            >
+              <span className="icon-holder">
+                <i className="anticon anticon-lock" />
+              </span>
+              <span className="title">Authentication</span>
+              <span className="arrow">
+                <i className="arrow-icon" />
+              </span>
+            </a>
+
+            <ul className="dropdown-menu">
+              <li>
+                <NavLink to="/admin/test">Test</NavLink>
+              </li>
+              <li>
+                <NavLink to="/admin/quan-li-danh-sach-nam">
+                  Danh sách năm
+                </NavLink>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+export default AdminSideNav;

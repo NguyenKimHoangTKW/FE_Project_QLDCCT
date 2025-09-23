@@ -1,22 +1,22 @@
-function HeaderLayout() {
+function AdminHeaderLayout() {
   return (
     <div className="header">
       <div className="logo logo-dark">
         <a href="index.html">
-          <img src="src/assets/images/logo/logo.png" alt="Logo" />
+          <img src="/src/assets/images/logo/logo.png" alt="Logo" />
           <img
             className="logo-fold"
-            src="src/assets/images/logo/logo-fold.png"
+            src="/src/assets/images/logo/logo-fold.png"
             alt="Logo"
           />
         </a>
       </div>
       <div className="logo logo-white">
         <a href="index.html">
-          <img src="src/assets/images/logo/logo-white.png" alt="Logo" />
+          <img src="/src/assets/images/logo/logo-white.png" alt="Logo" />
           <img
             className="logo-fold"
-            src="src/assets/images/logo/logo-fold-white.png"
+            src="/src/assets/images/logo/logo-fold-white.png"
             alt="Logo"
           />
         </a>
@@ -136,14 +136,14 @@ function HeaderLayout() {
           <li className="dropdown dropdown-animated scale-left">
             <div className="pointer" data-toggle="dropdown">
               <div className="avatar avatar-image  m-h-10 m-r-15">
-                <img src="src/assets/images/avatars/thumb-3.jpg" alt="" />
+                <img src="/src/assets/images/avatars/thumb-3.jpg" alt="" />
               </div>
             </div>
             <div className="p-b-15 p-t-20 dropdown-menu pop-profile">
               <div className="p-h-20 p-b-15 m-b-10 border-bottom">
                 <div className="d-flex m-r-50">
                   <div className="avatar avatar-lg avatar-image">
-                    <img src="src/assets/images/avatars/thumb-3.jpg" alt="" />
+                    <img src="/src/assets/images/avatars/thumb-3.jpg" alt="" />
                   </div>
                   <div className="m-l-10">
                     <p className="m-b-0 text-dark font-weight-semibold">
@@ -207,8 +207,7 @@ function HeaderLayout() {
             <a
               href="javascript:void(0);"
               data-toggle="modal"
-              data-target="#quick-view"
-            >
+              data-target="#quick-view">
               <i className="anticon anticon-appstore" />
             </a>
           </li>
@@ -218,4 +217,4 @@ function HeaderLayout() {
 
   )
 };
-export default HeaderLayout;
+export default AdminHeaderLayout;

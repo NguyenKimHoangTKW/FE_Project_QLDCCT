@@ -9,7 +9,6 @@ type TableProps = {
 };
 
 const Table: React.FC<TableProps> = ({ headers, data, bordered, hover, small }) => {
-  // build className theo props
   const classes = [
     "table",
     bordered ? "table-bordered" : "",

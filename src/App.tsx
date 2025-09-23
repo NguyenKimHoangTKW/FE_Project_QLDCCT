@@ -1,19 +1,16 @@
-import Footer from "./components/layout/Footer";
-import HeaderLayout from "./components/layout/Header";
-import SideNav from "./components/layout/SideNav";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import AdminLayout from "./layouts/AdminLayout";
+import AdminRoutes from "./modules/Admin/routes/AdminRoutes";
 
 function App() {
   return (
-    <div className="app">
-      <div className="layout">
-        <HeaderLayout />
-        <SideNav />
-        <div className="page-container">
-          
-        </div>
-        <Footer />
-      </div>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/admin/*" element={<AdminLayout />}>
+          <Route path="*" element={<AdminRoutes />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
