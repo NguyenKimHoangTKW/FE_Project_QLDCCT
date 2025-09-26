@@ -1,28 +1,42 @@
-import { useEffect, useState } from "react";
-import { YearAPI } from "../../../../api/Admin/Year/Year";
+import { useEffect, useRef, useState } from "react";
+import { YearAPI } from "../../../../api/Admin/Year/YearAPI";
 import Modal from "../../../../components/ui/Modal";
 
 function DanhSachNam() {
   const [year, setYear] = useState<any[]>([]);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
+
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [formData, setFormData] = useState<{ value_year?: number; name_year: string }>({
     name_year: "",
   });
+  const didFetch = useRef(false);
 
-  // load list
   const fetchData = async () => {
-    const res = await YearAPI.getAll();
-    if (res?.success) setYear(res.data);
-    else setYear([]);
+    const res = await YearAPI.getAll({ page, pageSize });
+    if (res?.success) {
+      setYear(res.data);
+      setTotalPages(res.totalPages);
+      setTotalRecords(res.totalRecords);
+    } else {
+      setYear([]);
+      setTotalPages(1);
+      setTotalRecords(0);
+    }
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (!didFetch.current) {
+      didFetch.current = true;
+      fetchData();
+    }
+  }, [page]);
 
-
-  const headers = ["STT", "ID Năm", "Tên năm", "Thao tác"];
+  const headers = ["STT", "ID Năm", "Tên năm", "*"];
 
   const handleAdd = () => {
     setModalMode("create");
@@ -30,21 +44,18 @@ function DanhSachNam() {
     setShowModal(true);
   };
 
-  const handleEdit = async (value_year: number) => {
+  const handleEdit = async (id: number) => {
     setModalMode("edit");
-    const data = { value_year: value_year, name_year: "" };
-    const res = await YearAPI.getInfo(data);
-
+    const res = await YearAPI.getById(id);
     if (res) {
       setFormData({
         value_year: res.value_year,
         name_year: res.name_year,
       });
       setShowModal(true);
-    } else {
-      alert("Không tìm thấy dữ liệu năm học!");
     }
   };
+
 
   const handleSave = async () => {
     if (!formData.name_year?.trim()) {
@@ -53,7 +64,7 @@ function DanhSachNam() {
     }
 
     if (modalMode === "create") {
-      const res = await YearAPI.AddNew({ name_year: formData.name_year });
+      const res = await YearAPI.create({ name_year: formData.name_year });
       if (res.success) {
         alert(res.message);
         await fetchData();
@@ -63,11 +74,10 @@ function DanhSachNam() {
       }
     } else {
       if (!formData.value_year) {
-        alert("Thiếu ID năm để cập nhật");
+        alert("Thiếu ID năm để cập nhật!");
         return;
       }
-      const res = await YearAPI.update({
-        value_year: formData.value_year,
+      const res = await YearAPI.update(formData.value_year, {
         name_year: formData.name_year,
       });
       if (res.success) {
@@ -79,6 +89,7 @@ function DanhSachNam() {
       }
     }
   };
+
 
   return (
     <div className="main-content">
@@ -113,15 +124,21 @@ function DanhSachNam() {
                   {year.length > 0 ? (
                     year.map((y, index) => (
                       <tr key={y.id_year ?? index}>
-                        <td>{index + 1}</td>
+                        <td>{(page - 1) * pageSize + index + 1}</td>
                         <td>{y.id_year}</td>
                         <td>{y.name_year}</td>
                         <td>
                           <button
-                            className="btn btn-warning btn-sm"
+                            className="btn btn-icon btn-hover btn-sm btn-rounded pull-right"
                             onClick={() => handleEdit(y.id_year)}
                           >
-                            Xem / Sửa
+                            <i className="anticon anticon-edit" />
+                          </button>
+                          <button
+                            className="btn btn-icon btn-hover btn-sm btn-rounded pull-right"
+                            
+                          >
+                            <i className="anticon anticon-delete" />
                           </button>
                         </td>
                       </tr>
@@ -138,7 +155,30 @@ function DanhSachNam() {
             </div>
           </div>
 
-          {/* Modal dùng chung */}
+          {/* Pagination */}
+          <div className="d-flex justify-content-between align-items-center mt-3">
+            <span>
+              Tổng số: {totalRecords} bản ghi | Trang {page}/{totalPages}
+            </span>
+            <div>
+              <button
+                className="btn btn-secondary btn-sm mr-2"
+                disabled={page <= 1}
+                onClick={() => setPage(page - 1)}
+              >
+                Trang trước
+              </button>
+              <button
+                className="btn btn-secondary btn-sm"
+                disabled={page >= totalPages}
+                onClick={() => setPage(page + 1)}
+              >
+                Trang sau
+              </button>
+            </div>
+          </div>
+
+          {/* Modal */}
           <Modal
             isOpen={showModal}
             title={modalMode === "create" ? "Thêm năm học mới" : "Chỉnh sửa năm học"}
