@@ -28,11 +28,11 @@ function AdminSideNav() {
 
             <ul className="dropdown-menu">
               <li>
-                <NavLink to="/admin/test">Test</NavLink>
+                <NavLink to="/admin/quan-li-can-bo-vien-chuc">Quản lý Danh sách Cán bộ viên chức</NavLink>
               </li>
               <li>
                 <NavLink to="/admin/quan-li-danh-sach-nam">
-                  Danh sách năm
+                  Quản lý Danh sách năm
                 </NavLink>
               </li>
             </ul>

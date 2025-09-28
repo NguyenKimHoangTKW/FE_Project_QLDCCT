@@ -3,11 +3,12 @@ import axios from "axios";
 import { URL_API_ADMIN } from "../../../URL_Config";
 
 export const YearAPI = {
-  getAll: (data: { page: number, pageSize: number }) =>
-    axios.post(`${URL_API_ADMIN}/year/lay-du-lieu-nam-hoc`, data, {
-      headers: { "Content-Type": "application/json" }
-    }).then(res => res.data),
-
+  getAll: (data: { page: number; pageSize: number }) =>
+    axios
+      .post(`${URL_API_ADMIN}/year/lay-du-lieu-nam-hoc`, data, {
+        headers: { "Content-Type": "application/json" },
+      })
+      .then((res) => res.data),
 
   getById: (id: number) =>
     axios.get(`${URL_API_ADMIN}/year/${id}`).then((res) => res.data),
