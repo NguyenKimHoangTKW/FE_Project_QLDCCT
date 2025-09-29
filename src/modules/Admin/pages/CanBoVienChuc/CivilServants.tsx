@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { CivilServantsAPI } from "../../../../api/Admin/CivilServantsAPI/civilServants";
 import { unixTimestampToDate } from "../../../../URL_Config";
 import Modal from "../../../../components/ui/Modal";
-import SweetAlert from "../../../../components/ui/SweetAlert";
+import { SweetAlert, SweetAlertDel } from "../../../../components/ui/SweetAlert";
 function CivilServants() {
   const [allData, setAllData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState<any[]>([]);
@@ -12,13 +12,20 @@ function CivilServants() {
   const [showModal, setShowModal] = useState(false);
   const [optionYear, setOptionYear] = useState<any[]>([]);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
-
-  const [formData, setFormData] = useState({
+  const [idYear, setIdYear] = useState(Number);
+  interface CivilServantForm {
+    id_civilSer?: number | null;
+    code_civilSer: string;
+    fullname_civilSer: string;
+    email: string;
+    birthday: string;
+    value_year?: number | null;
+  }
+  const [formData, setFormData] = useState<CivilServantForm>({
     code_civilSer: "",
     fullname_civilSer: "",
     email: "",
     birthday: "",
-    value_year: null as number | null,
   });
 
   const didFetch = useRef(false);
@@ -33,6 +40,7 @@ function CivilServants() {
     { label: "Năm hoạt động", key: "name_year" },
     { label: "Ngày tạo", key: "time_cre" },
     { label: "Cập nhật lần cuối", key: "time_up" },
+    { label: "*", key: "*" }
   ];
 
   const handleInputChange = (
@@ -43,10 +51,15 @@ function CivilServants() {
       ...prev,
       [name]: name === "value_year" ? Number(value) : value,
     }));
+
+    if (name === "value_year") {
+      setIdYear(Number(value));
+    }
   };
 
-  const fetchData = async () => {
-    const res = await CivilServantsAPI.getAll({ page: 1, pageSize: 10 });
+
+  const fetchData = async (id: number) => {
+    const res = await CivilServantsAPI.getAll(id, { page: 1, pageSize: 10 });
     if (res.success) {
       setAllData(res.data);
       setFilteredData(res.data);
@@ -74,12 +87,13 @@ function CivilServants() {
         ...prev,
         value_year: res[0].value,
       }));
+      setIdYear(res[0].value);
     }
   };
 
   useEffect(() => {
     if (!didFetch.current) {
-      fetchData();
+      fetchData(idYear);
       FilterOptionYear();
       didFetch.current = true;
     }
@@ -115,9 +129,24 @@ function CivilServants() {
       };
 
       const res = await CivilServantsAPI.create(payload);
-
       if (res.success) {
-        await fetchData();
+        await fetchData(idYear);
+        SweetAlert("success", res.message);
+        setShowModal(false);
+      } else {
+        SweetAlert("error", res.message);
+      }
+    } else {
+      const payload = {
+        code_civilSer: formData.code_civilSer,
+        fullname_civilSer: formData.fullname_civilSer,
+        email: formData.email,
+        birthday: formData.birthday || null,
+      };
+
+      const res = await CivilServantsAPI.update(formData.id_civilSer!, payload);
+      if (res.success) {
+        await fetchData(idYear);
         SweetAlert("success", res.message);
         setShowModal(false);
       } else {
@@ -126,6 +155,34 @@ function CivilServants() {
     }
   };
 
+
+  const handleEdit = async (id: number) => {
+    setModalMode("edit");
+    const res = await CivilServantsAPI.getInfo(id);
+    setFormData({
+      id_civilSer: res.id_civilSer,
+      code_civilSer: res.code_civilSer,
+      fullname_civilSer: res.fullname_civilSer,
+      email: res.email,
+      birthday: res.birthday,
+    });
+    setShowModal(true);
+  };
+
+  const handleDelete = async (id: number) => {
+    const confirmDel = await SweetAlertDel(
+      "Bằng việc đồng ý, bạn sẽ xóa toàn bộ dữ liệu của CBVC này và những dữ liệu liên quan, bạn muốn tiếp tục?"
+    );
+    if (confirmDel) {
+      const res = await CivilServantsAPI.delete(id);
+      if (res.success) {
+        SweetAlert("success", res.message);
+        await fetchData(idYear);
+      } else {
+        SweetAlert("error", res.message);
+      }
+    }
+  };
   const totalRecords = filteredData.length;
   const totalPages = Math.ceil(totalRecords / pageSize);
   const dataToShow = filteredData.slice((page - 1) * pageSize, page * pageSize);
@@ -164,6 +221,9 @@ function CivilServants() {
                   <button className="btn btn-success" onClick={handleAdd}>
                     <i className="fas fa-plus-circle mr-1" /> Thêm mới
                   </button>
+                  <button className="btn btn-primary" onClick={() => fetchData(idYear)}>
+                    <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
+                  </button>
                 </div>
               </div>
             </fieldset>
@@ -199,23 +259,36 @@ function CivilServants() {
                 {dataToShow.length > 0 ? (
                   dataToShow.map((item, index) => (
                     <tr key={item.id_civilSer}>
-                      <td>{(page - 1) * pageSize + index + 1}</td>
-                      <td>{item.id_civilSer}</td>
-                      <td>{item.code_civilSer}</td>
+                      <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
+                      <td className="formatSo">{item.id_civilSer}</td>
+                      <td className="formatSo">{item.code_civilSer}</td>
                       <td>{item.fullname_civilSer}</td>
                       <td>{item.email}</td>
                       <td>{item.birthday}</td>
                       <td>{item.name_year}</td>
-                      <td>{unixTimestampToDate(item.time_cre)}</td>
-                      <td>{unixTimestampToDate(item.time_up)}</td>
+                      <td className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
+                      <td className="formatSo">{unixTimestampToDate(item.time_up)}</td>
+                      <td>
+                        <button
+                          className="btn btn-icon btn-hover btn-sm btn-rounded pull-right"
+                          onClick={() => handleEdit(item.id_civilSer)}
+                        >
+                          <i className="anticon anticon-edit" />
+                        </button>
+                        <button
+                          className="btn btn-icon btn-hover btn-sm btn-rounded pull-right"
+                          onClick={() => handleDelete(item.id_civilSer)}
+                        >
+                          <i className="anticon anticon-delete" />
+                        </button>
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td
                       colSpan={headers.length}
-                      className="text-center text-danger"
-                    >
+                      className="text-center text-danger">
                       Không có dữ liệu
                     </td>
                   </tr>
@@ -223,8 +296,6 @@ function CivilServants() {
               </tbody>
             </table>
           </div>
-
-          {/* phân trang */}
           <div className="d-flex justify-content-between align-items-center mt-3">
             <span>
               Tổng số: {totalRecords} bản ghi | Trang {page}/{totalPages}
@@ -249,7 +320,6 @@ function CivilServants() {
         </div>
       </div>
 
-      {/* modal thêm/sửa */}
       <Modal
         isOpen={showModal}
         title={
@@ -268,7 +338,7 @@ function CivilServants() {
                 type="text"
                 name="code_civilSer"
                 className="form-control"
-                value={formData.code_civilSer}
+                value={formData.code_civilSer || ""}
                 onChange={handleInputChange}
               />
             </div>
@@ -280,7 +350,7 @@ function CivilServants() {
                 type="text"
                 name="fullname_civilSer"
                 className="form-control"
-                value={formData.fullname_civilSer}
+                value={formData.fullname_civilSer || ""}
                 onChange={handleInputChange}
               />
             </div>
@@ -292,7 +362,7 @@ function CivilServants() {
                 type="text"
                 name="email"
                 className="form-control"
-                value={formData.email}
+                value={formData.email || ""}
                 onChange={handleInputChange}
               />
             </div>
@@ -304,7 +374,7 @@ function CivilServants() {
                 type="date"
                 className="form-control"
                 name="birthday"
-                value={formData.birthday}
+                value={formData.birthday || ""}
                 onChange={handleInputChange}
               />
             </div>

@@ -2,9 +2,9 @@ import axios from "axios";
 import { URL_API_ADMIN } from "../../../URL_Config";
 
 export const CivilServantsAPI = {
-  getAll: (data: { page: number; pageSize: number }) =>
+  getAll: (id: number, data: { page: number; pageSize: number }) =>
     axios
-      .post(`${URL_API_ADMIN}/civilservants`, data, {
+      .post(`${URL_API_ADMIN}/civilservants/${id}`, data, {
         headers: { "Content-Type": "application/json" },
       })
       .then((res) => res.data),
@@ -34,7 +34,6 @@ export const CivilServantsAPI = {
       fullname_civilSer: string;
       email: string;
       birthday: Date;
-      value_year: number;
     }
   ) =>
     axios
@@ -46,4 +45,7 @@ export const CivilServantsAPI = {
     axios
       .get(`${URL_API_ADMIN}/civilservants/load-option-civilservants`)
       .then((res) => res.data),
+
+  delete: (id: number) =>
+    axios.delete(`${URL_API_ADMIN}/civilservants/delete/${id}`).then((res) => res.data)
 };
