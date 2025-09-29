@@ -35,6 +35,11 @@ function AdminSideNav() {
                   Quản lý Danh sách năm
                 </NavLink>
               </li>
+              <li>
+                <NavLink to="/admin/quan-li-danh-sach-don-vi">
+                  Quản lý Danh sách đơn vị
+                </NavLink>
+              </li>
             </ul>
           </li>
         </ul>
