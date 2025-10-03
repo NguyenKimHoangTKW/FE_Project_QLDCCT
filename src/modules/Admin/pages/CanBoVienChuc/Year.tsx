@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { YearAPI } from "../../../../api/Admin/Year/YearAPI";
 import Modal from "../../../../components/ui/Modal";
+import { SweetAlert, SweetAlertDel } from "../../../../components/ui/SweetAlert";
 
 function DanhSachNam() {
   const [year, setYear] = useState<any[]>([]);
@@ -56,6 +57,20 @@ function DanhSachNam() {
     }
   };
 
+  const handleDelte = async (id: number) =>{
+    
+    const confirmDel = await SweetAlertDel("Bằng việc đồng ý, bạn sẽ xóa Năm học này và các dữ liệu liên quan, bạn muốn xóa?");
+    if(confirmDel){
+      const res = await YearAPI.delete(id);
+      if(res.success){
+        SweetAlert("success",  res.message);
+        await fetchData();
+      }
+      else{
+        SweetAlert("success",  res.message);
+      }
+    }
+  }
 
   const handleSave = async () => {
     if (!formData.name_year?.trim()) {
@@ -66,11 +81,11 @@ function DanhSachNam() {
     if (modalMode === "create") {
       const res = await YearAPI.create({ name_year: formData.name_year });
       if (res.success) {
-        alert(res.message);
+        SweetAlert("success",res.message);
         await fetchData();
         setShowModal(false);
       } else {
-        alert(res.message);
+        SweetAlert("error",res.message);
       }
     } else {
       if (!formData.value_year) {
@@ -81,11 +96,11 @@ function DanhSachNam() {
         name_year: formData.name_year,
       });
       if (res.success) {
-        alert(res.message || "Cập nhật thành công!");
+        SweetAlert("success",res.message);
         await fetchData();
         setShowModal(false);
       } else {
-        alert(res.message || "Có lỗi xảy ra!");
+         SweetAlert("error",res.message);
       }
     }
   };
@@ -124,10 +139,10 @@ function DanhSachNam() {
                   {year.length > 0 ? (
                     year.map((y, index) => (
                       <tr key={y.id_year ?? index}>
-                        <td>{(page - 1) * pageSize + index + 1}</td>
-                        <td>{y.id_year}</td>
-                        <td>{y.name_year}</td>
-                        <td>
+                        <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
+                        <td className="formatSo">{y.id_year}</td>
+                        <td className="formatSo">{y.name_year}</td>
+                        <td className="formatSo">
                           <button
                             className="btn btn-icon btn-hover btn-sm btn-rounded pull-right"
                             onClick={() => handleEdit(y.id_year)}
@@ -136,7 +151,7 @@ function DanhSachNam() {
                           </button>
                           <button
                             className="btn btn-icon btn-hover btn-sm btn-rounded pull-right"
-                            
+                            onClick={() => handleDelte(y.id_year)}
                           >
                             <i className="anticon anticon-delete" />
                           </button>

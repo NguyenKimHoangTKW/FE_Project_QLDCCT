@@ -1,4 +1,3 @@
-// src/api/Admin/Year/Year.ts
 import axios from "axios";
 import { URL_API_ADMIN } from "../../../URL_Config";
 
