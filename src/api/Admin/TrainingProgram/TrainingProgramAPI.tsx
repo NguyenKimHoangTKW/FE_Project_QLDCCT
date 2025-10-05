@@ -21,5 +21,5 @@ export const TrainingProgramAPI = {
         axios.post(`${URL_API_ADMIN}/program/cap-nhat-thong-tin-ctdt`, data).then((res) => res.data),
 
     DeleteProgram: (id: number) =>
-        axios.post(`${URL_API_ADMIN}/program/xoa-du-lieu-ctdt/${id}`).then((res) => res.data)
+        axios.delete(`${URL_API_ADMIN}/program/xoa-du-lieu-ctdt/${id}`).then((res) => res.data)
 }
