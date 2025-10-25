@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { CivilServantsAPI } from "../../../../api/Admin/CivilServantsAPI/civilServants";
-import { unixTimestampToDate } from "../../../../URL_Config";
-import Modal from "../../../../components/ui/Modal";
-import { SweetAlert, SweetAlertDel } from "../../../../components/ui/SweetAlert";
+import { CivilServantsAPI } from "../../../api/Admin/civilServants";
+import { unixTimestampToDate } from "../../../URL_Config";
+import Modal from "../../../components/ui/Modal";
+import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 function CivilServants() {
   const [allData, setAllData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState<any[]>([]);
@@ -191,7 +191,6 @@ function CivilServants() {
     <div className="main-content">
       <div className="card">
         <div className="card-body">
-          {/* chức năng */}
           <div className="page-header no-gutters">
             <h2 className="text-uppercase">
               Quản lý Danh sách Cán bộ viên chức

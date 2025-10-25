@@ -1,5 +1,5 @@
 import axios from "axios";
-import { URL_API_ADMIN } from "../../../URL_Config";
+import { URL_API_ADMIN } from "../../URL_Config";
 
 export const YearAPI = {
   getAll: (data: { page: number; pageSize: number }) =>

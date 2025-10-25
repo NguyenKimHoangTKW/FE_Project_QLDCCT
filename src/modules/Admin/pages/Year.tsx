@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { YearAPI } from "../../../../api/Admin/Year/YearAPI";
-import Modal from "../../../../components/ui/Modal";
-import { SweetAlert, SweetAlertDel } from "../../../../components/ui/SweetAlert";
+import { YearAPI } from "../../../api/Admin/YearAPI";
+import Modal from "../../../components/ui/Modal";
+import { SweetAlert,SweetAlertDel } from "../../../components/ui/SweetAlert";
 
 function DanhSachNam() {
   const [year, setYear] = useState<any[]>([]);

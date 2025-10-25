@@ -1,6 +1,10 @@
 export const URL_API_ADMIN = "https://localhost:44314/api/admin";
+export const URL_API_CTDT = "https://localhost:44314/api/ctdt";
 export const URL_API_CLIENT = "https://localhost:44314/api/client";
-export function unixTimestampToDate(unixTimestamp) {
+export const URL_USER = "https://localhost:44314/api";
+export const URL_API_DONVI = "https://localhost:44314/api/donvi";
+export const URL = "https://localhost:44314";
+export function unixTimestampToDate(unixTimestamp: number) {
     var date = new Date(unixTimestamp * 1000);
     var weekdays = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
     var dayOfWeek = weekdays[date.getDay()];

@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { unixTimestampToDate } from "../../../../URL_Config";
-import { TrainingProgramAPI } from "../../../../api/Admin/TrainingProgram/TrainingProgramAPI";
-import Modal from "../../../../components/ui/Modal";
-import {
-  SweetAlert,
-  SweetAlertDel,
-} from "../../../../components/ui/SweetAlert";
+import { unixTimestampToDate } from "../../../URL_Config";
+import { TrainingProgramAPI } from "../../../api/Admin/TrainingProgramAPI";
+import Modal from "../../../components/ui/Modal";
+import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
+import Loading from "../../../components/ui/Loading";
 
 function TrainingProgramInterface() {
   const [page, setPage] = useState(1);
@@ -13,14 +11,19 @@ function TrainingProgramInterface() {
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [showModal, setShowModal] = useState(false);
   const didFetch = useRef(false);
+  const [searchText, setSearchText] = useState("");
   const [listYear, setListYear] = useState<any[]>([]);
   const [filters, setFilters] = useState<{ [key: string]: string }>({});
   const [filteredData, setFilteredData] = useState<any[]>([]);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [listDonVi, setListDonVi] = useState<any[]>([]);
   const [listDonViValue, setListDonViValue] = useState<any[]>([]);
   const [idSelectedDonVi, setIdSelectedDonVi] = useState(Number);
   const [idYearValue, setIdYearValue] = useState(Number);
   const [allData, setAllData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   interface TrainingProgramInput {
     id_program: number | null;
     id_faculty: number | null;
@@ -76,13 +79,18 @@ function TrainingProgramInterface() {
     const res = await TrainingProgramAPI.getAllProgramCtdt(idSelectedDonVi, {
       page,
       pageSize,
+      searchText,
     });
     if (res.success) {
-      setFilteredData(res.data);
-      setAllData(res.data);
+      setAllData(res.data || []);
+      setFilteredData(res.data || []);
+      setTotalRecords(res.totalRecords || 0);
+      setTotalPages(res.totalPages || 1);
     } else {
       setFilteredData([]);
       setAllData([]);
+      setTotalPages(0);
+      setTotalRecords(1);
     }
   };
   const handleAdd = async () => {
@@ -106,23 +114,18 @@ function TrainingProgramInterface() {
     }));
   };
   const handleFilterChange = (key: string, value: string) => {
-    const newFilters = { ...filters, [key]: value };
-    setFilters(newFilters);
-
-    let temp = [...allData];
-    Object.keys(newFilters).forEach((fKey) => {
-      const fValue = newFilters[fKey].toLowerCase();
-      if (fValue) {
-        temp = temp.filter((item) =>
-          String(item[fKey] || "")
-            .toLowerCase()
-            .includes(fValue)
-        );
-      }
-    });
-
-    setFilteredData(temp);
-    setPage(1);
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+    if (
+      key === "code_program" ||
+      key === "name_program" ||
+      key === "name_faculty"
+    ) {
+      setSearchText(value);
+      setPage(1);
+    }
   };
   const handleSave = async () => {
     if (modalMode === "create") {
@@ -193,18 +196,44 @@ function TrainingProgramInterface() {
       }
     }
   };
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) setSelectedFile(file);
+  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFile) {
+      Swal.fire("Thông báo", "Vui lòng chọn file Excel!", "warning");
+      return;
+    }
+
+    setLoading(true);
+    const res = await TrainingProgramAPI.UploadExcel(selectedFile);
+    setLoading(false);
+    if (res.data.success) {
+      SweetAlert("success", res.data.message);
+    } else {
+      SweetAlert("error", res.data.message);
+    }
+  };
   useEffect(() => {
     if (!didFetch.current) {
       LoadSelectedYear();
-      ShowData();
       didFetch.current = true;
     }
   }, []);
-  const totalRecords = filteredData.length;
-  const totalPages = Math.ceil(totalRecords / pageSize);
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      ShowData();
+    }, 500);
+
+    return () => clearTimeout(delayDebounce);
+  }, [page, searchText]);
+
   const dataToShow = filteredData.slice((page - 1) * pageSize, page * pageSize);
   return (
     <div className="main-content">
+      <Loading isOpen={loading} />
       <div className="card">
         <div className="card-body">
           <div className="page-header no-gutters">
@@ -250,6 +279,14 @@ function TrainingProgramInterface() {
                   <button className="btn btn-success" onClick={handleAdd}>
                     <i className="fas fa-plus-circle mr-1" /> Thêm mới
                   </button>
+                  <button
+                    className="btn btn-success"
+                    id="exportExcel"
+                    data-toggle="modal"
+                    data-target="#importExcelModal"
+                  >
+                    <i className="fas fa-file-excel mr-1" /> Import từ Excel
+                  </button>
                   <button className="btn btn-primary" onClick={ShowData}>
                     <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
                   </button>
@@ -257,7 +294,57 @@ function TrainingProgramInterface() {
               </div>
             </fieldset>
           </div>
+          {/*Modal Import*/}
+          <div
+            className="modal fade"
+            id="importExcelModal"
+            tabIndex={-1}
+            aria-labelledby="importExcelModalLabel"
+            aria-hidden="true"
+          >
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Import CTĐT từ Excel</h5>
+                  <button type="button" className="close" data-dismiss="modal">
+                    <i className="anticon anticon-close" />
+                  </button>
+                </div>
+                <div className="modal-body">
+                  <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                      <label htmlFor="excelFile">Chọn file Excel</label>
+                      <input
+                        type="file"
+                        className="form-control"
+                        id="excelFile"
+                        accept=".xlsx, .xls"
+                        onChange={handleFileChange}
+                      />
+                    </div>
 
+                    <button
+                      type="submit"
+                      className="btn btn-success btn-tone m-r-5"
+                      disabled={loading}
+                    >
+                      {loading ? "Đang upload..." : "Upload"}
+                    </button>
+
+                    <a href="/DataExport/Mau/Mau_Upload_Khoa.xlsx" download>
+                      <button
+                        type="button"
+                        className="btn btn-info btn-tone m-r-5"
+                      >
+                        Tải file mẫu
+                      </button>
+                    </a>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/*End Modal Import*/}
           <div className="table-responsive">
             <table className="table table-bordered">
               <thead>
@@ -284,8 +371,8 @@ function TrainingProgramInterface() {
                 </tr>
               </thead>
               <tbody>
-                {dataToShow.length > 0 ? (
-                  dataToShow.map((item: any, index: number) => (
+                {filteredData.length > 0 ? (
+                  filteredData.map((item: any, index: number) => (
                     <tr key={item.id_program}>
                       <td className="formatSo">
                         {(page - 1) * pageSize + index + 1}

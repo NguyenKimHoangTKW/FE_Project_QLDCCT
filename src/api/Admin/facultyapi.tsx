@@ -1,5 +1,5 @@
 import axios from "axios";
-import { URL_API_ADMIN } from "../../../URL_Config";
+import { URL_API_ADMIN } from "../../URL_Config";
 
 export const FacultyApi = {
   loadNambyDonvi: () =>
@@ -7,10 +7,13 @@ export const FacultyApi = {
       .get(`${URL_API_ADMIN}/faculty/loadsnambydonvi`)
       .then((res) => res.data),
 
-  getAll: (id: number, data: { page: number; pageSize: number }) =>
-    axios
-      .post(`${URL_API_ADMIN}/faculty/loadsdonvibynam/${id}`, data)
-      .then((res) => res.data),
+  getAll: async (yearId: number, { page, pageSize, searchText }: any) => {
+    const res = await axios.post(
+      `${URL_API_ADMIN}/faculty/loadsdonvibynam/${yearId}`,
+      { page, pageSize, searchText }
+    );
+    return res.data;
+  },
 
   Add: (data: {
     code_faciulty: string;
@@ -41,4 +44,15 @@ export const FacultyApi = {
     axios
       .delete(`${URL_API_ADMIN}/faculty/xoa-thong-tin-don-vi/${id}`)
       .then((res) => res.data),
+  uploadExcelKhoaVienTruong: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return await axios.post(
+      `${URL_API_ADMIN}/faculty/upload-excel-khoa-vien-truong`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
+  },
 };

@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 
-function AdminHeaderLayout() {
+function CTDTHeaderLayout() {
   return (
     <div className="header">
       <div className="logo logo-dark">
-        <Link to="/admin" className="logo-link">
+        <Link to="/ctdt" className="logo-link">
           <img
             src="/src/assets/images/logo/Icon.png"
             style={{ width: "66px" }}
@@ -111,4 +111,4 @@ function AdminHeaderLayout() {
     </div>
   );
 }
-export default AdminHeaderLayout;
+export default CTDTHeaderLayout;
