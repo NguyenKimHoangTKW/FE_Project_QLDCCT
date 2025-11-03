@@ -46,6 +46,38 @@ function DonViSideNav() {
             </Link>
           </li>
           <li>
+            <Link className="dropdown-toggle" to={"/donvi/danh-sach-muc-tieu-hoc-phan"}>
+              <span className="icon-holder">
+                <i className="anticon anticon-logout" />
+              </span>
+              <span className="title">Quản lý mục tiêu học phần</span>
+            </Link>
+          </li>
+          <li>
+            <Link className="dropdown-toggle" to={"/donvi/danh-sach-chuan-dau-ra-hoc-phan"}>
+              <span className="icon-holder">
+                <i className="anticon anticon-logout" />
+              </span>
+              <span className="title">Quản lý chuẩn đầu ra học phần</span>
+            </Link>
+          </li>
+          <li>
+            <Link className="dropdown-toggle" to={"/donvi/danh-sach-chuan-dau-ra-ctdt"}>
+              <span className="icon-holder">
+                <i className="anticon anticon-logout" />
+              </span>
+              <span className="title">Quản lý chuẩn đầu ra chương trình đào tạo</span>
+            </Link>
+          </li>
+          <li>
+            <Link className="dropdown-toggle" to={"/donvi/tao-moi-mau-de-cuong"}>
+              <span className="icon-holder">
+                <i className="anticon anticon-logout" />
+              </span>
+              <span className="title">Tạo mới mẫu đề cương</span>
+            </Link>
+          </li>
+          <li>
             <Link className="dropdown-toggle" onClick={Logout}>
               <span className="icon-holder">
                 <i className="anticon anticon-logout" />
