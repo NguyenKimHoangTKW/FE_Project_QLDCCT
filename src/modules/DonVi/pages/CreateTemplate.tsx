@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { CreateTemplateAPI } from "../../../api/DonVi/CreateTemplateAPI";
 import Select from "react-select";
-import { SweetAlert } from "../../../components/ui/SweetAlert";
+import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import Modal from "../../../components/ui/Modal";
+import { useNavigate } from "react-router-dom";
 
 export default function CreateTemplateInterfaceDonVi() {
+    const navigate = useNavigate();
     const [listTemplate, setListTemplate] = useState<any[]>([]);
     const [modalOpen, setModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState<"create" | "edit">("create");
@@ -13,19 +15,21 @@ export default function CreateTemplateInterfaceDonVi() {
     const [listDataBinding, setListDataBinding] = useState<any[]>([]);
     const [listData, setListData] = useState<any[]>([]);
     interface FormData {
+        id_template_section: number | null;
         id_template: number | null;
         section_name: string;
         section_code: string;
-        is_required: number | null;
+        allow_input: number | null;
         order_index: number | null;
         id_contentType: number | null;
         id_dataBinding: number | null;
     }
     const [formData, setFormData] = useState<FormData>({
         id_template: null,
+        id_template_section: null,
         section_name: "",
         section_code: "",
-        is_required: null,
+        allow_input: null,
         order_index: null,
         id_contentType: null,
         id_dataBinding: null,
@@ -45,10 +49,10 @@ export default function CreateTemplateInterfaceDonVi() {
             console.log(value);
         }
         if (name === "id_contentType") {
-            setFormData((prev) => ({ ...prev, id_dataBinding: Number(value) }));
+            setFormData((prev) => ({ ...prev, id_contentType: Number(value) }));
         }
         if (name === "id_dataBinding") {
-            setFormData((prev) => ({ ...prev, id_contentType: Number(value) }));
+            setFormData((prev) => ({ ...prev, id_dataBinding: Number(value) }));
         }
     }
     const LoadOptionSection = async () => {
@@ -58,13 +62,14 @@ export default function CreateTemplateInterfaceDonVi() {
         setFormData((prev) => ({ ...prev, id_contentType: Number(res.contentType[0].id), id_dataBinding: Number(res.dataBinding[0].id), is_required: 1 }));
     }
     const InfoTemplateSection = async (id: number) => {
-        const res = await CreateTemplateAPI.InfoTemplateSection({ id_template_section: id });
+        const res = await CreateTemplateAPI.InfoTemplateSection({ id_template_section: Number(id) });
         if (res.success) {
             setFormData({
-                id_template: res.data.id_template,
+                id_template_section: Number(res.data.id_template_section),
+                id_template: Number(res.data.id_template),
                 section_name: res.data.section_name,
                 section_code: res.data.section_code,
-                is_required: res.data.is_required,
+                allow_input: res.data.allow_input,
                 order_index: res.data.order_index,
                 id_contentType: res.data.id_contentType,
                 id_dataBinding: res.data.id_dataBinding,
@@ -87,12 +92,12 @@ export default function CreateTemplateInterfaceDonVi() {
         }
     }
     const handleUpdateTemplateSection = async () => {
-        if(modalMode === "create") {
+        if (modalMode === "create") {
             const res = await CreateTemplateAPI.CreateTemplate({
                 id_template: checkTemplate,
                 section_name: formData.section_name,
                 section_code: formData.section_code,
-                is_required: Number(formData.is_required),
+                allow_input: Number(formData.allow_input),
                 order_index: Number(formData.order_index),
                 id_contentType: Number(formData.id_contentType),
                 id_dataBinding: Number(formData.id_dataBinding),
@@ -107,10 +112,10 @@ export default function CreateTemplateInterfaceDonVi() {
         }
         else {
             const res = await CreateTemplateAPI.UpdateTemplateSection({
-                id_template_section: Number(formData.id_template),
+                id_template_section: Number(formData.id_template_section),
                 section_name: formData.section_name,
                 section_code: formData.section_code,
-                is_required: Number(formData.is_required),
+                allow_input: Number(formData.allow_input),
                 order_index: Number(formData.order_index),
                 id_contentType: Number(formData.id_contentType),
                 id_dataBinding: Number(formData.id_dataBinding),
@@ -128,6 +133,31 @@ export default function CreateTemplateInterfaceDonVi() {
         const res = await CreateTemplateAPI.GetListData({ id_template: checkTemplate });
         if (res.success) {
             setListData(res.data);
+            SweetAlert("success", res.message);
+        }
+        else {
+            SweetAlert("error", res.message);
+        }
+    }
+    const handleDeleteTemplateSection = async (id: number) => {
+        const confirm = await SweetAlertDel("Bằng việc đồng ý, bạn sẽ xóa mục tiêu đề này và các dữ liệu liên quan khác, bạn muốn xóa?");
+        if (confirm) {
+            const res = await CreateTemplateAPI.DeleteTemplateSection({ id_template_section: id });
+            if (res.success) {
+                SweetAlert("success", res.message);
+                loadDataTemplate();
+            }
+            else {
+                SweetAlert("error", res.message);
+            }
+        }
+    }
+    const handleSaveTemplate = async () => {
+        const res = await CreateTemplateAPI.SaveTemplateSection({
+            id_template: checkTemplate,
+            template_json: JSON.stringify(listData),
+        });
+        if (res.success) {
             SweetAlert("success", res.message);
         }
         else {
@@ -169,6 +199,9 @@ export default function CreateTemplateInterfaceDonVi() {
                                     <button className="btn btn-primary" onClick={loadDataTemplate}>
                                         <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
                                     </button>
+                                    <button className="btn btn-primary" onClick={handleSaveTemplate}>
+                                        <i className="fas fa-save mr-1" /> Lưu dữ liệu
+                                    </button>
                                 </div>
                             </div>
                         </fieldset>
@@ -196,7 +229,7 @@ export default function CreateTemplateInterfaceDonVi() {
                                                 <button className="btn btn-outline-primary btn-sm" onClick={() => InfoTemplateSection(item.id_template_section)}>
                                                     <i className="fas fa-edit me-1"></i> Sửa
                                                 </button>
-                                                <button className="btn btn-outline-danger btn-sm">
+                                                <button className="btn btn-outline-danger btn-sm" onClick={() => handleDeleteTemplateSection(item.id_template_section)}>
                                                     <i className="fas fa-trash me-1"></i> Xóa
                                                 </button>
                                             </div>
@@ -208,7 +241,7 @@ export default function CreateTemplateInterfaceDonVi() {
                                                 <strong className="text-dark">Dạng câu hỏi:</strong> {item.contentType}
                                             </p>
                                             <p className="text-primary mb-2">
-                                                <strong className="text-dark">Bắt buộc:</strong> {item.is_required}
+                                                <strong className="text-dark">Cho phép nhập liệu:</strong> {item.allow_input}
                                             </p>
                                             <p className="text-primary mb-0">
                                                 <strong className="text-dark">Liên kết dữ liệu:</strong> {item.dataBinding}
@@ -232,13 +265,17 @@ export default function CreateTemplateInterfaceDonVi() {
                                 type="button"
                                 id="btnPreviewTemplateCreated"
                                 className="btn btn-outline-primary"
+                                onClick={() =>
+                                    window.open(
+                                        `/donvi/xem-truc-tuyen-mau-de-cuong/${formData.id_template}`,
+                                        "_blank"
+                                    )
+                                }
                             >
                                 <i className="fas fa-eye me-1"></i> Xem trước mẫu đề cương
                             </button>
                         </div>
-
                     </div>
-
                 </div>
             </div>
             <Modal
@@ -249,29 +286,29 @@ export default function CreateTemplateInterfaceDonVi() {
             >
                 <form id="modal-body" autoComplete="off">
                     <div className="form-group row">
-                        <label className="col-sm-2 col-form-label">Thứ tự</label>
+                        <label className="col-sm-2 col-form-label">Thứ tự hiển thị</label>
                         <div className="col-sm-10">
                             <input type="number" className="form-control" name="order_index" value={formData.order_index ?? ""} onChange={handleInputChange} />
                         </div>
                     </div>
                     <div className="form-group row">
-                        <label className="col-sm-2 col-form-label">Tên tiêu đề</label>
-                        <div className="col-sm-10">
-                            <input type="text" className="form-control" name="section_name" value={formData.section_name ?? ""} onChange={handleInputChange} />
-                        </div>
-                    </div>
-                    <div className="form-group row">
-                        <label className="col-sm-2 col-form-label">Mã tiêu đề</label>
+                        <label className="col-sm-2 col-form-label">Số thứ tự mục tiêu đề</label>
                         <div className="col-sm-10">
                             <input type="text" className="form-control" name="section_code" value={formData.section_code ?? ""} onChange={handleInputChange} />
                         </div>
                     </div>
                     <div className="form-group row">
+                        <label className="col-sm-2 col-form-label">Tên mục tiêu đề</label>
+                        <div className="col-sm-10">
+                            <input type="text" className="form-control" name="section_name" value={formData.section_name ?? ""} onChange={handleInputChange} />
+                        </div>
+                    </div>
+                    <div className="form-group row">
                         <label className="col-sm-2 col-form-label">Yêu cầu</label>
                         <div className="col-sm-10">
-                            <select className="form-control" name="is_required" value={formData.is_required ?? ""} onChange={handleInputChange} >
-                                <option value="1">Bắt buộc</option>
-                                <option value="0">Không bắt buộc</option>
+                            <select className="form-control" name="allow_input" value={formData.allow_input ?? ""} onChange={handleInputChange} >
+                                <option value="1">Cho phép nhập liệu</option>
+                                <option value="0">Không cho phép nhập liệu</option>
                             </select>
                         </div>
                     </div>
@@ -289,6 +326,7 @@ export default function CreateTemplateInterfaceDonVi() {
                         <label className="col-sm-2 col-form-label">Liên kết dữ liệu</label>
                         <div className="col-sm-10">
                             <select className="form-control" name="id_dataBinding" value={formData.id_dataBinding ?? ""} onChange={handleInputChange} >
+                                <option value="null">Bỏ qua</option>
                                 {listDataBinding.map((item: any) => (
                                     <option key={item.id} value={item.id}>{item.name}</option>
                                 ))}

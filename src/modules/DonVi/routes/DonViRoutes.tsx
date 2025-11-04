@@ -7,6 +7,7 @@ import CourseObjectivesInterfaceDonVi from "../pages/CourseObjectives";
 import CourseLearningOutcomeInterfaceDonVi from "../pages/CourseLearningOutcome";
 import ProgramLearningOutcomeInterfaceDonVi from "../pages/ProgramLearningOutcome";
 import CreateTemplateInterfaceDonVi from "../pages/CreateTemplate";
+import PreviewTemplateInterfaceDonVi from "../pages/PreviewTemplate";
 
 function DonViRoutes() {
   return (
@@ -19,6 +20,7 @@ function DonViRoutes() {
            <Route path="danh-sach-chuan-dau-ra-hoc-phan" element={<CourseLearningOutcomeInterfaceDonVi />} />
            <Route path="danh-sach-chuan-dau-ra-ctdt" element={<ProgramLearningOutcomeInterfaceDonVi />} />
            <Route path="tao-moi-mau-de-cuong" element={<CreateTemplateInterfaceDonVi />} />
+           <Route path="xem-truc-tuyen-mau-de-cuong/:id_template" element={<PreviewTemplateInterfaceDonVi />} />
     </Routes>
   );
 }
