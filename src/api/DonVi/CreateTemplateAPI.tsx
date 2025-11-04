@@ -75,4 +75,9 @@ export const CreateTemplateAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
+
+    LoadSelectedProgram: () =>
+        axios.get(`${URL_API_DONVI}/syllabustemplate/loads-selected-program`, {
+            withCredentials: true,
+        }).then((res) => res.data),
 }

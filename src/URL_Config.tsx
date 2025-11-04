@@ -3,6 +3,7 @@ export const URL_API_CTDT = "https://localhost:44314/api/ctdt";
 export const URL_API_CLIENT = "https://localhost:44314/api/client";
 export const URL_USER = "https://localhost:44314/api";
 export const URL_API_DONVI = "https://localhost:44314/api/donvi";
+export const URL_API_SHARED = "https://localhost:44314/api/evaluate";
 export const URL = "https://localhost:44314";
 export function unixTimestampToDate(unixTimestamp: number) {
     var date = new Date(unixTimestamp * 1000);

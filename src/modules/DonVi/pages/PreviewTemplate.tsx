@@ -7,7 +7,7 @@ import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import "@ckeditor/ckeditor5-build-classic/build/translations/vi";
 import "../../../assets/css/template-preview.css";
-
+import { PreviewEvaluateAPI } from "../../../api/Shared/PreviewEvaluate";
 ClassicEditor.defaultConfig = {
   ...(ClassicEditor.defaultConfig || {}),
   licenseKey: "GPL",
@@ -18,7 +18,11 @@ export default function PreviewTemplateInterfaceDonVi() {
   const { id_template } = useParams();
   const [templateSections, setTemplateSections] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-
+  const [loadPreviewCourseObjectives, setLoadPreviewCourseObjectives] = useState<any[]>([]);
+  const [loadPreviewCourseLearningOutcome, setLoadPreviewCourseLearningOutcome] = useState<any[]>([]);
+  const [loadSelectedProgram, setLoadSelectedProgram] = useState<any[]>([]);
+  const [loadPreviewProgramLearningOutcome, setLoadPreviewProgramLearningOutcome] = useState<any[]>([]);
+  const [id_program, setIdProgram] = useState<number>(0);
   const LoadData = async () => {
     try {
       const res = await CreateTemplateAPI.PreviewTemplate({
@@ -39,21 +43,255 @@ export default function PreviewTemplateInterfaceDonVi() {
       setLoading(false);
     }
   };
+  const handleChangeIdProgram = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = Number(e.target.value);
+    setIdProgram(value);
+    await LoadPreviewProgramLearningOutcome(value);
+  };
 
+  const LoadPreviewProgramLearningOutcome = async (id: number) => {
+    console.log(id);
+    const res = await PreviewEvaluateAPI.PreviewProgramLearningOutcome({ id_program: id });
+    setLoadPreviewProgramLearningOutcome(res);
+  };
+
+  const LoadPreviewCourseObjectives = async () => {
+    const res = await PreviewEvaluateAPI.PreviewCourseObjectives();
+    if (res.success) {
+      setLoadPreviewCourseObjectives(res.data);
+    }
+  };
+  const LoadPreviewCourseLearningOutcome = async () => {
+    const res = await PreviewEvaluateAPI.PreviewCourseLearningOutcome();
+    if (res.success) {
+      setLoadPreviewCourseLearningOutcome(res.data);
+    }
+  };
+  const LoadSelectedProgram = async () => {
+    const res = await CreateTemplateAPI.LoadSelectedProgram();
+    setLoadSelectedProgram(res);
+  };
   useEffect(() => {
     LoadData();
+    LoadSelectedProgram();
+    LoadPreviewCourseObjectives();
+    LoadPreviewCourseLearningOutcome();
+    LoadPreviewProgramLearningOutcome(id_program);
   }, []);
+
+  const RenderTableCourseObjectives = (section: any) => {
+    const bindingType = section.dataBinding.split(" - ")[0];
+    if (bindingType === "CO") {
+      return (
+        <div>
+          <p className="fw-bold text-center">
+            Bảng mẫu tham khảo chỉ số học phần
+          </p>
+          <table className="table table-bordered">
+            <thead>
+              <tr>
+                <th className="text-center">Mã CO</th>
+                <th className="text-center">Mục tiêu học phần</th>
+                <th className="text-center">Loại năng lực</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loadPreviewCourseObjectives.map((item: any, index: number) => (
+                <tr key={index}>
+                  <td className="text-center">{item.name_CO}</td>
+                  <td>{item.describe_CO}</td>
+                  <td className="text-center">{item.typeOfCapacity}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+    else if (bindingType === "CLO") {
+      return (
+        <div>
+          <p className="fw-bold text-center">
+            Bảng mẫu tham khảo chỉ số chuẩn đầu ra học phần
+          </p>
+          <table className="table table-bordered">
+            <thead>
+              <tr>
+                <th className="text-center">Mã CLO</th>
+                <th className="text-center">Mục tiêu đầu ra học phần</th>
+                <th className="text-center">Mức Bloom</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loadPreviewCourseLearningOutcome.map((item: any, index: number) => (
+                <tr key={index}>
+                  <td className="text-center">{item.name_CLO}</td>
+                  <td>{item.describe_CLO}</td>
+                  <td className="text-center">{item.bloom_level}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+    else if (bindingType === "PLO") {
+      return (
+        <div>
+          <p>
+            Tùy chọn này chỉ áp dụng cho xem trước, khi tạo mới đề cương môn học sẽ tự
+            mapping theo chương trình đào tạo của môn học đó
+          </p>
+          <hr />
+
+          {/* Select chọn chương trình */}
+          <select
+            className="form-control mb-3"
+            onChange={handleChangeIdProgram}
+            name="id_program"
+          >
+            {loadSelectedProgram.map((item: any, index: number) => (
+              <option key={index} value={item.id_program}>
+                {item.name_program}
+              </option>
+            ))}
+          </select>
+
+          <hr />
+
+          {/* Bảng hiển thị PLO và PI */}
+          <table className="table table-bordered align-middle">
+            <thead className="table-light">
+              <tr>
+                <th className="text-center" style={{ width: "10%" }}>Mã PLO</th>
+                <th className="text-center" style={{ width: "40%" }}>Nội dung PLO</th>
+                <th className="text-center" style={{ width: "10%" }}>Mã PI</th>
+                <th className="text-center" style={{ width: "40%" }}>Nội dung PI</th>
+              </tr>
+            </thead>
+
+            {loadPreviewProgramLearningOutcome.map((plo: any, index: number) => (
+              <tbody key={index}>
+                {plo.pi.map((pi: any, piIndex: number) => (
+                  <tr key={piIndex}>
+                    {piIndex === 0 && (
+                      <>
+                        <td
+                          rowSpan={plo.count_pi}
+                          className="text-center fw-bold text-primary align-middle"
+                        >
+                          {plo.code_plo}
+                        </td>
+                        <td
+                          rowSpan={plo.count_pi}
+                          className="align-middle"
+                          style={{ fontWeight: 500 }}
+                        >
+                          {plo.description_plo}
+                        </td>
+                      </>
+                    )}
+
+                    <td className="text-center fw-semibold">{pi.code}</td>
+                    <td>{pi.description}</td>
+                  </tr>
+                ))}
+              </tbody>
+            ))}
+          </table>
+
+          <p className="fw-bold text-center mt-3">
+            Bảng mẫu tham khảo chỉ số đầu ra học phần
+          </p>
+        </div>
+      );
+
+    }
+  }
+  const getDefaultTemplateContent = (bindingCode: string) => {
+    switch (bindingCode) {
+      case "GeneralInfomation":
+        return `
+          <table style="border-collapse: collapse; width: 100%;" border="1">
+            <tbody>
+              <tr>
+                <td style="padding: 6px;">- <strong>Tên học phần:</strong></td>
+                <td style="padding: 6px;">&nbsp;</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px;">- <strong>Tên tiếng Anh:</strong></td>
+                <td style="padding: 6px;">&nbsp;</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px;">- <strong>Mã học phần:</strong></td>
+                <td style="padding: 6px;">&nbsp;</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px;">- <strong>E-learning:</strong></td>
+                <td style="padding: 6px;">&nbsp;</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px;">- <strong>Thuộc khối kiến thức/kỹ năng:</strong></td>
+                <td style="padding: 6px;">
+                  <p>Giáo dục đại cương □ &nbsp;&nbsp; Cơ sở ngành ☑️</p>
+                  <p>Chuyên ngành □ &nbsp;&nbsp; Đồ án/Khóa luận □</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 6px;">- <strong>Số tín chỉ:</strong></td>
+                <td style="padding: 6px;">-</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px;">- <strong>Số tiết lý thuyết:</strong></td>
+                <td style="padding: 6px;">-</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px;">- <strong>Số tiết thực hành:</strong></td>
+                <td style="padding: 6px;">-</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px;">- <strong>Tự học:</strong></td>
+                <td style="padding: 6px;">-</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px;">- <strong>Học phần tiên quyết:</strong></td>
+                <td style="padding: 6px;">-</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px;">- <strong>Học phần học trước:</strong></td>
+                <td style="padding: 6px;">-</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px;">- <strong>Học phần song hành:</strong></td>
+                <td style="padding: 6px;">-</td>
+              </tr>
+            </tbody>
+          </table>
+        `;
+      case "CO":
+        return `
+          <p><strong>Mục tiêu học phần (CO - Course Objectives)</strong></p>
+          <p><strong>CO1:</strong> Học phần nhằm trang bị cho sinh viên những kiến thức cơ bản về cơ sở dữ liệu; các kiến thức về mô hình thực thể kết hợp; các khái niệm về mô hình dữ liệu quan hệ; các loại ràng buộc trên quan hệ; các kiến thức liên quan đến đại số tập hợp; các phép toán của đại số quan hệ; các cấu trúc lệnh của ngôn ngữ SQL.</p>
+          <p><strong>CO2:</strong> Sinh viên sử dụng thành thạo các công cụ để phân tích, thiết kế và cài đặt CSDL quan hệ. Vận dụng viết lệnh trả lời các truy vấn bằng SQL, cài đặt các loại ràng buộc toàn vẹn trên CSDL.</p>
+          <p><strong>CO3:</strong> Sinh viên có khả năng lập trình quản lý dữ liệu và bẫy lỗi; tự động hóa, đồng bộ hóa dữ liệu; quản lý người dùng; bảo mật CSDL và vận dụng các kiến thức về chức năng của HQTCSDL Microsoft SQL Server để xây dựng và quản lý một CSDL.</p>
+        `;
+      default:
+        return "<p><br/></p>";
+    }
+  };
 
   const renderSectionContent = (section: any) => {
     const type = section.contentType?.split(" - ")[0] || "";
-
+    const bindingCode = section.dataBinding
+      ? section.dataBinding.split(" - ")[0].trim()
+      : "";
     switch (type) {
       case "text":
         return (
           <div className="ckeditor-wrapper">
             <CKEditor
               editor={ClassicEditor}
-              data={section.value || "<p><br/></p>"}
+              data={section.value || getDefaultTemplateContent(bindingCode)}
               disabled={false}
               config={{
                 language: "vi",
@@ -63,16 +301,35 @@ export default function PreviewTemplateInterfaceDonVi() {
                   items: [
                     "heading",
                     "|",
+                    "fontfamily",
+                    "fontsize",
+                    "fontColor",
+                    "fontBackgroundColor",
+                    "|",
                     "bold",
                     "italic",
-                    "link",
+                    "underline",
+                    "strikethrough",
+                    "|",
+                    "alignment",
+                    "outdent",
+                    "indent",
+                    "|",
                     "bulletedList",
                     "numberedList",
+                    "todoList",
                     "|",
+                    "link",
+                    "blockQuote",
                     "insertTable",
                     "tableColumn",
                     "tableRow",
                     "mergeTableCells",
+                    "tableProperties",
+                    "tableCellProperties",
+                    "|",
+                    "horizontalLine",
+                    "specialCharacters",
                     "|",
                     "undo",
                     "redo",
@@ -87,6 +344,9 @@ export default function PreviewTemplateInterfaceDonVi() {
                     "tableProperties",
                   ],
                 },
+                alignment: {
+                  options: ["left", "center", "right", "justify"],
+                },
                 removePlugins: [
                   "CKFinder",
                   "CKFinderUploadAdapter",
@@ -96,6 +356,7 @@ export default function PreviewTemplateInterfaceDonVi() {
                 ],
               }}
             />
+
           </div>
         );
 
@@ -104,7 +365,7 @@ export default function PreviewTemplateInterfaceDonVi() {
           <div className="ckeditor-wrapper">
             <CKEditor
               editor={ClassicEditor}
-              data={section.value || "<p><br/></p>"}
+              data={section.value || getDefaultTemplateContent(bindingCode)}
               disabled={false}
               config={{
                 language: "vi",
@@ -114,16 +375,35 @@ export default function PreviewTemplateInterfaceDonVi() {
                   items: [
                     "heading",
                     "|",
+                    "fontfamily",
+                    "fontsize",
+                    "fontColor",
+                    "fontBackgroundColor",
+                    "|",
                     "bold",
                     "italic",
-                    "link",
+                    "underline",
+                    "strikethrough",
+                    "|",
+                    "alignment",
+                    "outdent",
+                    "indent",
+                    "|",
                     "bulletedList",
                     "numberedList",
+                    "todoList",
                     "|",
+                    "link",
+                    "blockQuote",
                     "insertTable",
                     "tableColumn",
                     "tableRow",
                     "mergeTableCells",
+                    "tableProperties",
+                    "tableCellProperties",
+                    "|",
+                    "horizontalLine",
+                    "specialCharacters",
                     "|",
                     "undo",
                     "redo",
@@ -138,6 +418,9 @@ export default function PreviewTemplateInterfaceDonVi() {
                     "tableProperties",
                   ],
                 },
+                alignment: {
+                  options: ["left", "center", "right", "justify"],
+                },
                 removePlugins: [
                   "CKFinder",
                   "CKFinderUploadAdapter",
@@ -147,6 +430,7 @@ export default function PreviewTemplateInterfaceDonVi() {
                 ],
               }}
             />
+
           </div>
         );
 
@@ -207,6 +491,7 @@ export default function PreviewTemplateInterfaceDonVi() {
 
                       {allowInput ? (
                         <div className="template-section-content">
+                          {RenderTableCourseObjectives(section)}
                           {renderSectionContent(section)}
                         </div>
                       ) : (
