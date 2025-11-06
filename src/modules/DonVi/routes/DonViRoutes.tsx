@@ -10,6 +10,7 @@ import PreviewTemplateInterfaceDonVi from "../pages/PreviewTemplate";
 import CourseInterfaceDonVi from "../pages/Course";
 import CivilServantsInterfaceDonVi from "../pages/CivilServants";
 import LevelContributionInterfaceDonVi from "../pages/LevelContribution";
+import ContributionMatrixInterfaceDonVi from "../pages/ContributionMatrix";
 
 function DonViRoutes() {
   return (
@@ -25,6 +26,7 @@ function DonViRoutes() {
       <Route path="xem-truc-tuyen-mau-de-cuong/:id_template" element={<PreviewTemplateInterfaceDonVi />} />
       <Route path="quan-li-danh-sach-can-bo-vien-chuc" element={<CivilServantsInterfaceDonVi />} />
       <Route path="quan-li-danh-sach-muc-do-dong-gop" element={<LevelContributionInterfaceDonVi />} />
+      <Route path="quan-li-danh-sach-ma-tran-dong-gop" element={<ContributionMatrixInterfaceDonVi />} />
     </Routes>
   );
 }

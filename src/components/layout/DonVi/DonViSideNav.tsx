@@ -86,6 +86,14 @@ function DonViSideNav() {
             </Link>
           </li>
           <li>
+            <Link className="dropdown-toggle" to={"/donvi/quan-li-danh-sach-ma-tran-dong-gop"}>
+              <span className="icon-holder">
+                <i className="anticon anticon-logout" />
+              </span>
+              <span className="title">Quản lý ma trận đóng góp</span>
+            </Link>
+          </li>
+          <li>
             <Link className="dropdown-toggle" onClick={Logout}>
               <span className="icon-holder">
                 <i className="anticon anticon-logout" />
