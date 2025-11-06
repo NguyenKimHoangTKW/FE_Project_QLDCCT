@@ -252,7 +252,7 @@ export default function CreateTemplateInterfaceDonVi() {
                                 </div>
                             ))}
                         </div>
-                        <div className="text-center border-top pt-3 d-flex justify-content-center gap-3 flex-wrap">
+                        <div className="text-center border-top pt-3 d-flex justify-content-center gap-3 flex-wrap sticky-toolbar">
                             <button
                                 type="button"
                                 className="btn btn-primary"

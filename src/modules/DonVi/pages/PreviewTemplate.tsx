@@ -100,7 +100,7 @@ export default function PreviewTemplateInterfaceDonVi() {
                 <tr key={index}>
                   <td className="text-center">{item.name_CO}</td>
                   <td>{item.describe_CO}</td>
-                  <td className="text-center">{item.typeOfCapacity}</td>
+                  <td>{item.typeOfCapacity}</td>
                 </tr>
               ))}
             </tbody>
@@ -144,7 +144,6 @@ export default function PreviewTemplateInterfaceDonVi() {
           </p>
           <hr />
 
-          {/* Select chọn chương trình */}
           <select
             className="form-control mb-3"
             onChange={handleChangeIdProgram}
@@ -159,7 +158,6 @@ export default function PreviewTemplateInterfaceDonVi() {
 
           <hr />
 
-          {/* Bảng hiển thị PLO và PI */}
           <table className="table table-bordered align-middle">
             <thead className="table-light">
               <tr>
@@ -215,66 +213,174 @@ export default function PreviewTemplateInterfaceDonVi() {
           <table style="border-collapse: collapse; width: 100%;" border="1">
             <tbody>
               <tr>
-                <td style="padding: 6px;">- <strong>Tên học phần:</strong></td>
+                <td style="padding: 6px;"><strong>Tên học phần:</strong></td>
                 <td style="padding: 6px;">&nbsp;</td>
               </tr>
               <tr>
-                <td style="padding: 6px;">- <strong>Tên tiếng Anh:</strong></td>
+                <td style="padding: 6px;"><strong>Tên tiếng Anh:</strong></td>
                 <td style="padding: 6px;">&nbsp;</td>
               </tr>
               <tr>
-                <td style="padding: 6px;">- <strong>Mã học phần:</strong></td>
+                <td style="padding: 6px;"><strong>Mã học phần:</strong></td>
                 <td style="padding: 6px;">&nbsp;</td>
               </tr>
               <tr>
-                <td style="padding: 6px;">- <strong>E-learning:</strong></td>
+                <td style="padding: 6px;"><strong>E-learning:</strong></td>
                 <td style="padding: 6px;">&nbsp;</td>
               </tr>
               <tr>
-                <td style="padding: 6px;">- <strong>Thuộc khối kiến thức/kỹ năng:</strong></td>
+                <td style="padding: 6px;"><strong>Thuộc khối kiến thức/kỹ năng:</strong></td>
                 <td style="padding: 6px;">
                   <p>Giáo dục đại cương □ &nbsp;&nbsp; Cơ sở ngành ☑️</p>
                   <p>Chuyên ngành □ &nbsp;&nbsp; Đồ án/Khóa luận □</p>
                 </td>
               </tr>
               <tr>
-                <td style="padding: 6px;">- <strong>Số tín chỉ:</strong></td>
-                <td style="padding: 6px;">-</td>
+                <td style="padding: 6px;"><strong>Số tín chỉ:</strong></td>
+                <td style="padding: 6px;"></td>
               </tr>
               <tr>
-                <td style="padding: 6px;">- <strong>Số tiết lý thuyết:</strong></td>
-                <td style="padding: 6px;">-</td>
+                <td style="padding: 6px;"><strong>Số tiết lý thuyết:</strong></td>
+                <td style="padding: 6px;"></td>
               </tr>
               <tr>
-                <td style="padding: 6px;">- <strong>Số tiết thực hành:</strong></td>
-                <td style="padding: 6px;">-</td>
+                <td style="padding: 6px;"><strong>Số tiết thực hành:</strong></td>
+                <td style="padding: 6px;"></td>
               </tr>
               <tr>
-                <td style="padding: 6px;">- <strong>Tự học:</strong></td>
-                <td style="padding: 6px;">-</td>
+                <td style="padding: 6px;"><strong>Tự học:</strong></td>
+                <td style="padding: 6px;"></td>
               </tr>
               <tr>
-                <td style="padding: 6px;">- <strong>Học phần tiên quyết:</strong></td>
-                <td style="padding: 6px;">-</td>
+                <td style="padding: 6px;"><strong>Học phần tiên quyết:</strong></td>
+                <td style="padding: 6px;"></td>
               </tr>
               <tr>
-                <td style="padding: 6px;">- <strong>Học phần học trước:</strong></td>
-                <td style="padding: 6px;">-</td>
+                <td style="padding: 6px;"><strong>Học phần học trước:</strong></td>
+                <td style="padding: 6px;"></td>
               </tr>
               <tr>
-                <td style="padding: 6px;">- <strong>Học phần song hành:</strong></td>
-                <td style="padding: 6px;">-</td>
+                <td style="padding: 6px;"><strong>Học phần song hành:</strong></td>
+                <td style="padding: 6px;"></td>
               </tr>
             </tbody>
           </table>
         `;
       case "CO":
         return `
-          <p><strong>Mục tiêu học phần (CO - Course Objectives)</strong></p>
-          <p><strong>CO1:</strong> Học phần nhằm trang bị cho sinh viên những kiến thức cơ bản về cơ sở dữ liệu; các kiến thức về mô hình thực thể kết hợp; các khái niệm về mô hình dữ liệu quan hệ; các loại ràng buộc trên quan hệ; các kiến thức liên quan đến đại số tập hợp; các phép toán của đại số quan hệ; các cấu trúc lệnh của ngôn ngữ SQL.</p>
-          <p><strong>CO2:</strong> Sinh viên sử dụng thành thạo các công cụ để phân tích, thiết kế và cài đặt CSDL quan hệ. Vận dụng viết lệnh trả lời các truy vấn bằng SQL, cài đặt các loại ràng buộc toàn vẹn trên CSDL.</p>
-          <p><strong>CO3:</strong> Sinh viên có khả năng lập trình quản lý dữ liệu và bẫy lỗi; tự động hóa, đồng bộ hóa dữ liệu; quản lý người dùng; bảo mật CSDL và vận dụng các kiến thức về chức năng của HQTCSDL Microsoft SQL Server để xây dựng và quản lý một CSDL.</p>
+          <p><strong>CO1:</strong>...</p>
+          <p><strong>CO2:</strong>...</p>
+          <p><strong>CO3:</strong>...</p>
+          ...
         `;
+      case "CLO":
+        return `
+            <table style="border-collapse: collapse; width: 100%;" border="1">
+            <thead>
+              <tr>
+                <th style="padding: 6px; text-align:center">Chuẩn đầu ra học phần</th>
+                <th style="padding: 6px; text-align:center">Nội dung chuẩn đầu ra học phần</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 6px;">CLO1</td>
+                <td style="padding: 6px;">...</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px;">CLO2</td>
+                <td style="padding: 6px;">...</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px;">CLO3</td>
+                <td style="padding: 6px;">...</td>
+              </tr>            
+            </tbody>
+          </table>
+          `;
+        case "LearningResources":
+          return `
+            <table style="border-collapse: collapse; width: 100%;" border="1">
+            <thead>
+              <tr>
+                <th style="padding: 6px; text-align:center">Thứ tự</th>
+                <th style="padding: 6px; text-align:center">Tên tác giả</th>
+                <th style="padding: 6px; text-align:center">Năm xuất bản</th>
+                <th style="padding: 6px; text-align:center">Tên sách, giáo trình, tên bài báo, văn bản</th>
+                <th style="padding: 6px; text-align:center">NXB, tên tạp chí/nơi ban hành</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 6px;">...</td>
+                <td style="padding: 6px;">...</td>
+                <td style="padding: 6px;">...</td>
+                <td style="padding: 6px;">...</td>
+                <td style="padding: 6px;">...</td>
+              </tr>
+              
+            </tbody>
+          </table>
+          `;
+      case "CourseAssessment":
+        return `
+          <table style="border-collapse: collapse; width: 100%;" border="1">
+            <thead>
+              <tr>
+                <th style="padding: 6px; text-align:center">Thành phần đánh giá</th>
+                <th style="padding: 6px; text-align:center">Trọng số (%)</th>
+                <th style="padding: 6px; text-align:center">Hình thức/công cụ kiểm tra - đánh giá</th>
+                <th style="padding: 6px; text-align:center">CLO</th>
+                <th style="padding: 6px; text-align:center">Trọng số từng CLO trong thành phần đánh giá (%)</th>
+                <th style="padding: 6px; text-align:center">Lấy dữ liệu đo lường mức độ đạt PLO/PI</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 6px;">...</td>
+                <td style="padding: 6px;">...</td>
+              </tr>
+            </tbody>
+          </table>
+          `;
+      case "MasterPlan":
+        return `
+          <table style="border-collapse: collapse; width: 100%;" border="1">
+            <thead>
+              <tr>
+                <th style="padding: 6px; text-align:center">Buổi</th>
+                <th style="padding: 6px; text-align:center">Hình thức học</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 6px;">...</td>
+                <td style="padding: 6px;">...</td>
+              </tr>
+            </tbody>
+          </table>
+          `;
+      case "DetailedPlan":
+        return `
+          <table style="border-collapse: collapse; width: 100%;" border="1">
+            <thead>
+              <tr>
+                <th style="padding: 6px; text-align:center">Buổi</th>
+                <th style="padding: 6px; text-align:center">Nội dung</th>
+                <th style="padding: 6px; text-align:center">Hoạt động dạy, học và đánh giá</th>
+                <th style="padding: 6px; text-align:center">CLO liên quan</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 6px;">...</td>
+                <td style="padding: 6px;">...</td>
+                <td style="padding: 6px;">...</td>
+                <td style="padding: 6px;">...</td>
+              </tr>
+            </tbody>
+          </table>
+          `;
       default:
         return "<p><br/></p>";
     }
@@ -291,7 +397,7 @@ export default function PreviewTemplateInterfaceDonVi() {
           <div className="ckeditor-wrapper">
             <CKEditor
               editor={ClassicEditor}
-              data={section.value || getDefaultTemplateContent(bindingCode)}
+              data={section.value || "<p><br/></p>"}
               disabled={false}
               config={{
                 language: "vi",

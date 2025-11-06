@@ -6,7 +6,7 @@ import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import Swal from "sweetalert2";
 import Loading from "../../../components/ui/Loading";
 
-function CourseInterfaceCtdt() {
+function CourseInterfaceDonVi() {
   const didFetch = useRef(false);
   const [listKiemTraHocPhanBatBuoc, setListKiemTraHocPhanBatBuoc] = useState<any[]>([]);
   const [lisNhomHocPhan, setLisNhomHocPhan] = useState<any[]>([]);
@@ -19,9 +19,13 @@ function CourseInterfaceCtdt() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [allData, setAllData] = useState<any[]>([]);
-  const [selected, setSelected] = useState<any>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [listCTDT, setListCTDT] = useState<any[]>([]);
+  const [listKeyYearSemester, setListKeyYearSemester] = useState<any[]>([]);
+  const [listSemester, setListSemester] = useState<any[]>([]);
+  const [listKeyYearSemesterFilter, setListKeyYearSemesterFilter] = useState<any[]>([]);
+  const [listSemesterFilter, setListSemesterFilter] = useState<any[]>([]);
   interface FormData {
     id_course: number | null;
     code_course: string;
@@ -31,6 +35,8 @@ function CourseInterfaceCtdt() {
     id_isCourse: number | null;
     totalPractice: number | null;
     totalTheory: number | null;
+    id_key_year_semester: number | null;
+    id_semester: number | null;
   }
   const [formData, setFormData] = useState<FormData>({
     id_course: null,
@@ -41,15 +47,23 @@ function CourseInterfaceCtdt() {
     id_isCourse: null,
     totalPractice: null,
     totalTheory: null,
+    id_key_year_semester: null,
+    id_semester: null,
   });
 
   interface OptionFilter {
+    id_ctdt: number | null;
     id_gr_course: number | null;
     id_isCourse: number | null;
+    id_key_year_semester: number | null;
+    id_semester: number | null;
   }
   const [optionFilter, setOptionFilter] = useState<OptionFilter>({
+    id_ctdt: null,
     id_gr_course: null,
     id_isCourse: null,
+    id_key_year_semester: null,
+    id_semester: null,
   });
   const GetDataListOptionCourse = async () => {
     const res = await CourseDonViAPI.GetListOptionCourse();
@@ -57,11 +71,21 @@ function CourseInterfaceCtdt() {
     setLisNhomHocPhan(res.nhom_hoc_phan);
     setListKiemTraHocPhanBatBuocFilter(res.is_hoc_phan);
     setLisNhomHocPhanFilter(res.nhom_hoc_phan);
+    setListKeyYearSemester(res.keyYearSemester);
+    setListSemester(res.semester);
+    setListKeyYearSemesterFilter(res.keyYearSemester);
+    setListSemesterFilter(res.semester);
     setFormData((prev) => ({
       ...prev,
       id_isCourse: Number(res.is_hoc_phan[0]?.value || 0),
       id_gr_course: Number(res.nhom_hoc_phan[0]?.value || 0),
+      id_key_year_semester: Number(res.keyYearSemester[0]?.value || 0),
+      id_semester: Number(res.semester[0]?.value || 0),
     }));
+  }
+  const GetListCTDTByDonVi = async () => {
+    const res = await CourseDonViAPI.GetListCTDTByDonVi();
+    setListCTDT(res);
   }
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -78,9 +102,27 @@ function CourseInterfaceCtdt() {
     if (name === "id_gr_course") {
       setFormData((prev) => ({ ...prev, id_gr_course: Number(value) }));
     }
+    if (name === "id_ctdt_filter") {
+      setOptionFilter((prev) => ({ ...prev, id_ctdt: Number(value) }));
+    }
+    if (name === "id_key_year_semester_filter") {
+      setOptionFilter((prev) => ({ ...prev, id_key_year_semester: Number(value) }));
+    }
+    if (name === "id_semester_filter") {
+      setOptionFilter((prev) => ({ ...prev, id_semester: Number(value) }));
+    }
+    if (name === "id_key_year_semester") {
+      setFormData((prev) => ({ ...prev, id_key_year_semester: Number(value) }));
+    }
+    if (name === "id_semester") {
+      setFormData((prev) => ({ ...prev, id_semester: Number(value) }));
+    }
   }
   const headers = [
     { label: "STT", key: "" },
+    { label: "Thuộc khóa học", key: "name_key_year_semester" },
+    { label: "Thuộc học kỳ", key: "name_semester" },
+    { label: "Thuộc CTĐT", key: "name_program" },
     { label: "Mã học phần", key: "code_course" },
     { label: "Tên học phần", key: "name_course" },
     { label: "Kiểm tra học phần bắt buộc", key: "name" },
@@ -97,6 +139,9 @@ function CourseInterfaceCtdt() {
     try {
       const res = await CourseDonViAPI.GetListCourse({
         id_gr_course: Number(optionFilter.id_gr_course || null),
+        id_key_year_semester: Number(optionFilter.id_key_year_semester || null),
+        id_semester: Number(optionFilter.id_semester || null),
+        id_program: Number(optionFilter.id_ctdt || null),
         id_isCourse: Number(optionFilter.id_isCourse || null),
         Page: page,
         PageSize: pageSize,
@@ -124,9 +169,12 @@ function CourseInterfaceCtdt() {
       if (modalMode === "create") {
         const res = await CourseDonViAPI.AddNewCourse({
           code_course: formData.code_course,
+          id_program: Number(optionFilter.id_ctdt || 0),
           name_course: formData.name_course,
           id_gr_course: Number(formData.id_gr_course || 0),
           credits: Number(formData.credits || 0),
+          id_key_year_semester: Number(formData.id_key_year_semester || 0),
+          id_semester: Number(formData.id_semester || 0),
           id_isCourse: Number(formData.id_isCourse || 0),
           totalPractice: Number(formData.totalPractice || 0),
           totalTheory: Number(formData.totalTheory || 0),
@@ -150,6 +198,8 @@ function CourseInterfaceCtdt() {
           id_isCourse: Number(formData.id_isCourse || 0),
           totalPractice: Number(formData.totalPractice || 0),
           totalTheory: Number(formData.totalTheory || 0),
+          id_key_year_semester: Number(formData.id_key_year_semester || 0),
+          id_semester: Number(formData.id_semester || 0),
         });
         if (res.success) {
           ShowData();
@@ -210,6 +260,8 @@ function CourseInterfaceCtdt() {
         id_isCourse: res.data.id_isCourse,
         totalPractice: res.data.totalPractice,
         totalTheory: res.data.totalTheory,
+        id_key_year_semester: res.data.id_key_year_semester,
+        id_semester: res.data.id_semester,
       });
     }
     else {
@@ -243,6 +295,9 @@ function CourseInterfaceCtdt() {
   }, []);
   useEffect(() => {
     ShowData();
+  }, [page, pageSize]);
+  useEffect(() => {
+    GetListCTDTByDonVi();
   }, []);
   return (
     <div className="main-content">
@@ -257,6 +312,16 @@ function CourseInterfaceCtdt() {
             <fieldset className="border rounded-3 p-3">
               <legend className="float-none w-auto px-3">Chức năng</legend>
               <div className="row mb-3">
+                <div className="col-md-6">
+                  <label className="form-label">Lọc theo CTĐT</label>
+                  <select className="form-control" name="id_ctdt_filter" value={optionFilter.id_ctdt || 0} onChange={handleInputChange}>
+                    {listCTDT.map((items, idx) => (
+                      <option key={idx} value={items.id_program}>
+                        {items.name_program}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div className="col-md-6">
                   <label className="form-label">Lọc theo kiểm tra học phần bắt buộc</label>
                   <select className="form-control" name="id_isCourse_filter" value={optionFilter.id_isCourse || 0} onChange={handleInputChange}>
@@ -273,6 +338,28 @@ function CourseInterfaceCtdt() {
                   <select className="form-control" name="id_gr_course_filter" value={optionFilter.id_gr_course || 0} onChange={handleInputChange}>
                     <option value="0">Tất cả</option>
                     {lisNhomHocPhanFilter.map((items, idx) => (
+                      <option key={idx} value={items.value}>
+                        {items.text}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Lọc theo khóa học</label>
+                  <select className="form-control" name="id_key_year_semester_filter" value={optionFilter.id_key_year_semester || 0} onChange={handleInputChange}>
+                    <option value="0">Tất cả</option>
+                    {listKeyYearSemesterFilter.map((items, idx) => (
+                      <option key={idx} value={items.value}>
+                        {items.text}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label">Lọc theo học kỳ</label>
+                  <select className="form-control" name="id_semester_filter" value={optionFilter.id_semester || 0} onChange={handleInputChange}>
+                    <option value="0">Tất cả</option>
+                    {listSemesterFilter.map((items, idx) => (
                       <option key={idx} value={items.value}>
                         {items.text}
                       </option>
@@ -348,10 +435,13 @@ function CourseInterfaceCtdt() {
                 allData.map((item, index) => (
                   <tr key={item.id_course}>
                     <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
+                    <td>{item.name_key_year_semester}</td>
+                    <td>{item.name_semester}</td>
+                    <td>{item.name_program}</td>
                     <td className="formatSo">{item.code_course}</td>
-                    <td className="formatSo">{item.name_course}</td>
-                    <td className="formatSo">{item.name}</td>
-                    <td className="formatSo">{item.name_gr_course}</td>
+                    <td>{item.name_course}</td>
+                    <td>{item.name}</td>
+                    <td>{item.name_gr_course}</td>
                     <td className="formatSo">{item.totalTheory}</td>
                     <td className="formatSo">{item.totalPractice}</td>
                     <td className="formatSo">{item.credits}</td>
@@ -483,9 +573,33 @@ function CourseInterfaceCtdt() {
               <input type="number" className="form-control" name="credits" min={1} max={100} value={formData.credits || 1} onChange={handleInputChange} />
             </div>
           </div>
+          <div className="form-group row">
+            <label className="col-sm-2 col-form-label">Thuộc khóa học</label>
+            <div className="col-sm-10">
+              <select className="form-control" name="id_key_year_semester" value={formData.id_key_year_semester || 0} onChange={handleInputChange}>
+                {listKeyYearSemester.map((items, idx) => (
+                  <option key={idx} value={items.value}>
+                    {items.text}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="form-group row">
+            <label className="col-sm-2 col-form-label">Thuộc học kỳ</label>
+            <div className="col-sm-10">
+              <select className="form-control" name="id_semester" value={formData.id_semester || 0} onChange={handleInputChange}>
+                {listSemester.map((items, idx) => (
+                  <option key={idx} value={items.value}>
+                    {items.text}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         </form>
       </Modal>
     </div>
   );
 }
-export default CourseInterfaceCtdt;
+export default CourseInterfaceDonVi;

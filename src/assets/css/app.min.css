@@ -90,7 +90,14 @@ body {
 [tabindex="-1"]:focus {
     outline: 0 !important
 }
-
+.sticky-toolbar {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    padding: 12px 0;
+    border-top: 1px solid #ddd;
+    z-index: 10;
+  }
 hr {
     box-sizing: content-box;
     height: 0;

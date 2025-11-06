@@ -2,19 +2,30 @@ import axios from "axios";
 import { URL_API_DONVI } from "../../URL_Config";
 
 export const CourseDonViAPI = {
-  GetListOptionCourse: () =>
+  GetListCTDTByDonVi: () =>
     axios
-      .get(`${URL_API_DONVI}/course/load-select-chuc-nang-course`)
+      .get(`${URL_API_DONVI}/course/loads-ctdt-by-dv`, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      })
       .then((res) => res.data),
 
-  GetListCourse: (data: { id_gr_course: number, id_isCourse: number, Page: number; PageSize: number }) =>
+  GetListOptionCourse: () =>
+    axios
+      .get(`${URL_API_DONVI}/course/load-select-chuc-nang-course`, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      })
+      .then((res) => res.data),
+
+  GetListCourse: (data: { id_gr_course: number, id_key_year_semester: number, id_semester: number, id_program: number, id_isCourse: number, Page: number; PageSize: number }) =>
     axios
       .post(`${URL_API_DONVI}/course/loads-danh-sach-mon-hoc-thuoc-don-vi`, data, {
         headers: { "Content-Type": "application/json" },
         withCredentials: true,
       })
       .then((res) => res.data),
-  AddNewCourse: (data: { code_course: string, name_course: string, id_gr_course: number, credits: number, id_isCourse: number, totalPractice: number, totalTheory: number }) =>
+  AddNewCourse: (data: { code_course: string, id_key_year_semester: number, id_semester: number, id_program: number, name_course: string, id_gr_course: number, credits: number, id_isCourse: number, totalPractice: number, totalTheory: number }) =>
     axios
       .post(`${URL_API_DONVI}/course/them-moi-mon-hoc`, data, {
         headers: { "Content-Type": "application/json" },
@@ -28,7 +39,7 @@ export const CourseDonViAPI = {
         withCredentials: true,
       })
       .then((res) => res.data),
-  UpdateCourse: (data: { id_course: number, code_course: string, name_course: string, id_gr_course: number, credits: number, id_isCourse: number, totalPractice: number, totalTheory: number }) =>
+  UpdateCourse: (data: { id_course: number, code_course: string, name_course: string, id_gr_course: number, id_key_year_semester: number, id_semester: number, credits: number, id_isCourse: number, totalPractice: number, totalTheory: number }) =>
     axios
       .post(`${URL_API_DONVI}/course/cap-nhat-mon-hoc`, data, {
         headers: { "Content-Type": "application/json" },
