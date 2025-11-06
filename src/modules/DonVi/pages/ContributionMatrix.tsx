@@ -61,25 +61,38 @@ export default function ContributionMatrixInterfaceDonVi() {
         await GetListMatrixContribution();
     }
     const handleSaveMatrix = async () => {
+        if (!headerPiOrder.length) {
+            SweetAlert("error", "Thiếu cấu hình PLO/PI để lưu.");
+            return;
+        }
+
         const payload: any[] = [];
 
-        listMatrixContribution.forEach((course) => {
-            course.pi.forEach((pi: any) => {
+        listMatrixContribution.forEach((course: any) => {
+            const piMap = new Map<number, any>((course.pi || []).map((p: any) => [Number(p.id_PI), p]));
+            headerPiOrder.forEach((h) => {
+                const level = Number(piMap.get(h.id_PI)?.id_level ?? 0);
                 payload.push({
                     id_course: course.id_course,
-                    Id_PI: pi.id_PI,
-                    id_levelcontributon: Number(pi.id_level) || 0,
+                    Id_PI: h.id_PI,
+                    id_levelcontributon: level,
                 });
             });
         });
 
         const res = await ContributionMatrixAPI.SaveMatrix(payload as any);
         if (res.success) {
-            SweetAlert("success", res.message);
+            SweetAlert("success", res.message || "Lưu thành công");
         } else {
-            SweetAlert("error", res.message);
+            SweetAlert("error", res.message || "Lưu thất bại");
         }
     };
+
+    const headerPiOrder: { id_PI: number; code: string }[] = (listPLoPi || [])
+        .flatMap((plo: any) => (plo?.pi ?? []).map((pi: any) => ({
+            id_PI: Number(pi.id_PI),
+            code: pi.code,
+        })));
 
     useEffect(() => {
         GetListOptionContributionMatrix();
@@ -117,7 +130,36 @@ export default function ContributionMatrixInterfaceDonVi() {
                                     </select>
                                 </div>
                             </div>
+                            <hr />
+                            <div className="row">
+                                {listLevelContribution.length > 0 && (
+                                    <div className="col-12" style={{ textAlign: "center" }}>
+                                        <h5>Danh sách mức độ đóng góp</h5>
+                                    </div>
+                                )}
+                                {listLevelContribution.length > 0 && (
+                                    <div className="col-12">
+                                        <table className="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Mã mức độ đóng góp</th>
+                                                    <th>Tên mức độ đóng góp</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {listLevelContribution.map((item: any, index: number) => (
+                                                    <tr key={index}>
+                                                        <td>{item.code}</td>
+                                                        <td>{item.description}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
 
+                            </div>
+                            <hr />
                             <div className="row">
                                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
                                     <button className="btn btn-primary" onClick={handleFilterData}>
@@ -133,30 +175,38 @@ export default function ContributionMatrixInterfaceDonVi() {
                     <div className="table-responsive">
                         <table className="table table-bordered">
                             <thead>
-                                <tr>
-                                    <th rowSpan={2}>Mã môn học</th>
-                                    <th rowSpan={2}>Tên môn học</th>
-                                    <th rowSpan={2}>Số tín chỉ</th>
-                                    <th rowSpan={2}>Số tiết lý thuyết</th>
-                                    <th rowSpan={2}>Số tiết thực hành</th>
-                                    {listPLoPi.map((plo, i) => {
-                                        const span = (plo?.pi?.length ?? 0) || plo?.count_pi || 1;
-                                        return (
-                                            <th key={`plo-${i}`} colSpan={span} className="text-center align-middle">
-                                                {plo.code_plo}
-                                            </th>
-                                        );
-                                    })}
-                                </tr>
-                                <tr>
-                                    {listPLoPi.map((plo, i) =>
-                                        (plo?.pi ?? []).map((piItem: any, j: number) => (
-                                            <th key={`pi-${i}-${j}`} className="text-center">
-                                                {piItem.code}
-                                            </th>
-                                        ))
-                                    )}
-                                </tr>
+                                {listMatrixContribution.length > 0 && (
+                                    <>
+                                        <tr>
+                                            <th rowSpan={2}>Mã môn học</th>
+                                            <th rowSpan={2}>Tên môn học</th>
+                                            <th rowSpan={2}>Số tín chỉ</th>
+                                            <th rowSpan={2}>Số tiết lý thuyết</th>
+                                            <th rowSpan={2}>Số tiết thực hành</th>
+                                            {listPLoPi.map((plo, i) => {
+                                                const span = (plo?.pi?.length ?? 0) || plo?.count_pi || 1;
+                                                return (
+                                                    <th
+                                                        key={`plo-${i}`}
+                                                        colSpan={span}
+                                                        className="text-center align-middle"
+                                                    >
+                                                        {plo.code_plo}
+                                                    </th>
+                                                );
+                                            })}
+                                        </tr>
+                                        <tr>
+                                            {listPLoPi.map((plo, i) =>
+                                                (plo?.pi ?? []).map((piItem: any, j: number) => (
+                                                    <th key={`pi-${i}-${j}`} className="text-center">
+                                                        {piItem.code}
+                                                    </th>
+                                                ))
+                                            )}
+                                        </tr>
+                                    </>
+                                )}
                             </thead>
                             <tbody>
                                 {Object.entries(
@@ -175,7 +225,6 @@ export default function ContributionMatrixInterfaceDonVi() {
                                         );
 
                                     return [
-                                        // 🔹 Dòng header học kỳ
                                         <tr key={`semester-${idx}`} className="table-secondary">
                                             <td colSpan={totalCols} className="fw-bold text-start">
                                                 {semesterName}
@@ -189,43 +238,47 @@ export default function ContributionMatrixInterfaceDonVi() {
                                                 <td className="text-center">{courseItem.totalTheory}</td>
                                                 <td className="text-center">{courseItem.totalPractice}</td>
 
-                                                {courseItem.pi.map((piItem: any, piIdx: number) => (
-                                                    <td key={`pi-${idx}-${cIdx}-${piIdx}`} className="text-center">
-                                                        <select
-                                                            className="form-select form-select-sm p-0 text-center"
-                                                            style={{
-                                                                fontSize: "12px",
-                                                                minWidth: "65px",
-                                                                height: "28px",
-                                                            }}
-                                                            value={piItem.id_level ?? 0}
-                                                            onChange={(e) => {
-                                                                const newLevel = Number(e.target.value);
-                                                                setListMatrixContribution((prev) =>
-                                                                    prev.map((c) =>
-                                                                        c.id_course === courseItem.id_course
-                                                                            ? {
-                                                                                ...c,
-                                                                                pi: c.pi.map((p: any) =>
-                                                                                    p.id_PI === piItem.id_PI
-                                                                                        ? { ...p, id_level: newLevel }
-                                                                                        : p
-                                                                                ),
-                                                                            }
-                                                                            : c
-                                                                    )
-                                                                );
-                                                            }}
-                                                        >
-                                                            <option value={0}>--</option>
-                                                            {listLevelContribution.map((lv) => (
-                                                                <option key={lv.id} value={lv.id}>
-                                                                    {lv.Code ?? lv.code}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                    </td>
-                                                ))}
+                                                {headerPiOrder.map((h, piIdx) => {
+                                                    const existing = (courseItem.pi || []).find((p: any) => Number(p.id_PI) === h.id_PI);
+                                                    const currentLevel = existing?.id_level ?? 0;
+
+                                                    return (
+                                                        <td key={`pi-${idx}-${cIdx}-${piIdx}`} className="text-center">
+                                                            <select
+                                                                className="form-select form-select-sm p-0 text-center"
+                                                                style={{ fontSize: "12px", minWidth: "65px", height: "28px" }}
+                                                                value={currentLevel}
+                                                                onChange={(e) => {
+                                                                    const newLevel = Number(e.target.value);
+                                                                    setListMatrixContribution((prev) =>
+                                                                        prev.map((c: any) => {
+                                                                            if (c.id_course !== courseItem.id_course) return c;
+
+                                                                            // Nếu đã có PI này trong course -> update; chưa có -> push mới
+                                                                            const hasPi = (c.pi || []).some((p: any) => Number(p.id_PI) === h.id_PI);
+                                                                            const newPiArr = hasPi
+                                                                                ? c.pi.map((p: any) =>
+                                                                                    Number(p.id_PI) === h.id_PI ? { ...p, id_level: newLevel } : p
+                                                                                )
+                                                                                : [...(c.pi || []), { id_PI: h.id_PI, id_level: newLevel }];
+
+                                                                            return { ...c, pi: newPiArr };
+                                                                        })
+                                                                    );
+                                                                }}
+                                                            >
+                                                                <option value={0}>--</option>
+                                                                {listLevelContribution.map((lv: any) => (
+                                                                    <option key={lv.id} value={lv.id}>
+                                                                        {lv.Code ?? lv.code}
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+                                                        </td>
+                                                    );
+                                                })}
+
+
                                             </tr>
                                         )),
                                     ];
@@ -235,43 +288,6 @@ export default function ContributionMatrixInterfaceDonVi() {
                     </div>
                 </div>
             </div>
-            <style>
-                {`
-.table-responsive {
-  max-height: 600px; /* hoặc chiều cao bạn muốn cho vùng scroll */
-  overflow: auto;
-  position: relative;
-}
-
-/* Giữ nguyên toàn bộ cụm thead (2 hàng) khi scroll */
-.table thead {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.table thead th {
-  background-color: #f8f9fa; /* nền sáng cho header */
-  border-bottom: 1px solid #dee2e6;
-}
-
-/* Optional: thêm bóng nhẹ khi scroll xuống để header nhìn nổi */
-.table-responsive:has(tbody) thead {
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-}
-
-/* Thanh cuộn tinh gọn hơn */
-.table-responsive::-webkit-scrollbar {
-  height: 8px;
-  width: 8px;
-}
-.table-responsive::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 4px;
-}
-`}
-            </style>
-
         </div>
     )
 }

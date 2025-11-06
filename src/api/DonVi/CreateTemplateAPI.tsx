@@ -80,4 +80,8 @@ export const CreateTemplateAPI = {
         axios.get(`${URL_API_DONVI}/syllabustemplate/loads-selected-program`, {
             withCredentials: true,
         }).then((res) => res.data),
+    ListPLOCourse: () =>
+        axios.get(`${URL_API_DONVI}/syllabustemplate/loads-plo-hoc-phan`, {
+            withCredentials: true,
+        }).then((res) => res.data),
 }

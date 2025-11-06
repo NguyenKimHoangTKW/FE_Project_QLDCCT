@@ -164,9 +164,6 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
     useEffect(() => {
         LoadData();
     }, [pageSize]);
-    useEffect(() => {
-        LoadData();
-    }, [formData.Id_Program]);
     // Performance Indicators
     const [performanceIndicatorsData, setPerformanceIndicatorsData] = useState<any[]>([]);
     const [performanceIndicatorsTotalRecords, setPerformanceIndicatorsTotalRecords] = useState(0);
@@ -331,7 +328,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
                                         <i className="fas fa-plus-circle mr-1" /> Thêm mới
                                     </button>
                                     <button className="btn btn-primary" onClick={LoadData} disabled={loading} >
-                                        <i className="fas fa-plus-circle mr-1" /> Lọc lại dữ liệu
+                                        <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
                                     </button>
                                 </div>
                             </div>

@@ -2,16 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { CreateTemplateAPI } from "../../../api/DonVi/CreateTemplateAPI";
 import { SweetAlert } from "../../../components/ui/SweetAlert";
-import OBEStructuredTable from "../../../components/ui/OBE";
-import { CKEditor } from "@ckeditor/ckeditor5-react";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
-import "@ckeditor/ckeditor5-build-classic/build/translations/vi";
 import "../../../assets/css/template-preview.css";
 import { PreviewEvaluateAPI } from "../../../api/Shared/PreviewEvaluate";
-ClassicEditor.defaultConfig = {
-  ...(ClassicEditor.defaultConfig || {}),
-  licenseKey: "GPL",
-};
+import { Editor } from "@tinymce/tinymce-react";
 
 export default function PreviewTemplateInterfaceDonVi() {
   const navigate = useNavigate();
@@ -23,19 +16,16 @@ export default function PreviewTemplateInterfaceDonVi() {
   const [loadSelectedProgram, setLoadSelectedProgram] = useState<any[]>([]);
   const [loadPreviewProgramLearningOutcome, setLoadPreviewProgramLearningOutcome] = useState<any[]>([]);
   const [id_program, setIdProgram] = useState<number>(0);
+  const [loadListPLOCourse, setLoadListPLOCourse] = useState<any[]>([]);
   const LoadData = async () => {
     try {
       const res = await CreateTemplateAPI.PreviewTemplate({
         id_template: Number(id_template),
       });
-
       if (res.success) {
         const jsonString = res.data?.template_json || "[]";
-        const parsed = JSON.parse(jsonString);
-        setTemplateSections(parsed);
-      } else {
-        SweetAlert("error", res.message);
-      }
+        setTemplateSections(JSON.parse(jsonString));
+      } else SweetAlert("error", res.message);
     } catch (err) {
       SweetAlert("error", "Lỗi khi tải dữ liệu biểu mẫu");
       console.error(err);
@@ -43,6 +33,7 @@ export default function PreviewTemplateInterfaceDonVi() {
       setLoading(false);
     }
   };
+
   const handleChangeIdProgram = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = Number(e.target.value);
     setIdProgram(value);
@@ -50,33 +41,37 @@ export default function PreviewTemplateInterfaceDonVi() {
   };
 
   const LoadPreviewProgramLearningOutcome = async (id: number) => {
-    console.log(id);
     const res = await PreviewEvaluateAPI.PreviewProgramLearningOutcome({ id_program: id });
     setLoadPreviewProgramLearningOutcome(res);
   };
-
+  const LoadListPLOCourse = async () => {
+    const res = await CreateTemplateAPI.ListPLOCourse();
+    if (res.success) {
+      setLoadListPLOCourse(res.data);
+    }
+  };
   const LoadPreviewCourseObjectives = async () => {
     const res = await PreviewEvaluateAPI.PreviewCourseObjectives();
-    if (res.success) {
-      setLoadPreviewCourseObjectives(res.data);
-    }
+    if (res.success) setLoadPreviewCourseObjectives(res.data);
   };
+
   const LoadPreviewCourseLearningOutcome = async () => {
     const res = await PreviewEvaluateAPI.PreviewCourseLearningOutcome();
-    if (res.success) {
-      setLoadPreviewCourseLearningOutcome(res.data);
-    }
+    if (res.success) setLoadPreviewCourseLearningOutcome(res.data);
   };
+
   const LoadSelectedProgram = async () => {
     const res = await CreateTemplateAPI.LoadSelectedProgram();
     setLoadSelectedProgram(res);
   };
+
   useEffect(() => {
     LoadData();
     LoadSelectedProgram();
     LoadPreviewCourseObjectives();
     LoadPreviewCourseLearningOutcome();
     LoadPreviewProgramLearningOutcome(id_program);
+    LoadListPLOCourse();
   }, []);
 
   const RenderTableCourseObjectives = (section: any) => {
@@ -84,9 +79,7 @@ export default function PreviewTemplateInterfaceDonVi() {
     if (bindingType === "CO") {
       return (
         <div>
-          <p className="fw-bold text-center">
-            Bảng mẫu tham khảo chỉ số học phần
-          </p>
+          <p className="fw-bold text-center">Bảng mẫu tham khảo chỉ số học phần</p>
           <table className="table table-bordered">
             <thead>
               <tr>
@@ -107,13 +100,10 @@ export default function PreviewTemplateInterfaceDonVi() {
           </table>
         </div>
       );
-    }
-    else if (bindingType === "CLO") {
+    } else if (bindingType === "CLO") {
       return (
         <div>
-          <p className="fw-bold text-center">
-            Bảng mẫu tham khảo chỉ số chuẩn đầu ra học phần
-          </p>
+          <p className="fw-bold text-center">Bảng mẫu tham khảo chỉ số chuẩn đầu ra học phần</p>
           <table className="table table-bordered">
             <thead>
               <tr>
@@ -134,8 +124,7 @@ export default function PreviewTemplateInterfaceDonVi() {
           </table>
         </div>
       );
-    }
-    else if (bindingType === "PLO") {
+    } else if (bindingType === "PLO") {
       return (
         <div>
           <p>
@@ -158,6 +147,9 @@ export default function PreviewTemplateInterfaceDonVi() {
 
           <hr />
 
+          <p className="fw-bold text-center mt-3">
+            Bảng mẫu tham khảo chỉ số đầu ra học phần
+          </p>
           <table className="table table-bordered align-middle">
             <thead className="table-light">
               <tr>
@@ -167,7 +159,6 @@ export default function PreviewTemplateInterfaceDonVi() {
                 <th className="text-center" style={{ width: "40%" }}>Nội dung PI</th>
               </tr>
             </thead>
-
             {loadPreviewProgramLearningOutcome.map((plo: any, index: number) => (
               <tbody key={index}>
                 {plo.pi.map((pi: any, piIndex: number) => (
@@ -189,7 +180,6 @@ export default function PreviewTemplateInterfaceDonVi() {
                         </td>
                       </>
                     )}
-
                     <td className="text-center fw-semibold">{pi.code}</td>
                     <td>{pi.description}</td>
                   </tr>
@@ -198,14 +188,47 @@ export default function PreviewTemplateInterfaceDonVi() {
             ))}
           </table>
 
-          <p className="fw-bold text-center mt-3">
-            Bảng mẫu tham khảo chỉ số đầu ra học phần
-          </p>
+          {loadListPLOCourse && loadListPLOCourse.length > 0 && (
+            <>
+              <p className="fw-bold text-center mt-4 mb-2">
+                Bảng tham chiếu mức độ đóng góp của học phần này (Level)
+              </p>
+              <table className="table table-bordered align-middle">
+                <thead className="table-secondary">
+                  <tr>
+                    <th className="text-center" style={{ width: "15%" }}>Mã PLO</th>
+                    <th className="text-center" style={{ width: "15%" }}>Mã PI</th>
+                    <th className="text-center" style={{ width: "20%" }}>Mức độ đóng góp</th>
+                    <th className="text-center">Ghi chú</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loadListPLOCourse.flatMap((plo: any, i: number) =>
+                    plo.pi_list.map((pi: any, j: number) => (
+                      <tr key={`${i}-${j}`}>
+                        {j === 0 && (
+                          <td
+                            rowSpan={plo.pi_list.length}
+                            className="text-center fw-bold text-primary align-middle"
+                          >
+                            {plo.plo_code}
+                          </td>
+                        )}
+                        <td className="text-center fw-semibold">{pi.pi_code}</td>
+                        <td className="text-center">{pi.level_code}</td>
+                        <td>{pi.des_level}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </>
+          )}
         </div>
       );
-
     }
-  }
+  };
+
   const getDefaultTemplateContent = (bindingCode: string) => {
     switch (bindingCode) {
       case "GeneralInfomation":
@@ -298,8 +321,61 @@ export default function PreviewTemplateInterfaceDonVi() {
             </tbody>
           </table>
           `;
-        case "LearningResources":
+      case "PLO":
+        const ploData = loadListPLOCourse || [];
+
+        if (!ploData || ploData.length === 0) {
           return `
+                <p style="text-align:center;font-style:italic;">
+                  (Chưa có dữ liệu ma trận PLO-PI)
+                </p>`;
+        }
+        const totalPiCols = ploData.reduce((sum, p) => sum + p.count_pi, 0);
+        const ploRow = ploData
+          .map(
+            (p) =>
+              `<th colspan="${p.count_pi}" style="padding:6px;text-align:center;">${p.plo_code}</th>`
+          )
+          .join("");
+        const piRow = ploData
+          .flatMap((p) =>
+            p.pi_list.map(
+              (pi: any) =>
+                `<th style="padding:6px;text-align:center;">${pi.pi_code}</th>`
+            )
+          )
+          .join("");
+        const bodyRows = ["CLO1", "CLO2"]
+          .map(
+            (clo) => `
+                <tr>
+                  <td style="padding:6px;text-align:center;">${clo}</td>
+                  ${Array(totalPiCols)
+                .fill('<td style="padding:6px;text-align:center;"></td>')
+                .join("")}
+                </tr>`
+          )
+          .join("");
+
+        return `
+              <table border="1" style="border-collapse:collapse;width:100%;">
+                <thead>
+                  <tr>
+                    <th rowspan="3" style="padding:6px;text-align:center;">CLO</th>
+                    <th colspan="${totalPiCols}" style="padding:6px;text-align:center;">PLO và PI</th>
+                  </tr>
+                  <tr>${ploRow}</tr>
+                  <tr>${piRow}</tr>
+                </thead>
+                <tbody>
+                  ${bodyRows}
+                </tbody>
+              </table>
+              <table>
+            `;
+
+      case "LearningResources":
+        return `
             <table style="border-collapse: collapse; width: 100%;" border="1">
             <thead>
               <tr>
@@ -337,6 +413,10 @@ export default function PreviewTemplateInterfaceDonVi() {
             </thead>
             <tbody>
               <tr>
+                <td style="padding: 6px;">...</td>
+                <td style="padding: 6px;">...</td>
+                <td style="padding: 6px;">...</td>
+                <td style="padding: 6px;">...</td>
                 <td style="padding: 6px;">...</td>
                 <td style="padding: 6px;">...</td>
               </tr>
@@ -388,175 +468,49 @@ export default function PreviewTemplateInterfaceDonVi() {
 
   const renderSectionContent = (section: any) => {
     const type = section.contentType?.split(" - ")[0] || "";
-    const bindingCode = section.dataBinding
-      ? section.dataBinding.split(" - ")[0].trim()
-      : "";
+    const bindingCode = section.dataBinding ? section.dataBinding.split(" - ")[0].trim() : "";
+
     switch (type) {
       case "text":
-        return (
-          <div className="ckeditor-wrapper">
-            <CKEditor
-              editor={ClassicEditor}
-              data={section.value || "<p><br/></p>"}
-              disabled={false}
-              config={{
-                language: "vi",
-                placeholder: "Nhập nội dung tại đây...",
-                licenseKey: "GPL",
-                toolbar: {
-                  items: [
-                    "heading",
-                    "|",
-                    "fontfamily",
-                    "fontsize",
-                    "fontColor",
-                    "fontBackgroundColor",
-                    "|",
-                    "bold",
-                    "italic",
-                    "underline",
-                    "strikethrough",
-                    "|",
-                    "alignment",
-                    "outdent",
-                    "indent",
-                    "|",
-                    "bulletedList",
-                    "numberedList",
-                    "todoList",
-                    "|",
-                    "link",
-                    "blockQuote",
-                    "insertTable",
-                    "tableColumn",
-                    "tableRow",
-                    "mergeTableCells",
-                    "tableProperties",
-                    "tableCellProperties",
-                    "|",
-                    "horizontalLine",
-                    "specialCharacters",
-                    "|",
-                    "undo",
-                    "redo",
-                  ],
-                },
-                table: {
-                  contentToolbar: [
-                    "tableColumn",
-                    "tableRow",
-                    "mergeTableCells",
-                    "tableCellProperties",
-                    "tableProperties",
-                  ],
-                },
-                alignment: {
-                  options: ["left", "center", "right", "justify"],
-                },
-                removePlugins: [
-                  "CKFinder",
-                  "CKFinderUploadAdapter",
-                  "EasyImage",
-                  "ImageUpload",
-                  "MediaEmbed",
-                ],
-              }}
-            />
-
-          </div>
-        );
-
       case "obe_structured":
         return (
-          <div className="ckeditor-wrapper">
-            <CKEditor
-              editor={ClassicEditor}
-              data={section.value || getDefaultTemplateContent(bindingCode)}
-              disabled={false}
-              config={{
-                language: "vi",
-                placeholder: "Nhập nội dung tại đây...",
-                licenseKey: "GPL",
-                toolbar: {
-                  items: [
-                    "heading",
-                    "|",
-                    "fontfamily",
-                    "fontsize",
-                    "fontColor",
-                    "fontBackgroundColor",
-                    "|",
-                    "bold",
-                    "italic",
-                    "underline",
-                    "strikethrough",
-                    "|",
-                    "alignment",
-                    "outdent",
-                    "indent",
-                    "|",
-                    "bulletedList",
-                    "numberedList",
-                    "todoList",
-                    "|",
-                    "link",
-                    "blockQuote",
-                    "insertTable",
-                    "tableColumn",
-                    "tableRow",
-                    "mergeTableCells",
-                    "tableProperties",
-                    "tableCellProperties",
-                    "|",
-                    "horizontalLine",
-                    "specialCharacters",
-                    "|",
-                    "undo",
-                    "redo",
-                  ],
-                },
-                table: {
-                  contentToolbar: [
-                    "tableColumn",
-                    "tableRow",
-                    "mergeTableCells",
-                    "tableCellProperties",
-                    "tableProperties",
-                  ],
-                },
-                alignment: {
-                  options: ["left", "center", "right", "justify"],
-                },
-                removePlugins: [
-                  "CKFinder",
-                  "CKFinderUploadAdapter",
-                  "EasyImage",
-                  "ImageUpload",
-                  "MediaEmbed",
+          <div className="tinymce-wrapper">
+            <Editor
+              apiKey="v860ydxygzxql0jj6p38z11kr9p6e387raccokykvwxdkkb3"
+              initialValue={section.value || getDefaultTemplateContent(bindingCode)}
+              init={{
+                height: 400,
+                menubar: "file edit view insert format tools table help",
+                plugins: [
+                  "advlist", "autolink", "lists", "link", "charmap", "preview",
+                  "anchor", "searchreplace", "visualblocks", "code", "fullscreen",
+                  "insertdatetime", "table", "help", "wordcount"
                 ],
+                toolbar:
+                  "undo redo | blocks | bold italic underline | alignleft aligncenter alignright alignjustify | " +
+                  "bullist numlist outdent indent | table | removeformat | help",
+                table_advtab: true,
+                table_default_attributes: { border: "1" },
+                table_default_styles: { "border-collapse": "collapse", width: "100%" },
+                content_style:
+                  "table,th,td{border:1px solid #444;padding:6px;} th{text-align:center;background:#f5f5f5;}",
               }}
             />
-
           </div>
         );
 
       default:
-        return (
-          <div className="text-muted fst-italic">
-            Không có cấu hình hiển thị cho loại này.
-          </div>
-        );
+        return <div className="text-muted fst-italic">(Không có cấu hình hiển thị cho loại này)</div>;
     }
   };
 
-  if (loading) {
+  if (loading)
     return (
       <div className="p-4 text-center">
         <div className="spinner-border text-primary" role="status" />
         <p className="mt-2">Đang tải biểu mẫu...</p>
       </div>
     );
-  }
 
   return (
     <div className="main-content">
@@ -564,9 +518,7 @@ export default function PreviewTemplateInterfaceDonVi() {
         <div className="card shadow-sm border-0">
           <div className="card-body">
             <div className="page-header no-gutters">
-              <h2 className="text-uppercase">
-                Xem trước Mẫu đề cương
-              </h2>
+              <h2 className="text-uppercase">Xem trước Mẫu đề cương</h2>
               <hr />
             </div>
             {templateSections.length === 0 ? (
@@ -581,20 +533,11 @@ export default function PreviewTemplateInterfaceDonVi() {
                       : level === 1
                         ? "child-level-1"
                         : "child-level-2";
-
                   const allowInput =
-                    section.allow_input?.toLowerCase() ===
-                    "cho phép nhập liệu";
-
+                    section.allow_input?.toLowerCase() === "cho phép nhập liệu";
                   return (
-                    <div
-                      key={index}
-                      className={`template-section ${levelClass}`}
-                    >
-                      <h6>
-                        {section.section_code}. {section.section_name}
-                      </h6>
-
+                    <div key={index} className={`template-section ${levelClass}`}>
+                      <h6>{section.section_code}. {section.section_name}</h6>
                       {allowInput ? (
                         <div className="template-section-content">
                           {RenderTableCourseObjectives(section)}

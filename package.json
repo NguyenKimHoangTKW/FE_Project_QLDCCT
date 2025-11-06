@@ -30,6 +30,7 @@
     "@handsontable/react": "^16.1.1",
     "@microsoft/signalr": "^9.0.6",
     "@react-oauth/google": "^0.12.2",
+    "@tinymce/tinymce-react": "^6.3.0",
     "axios": "^1.12.2",
     "handsontable": "^16.1.1",
     "jwt-decode": "^4.0.0",
@@ -40,7 +41,8 @@
     "react-select": "^5.10.2",
     "select2": "^4.1.0-rc.0",
     "styled-components": "^5.3.11",
-    "sweetalert2": "^11.23.0"
+    "sweetalert2": "^11.23.0",
+    "tinymce": "^8.2.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.35.0",
