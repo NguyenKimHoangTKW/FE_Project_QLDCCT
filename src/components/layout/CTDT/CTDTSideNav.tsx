@@ -6,27 +6,19 @@ function CTDTSideNav() {
       <div className="side-nav-inner">
         <ul className="side-nav-menu scrollable">
           <li>
+            <Link className="dropdown-toggle" to={"/ctdt/danh-sach-can-bo-vien-chuc"}>
+              <span className="icon-holder">
+                <i className="anticon anticon-logout" />
+              </span>
+              <span className="title">Quản lý danh sách cán bộ viên chức thuộc CTĐT</span>
+            </Link>
+          </li>
+          <li>
             <Link className="dropdown-toggle" to={"/ctdt/danh-sach-mon-hoc"}>
               <span className="icon-holder">
                 <i className="anticon anticon-logout" />
               </span>
-              <span className="title">Quản lý học phần cho đề cương</span>
-            </Link>
-          </li>
-          <li>
-            <Link className="dropdown-toggle" to={"/ctdt/danh-sach-hoc-ky-thuoc-ctdt"}>
-              <span className="icon-holder">
-                <i className="anticon anticon-logout" />
-              </span>
-              <span className="title">Quản lý học kỳ thuộc CTĐT</span>
-            </Link>
-          </li>
-          <li>
-            <Link className="dropdown-toggle" to={"/ctdt/danh-sach-khoa-hoc"}>
-              <span className="icon-holder">
-                <i className="anticon anticon-logout" />
-              </span>
-              <span className="title">Quản lý khóa học</span>
+              <span className="title">Quản lý danh sách môn học thuộc CTĐT</span>
             </Link>
           </li>
           <li>

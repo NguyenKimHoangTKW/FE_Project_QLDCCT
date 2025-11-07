@@ -59,6 +59,7 @@ export default function ContributionMatrixInterfaceDonVi() {
         await GetListPLoPi();
         await GetListCourse();
         await GetListMatrixContribution();
+        SweetAlert("success", "Lọc dữ liệu thành công");
     }
     const handleSaveMatrix = async () => {
         if (!headerPiOrder.length) {
@@ -175,7 +176,7 @@ export default function ContributionMatrixInterfaceDonVi() {
                     <div className="table-responsive">
                         <table className="table table-bordered">
                             <thead>
-                                {listMatrixContribution.length > 0 && (
+                                {listMatrixContribution.length > 0 && listPLoPi.length > 0 ? (
                                     <>
                                         <tr>
                                             <th rowSpan={2}>Mã môn học</th>
@@ -206,6 +207,13 @@ export default function ContributionMatrixInterfaceDonVi() {
                                             )}
                                         </tr>
                                     </>
+                                ) : (
+                                    <tr>
+                                        <th className="text-center" colSpan={5}>
+                                            Chưa có dữ liệu môn học cho chương trình này
+                                        </th>
+                                    </tr>
+                                    
                                 )}
                             </thead>
                             <tbody>
