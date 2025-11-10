@@ -52,6 +52,7 @@ export default function CivilServantsInterfaceDonVi() {
         { label: "Ngày sinh", key: "birthday" },
         { label: "Ngày tạo", key: "time_cre" },
         { label: "Cập nhật lần cuối", key: "time_up" },
+        { label: "Số lượng đề cương mà giảng viên này phụ trách", key: "count_teacher_subjects" },
         { label: "*", key: "*" },
     ];
     const ShowData = async () => {
@@ -199,23 +200,33 @@ export default function CivilServantsInterfaceDonVi() {
                                             <td className="formatSo">{item.code_civilSer}</td>
                                             <td className="formatSo">{item.fullname_civilSer}</td>
                                             <td className="formatSo">{item.email}</td>
-                                            <td className="formatSo">{item.name_program}</td>
+                                            <td className="formatSo">{item.programName}</td>
                                             <td className="formatSo">{item.birthday}</td>
                                             <td className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
                                             <td className="formatSo">{unixTimestampToDate(item.time_up)}</td>
+                                            <td className="formatSo">{item.count_teacher_subjects}</td>
                                             <td>
-                                                <button
-                                                    className="btn btn-icon btn-hover btn-sm btn-rounded pull-right"
-                                                    onClick={() => handleEditCivilServant(item.id_civilSer)}
-                                                >
-                                                    <i className="anticon anticon-edit" />
-                                                </button>
-                                                <button
-                                                    className="btn btn-icon btn-hover btn-sm btn-rounded pull-right"
-                                                    onClick={() => handleDeleteCivilServant(item.id_civilSer)}
-                                                >
-                                                    <i className="anticon anticon-delete" />
-                                                </button>
+                                                <div className="d-flex justify-content flex-wrap gap-2">
+                                                    <button
+                                                        className="btn btn-sm btn-outline-primary"
+                                                        onClick={() => handleEditCivilServant(item.id_civilSer)}
+                                                    >
+                                                        ✏️ Chỉnh sửa
+                                                    </button>
+
+                                                    <button
+                                                        className="btn btn-sm btn-outline-danger"
+                                                        onClick={() => handleDeleteCivilServant(item.id_civilSer)}
+                                                    >
+                                                        🗑️ Xóa
+                                                    </button>
+
+                                                    <button
+                                                        className="btn btn-sm btn-outline-success"
+                                                    >
+                                                        🔐 Xem chi tiết đề cương mà giảng viên này phụ trách
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -285,7 +296,7 @@ export default function CivilServantsInterfaceDonVi() {
                         <div className="col-sm-10">
                             <input type="date" className="form-control" name="birthday" value={formData.birthday ?? ""} onChange={handleInputChange} />
                         </div>
-                    </div>            
+                    </div>
                 </form>
             </Modal>
         </div>

@@ -244,10 +244,14 @@ function CourseInterfaceCtdt() {
           totalTheory: Number(formData.totalTheory || 0),
         });
         if (res.success) {
-          ShowData();
           SweetAlert("success", res.message);
           setShowModal(false);
-          ShowData();
+          if (checkClickKeyYear === true) {
+            GetListCourseByKeyYear();
+          }
+          else {
+            ShowData();
+          }
         } else {
           SweetAlert("error", res.message);
         }
@@ -266,10 +270,14 @@ function CourseInterfaceCtdt() {
           id_semester: Number(formData.id_semester || 0),
         });
         if (res.success) {
-          ShowData();
           SweetAlert("success", res.message);
           setShowModal(false);
-          ShowData();
+          if (checkClickKeyYear === true) {
+            GetListCourseByKeyYear();
+          }
+          else {
+            ShowData();
+          }
         } else {
           SweetAlert("error", res.message);
         }
@@ -313,8 +321,13 @@ function CourseInterfaceCtdt() {
       try {
         const res = await CourseCTDTAPI.DeleteCourse({ id_course: id });
         if (res.success) {
-          ShowData();
           SweetAlert("success", res.message);
+          if (checkClickKeyYear === true) {
+            GetListCourseByKeyYear();
+          }
+          else {
+            ShowData();
+          }
         }
         else {
           SweetAlert("error", res.message);
@@ -507,6 +520,7 @@ function CourseInterfaceCtdt() {
                     <th style={{ width: "10%" }}>Số giờ lý thuyết</th>
                     <th style={{ width: "10%" }}>Số giờ thực hành</th>
                     <th style={{ width: "8%" }}>Số tín chỉ</th>
+                    <th style={{ width: "10%" }}>Hành động</th>
                   </tr>
                 </thead>
 
@@ -514,7 +528,7 @@ function CourseInterfaceCtdt() {
                   listCourseByKeyYear.map((semester: any, sIdx: number) => (
                     <tbody key={sIdx} style={{ color: "black" }}>
                       <tr className="table-secondary" >
-                        <td colSpan={7} className="fw-bold text-start" style={{ backgroundColor: "#bfd1ec" }}>
+                        <td colSpan={9} className="fw-bold text-start" style={{ backgroundColor: "#bfd1ec" }}>
                           {semester.name_se}
                         </td>
                       </tr>
@@ -529,11 +543,35 @@ function CourseInterfaceCtdt() {
                             <td className="text-center">{course.totalTheory}</td>
                             <td className="text-center">{course.totalPractice}</td>
                             <td className="text-center">{course.credits}</td>
+                            <td>
+                              <div className="d-flex justify-content flex-wrap gap-2">
+                                <button
+                                  className="btn btn-sm btn-outline-primary"
+                                  onClick={() => handleInfo(course.id_course)}
+                                >
+                                  ✏️ Chỉnh sửa
+                                </button>
+
+                                <button
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={() => handleDelete(course.id_course)}
+                                >
+                                  🗑️ Xóa
+                                </button>
+
+                                <button
+                                  className="btn btn-sm btn-outline-success"
+                                  onClick={() => HandleOpenPermission(course.id_course)}
+                                >
+                                  🔐 Xem chi tiết giảng viên phụ trách đề cương và phân quyền
+                                </button>
+                              </div>
+                            </td>
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={7} className="text-center text-muted">
+                          <td colSpan={8} className="text-center text-muted">
                             Không có môn học trong học kỳ này
                           </td>
                         </tr>
@@ -543,7 +581,7 @@ function CourseInterfaceCtdt() {
                 ) : (
                   <tbody>
                     <tr>
-                      <td colSpan={7} className="text-center text-danger">
+                      <td colSpan={8} className="text-center text-danger">
                         Chưa có dữ liệu học phần trong khóa học này
                       </td>
                     </tr>
@@ -580,7 +618,7 @@ function CourseInterfaceCtdt() {
                           <td className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
                           <td className="formatSo">{unixTimestampToDate(item.time_up)}</td>
                           <td className="formatSo">{item.count_syllabus}</td>
-                          <td >
+                          <td>
                             <div className="d-flex justify-content flex-wrap gap-2">
                               <button
                                 className="btn btn-sm btn-outline-primary"
