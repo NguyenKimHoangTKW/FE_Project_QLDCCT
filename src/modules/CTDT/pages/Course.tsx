@@ -29,6 +29,8 @@ function CourseInterfaceCtdt() {
   const [listCourseByKeyYear, setListCourseByKeyYear] = useState<any[]>([]);
   const [checkClickKeyYear, setCheckClickKeyYear] = useState(false);
   const [checkClickFilter, setCheckClickFilter] = useState(false);
+  const [permissionOpen, setPermissionOpen] = useState(false);
+  const [listCivilServantsPermission, setListCivilServantsPermission] = useState<any[]>([]);
   interface FormData {
     id_course: number | null;
     code_course: string;
@@ -69,6 +71,14 @@ function CourseInterfaceCtdt() {
     id_semester: null,
   });
 
+  interface PermissionData {
+    code_civilSer: string;
+    id_course: number | null;
+  }
+  const [permissionData, setPermissionData] = useState<PermissionData>({
+    code_civilSer: "",
+    id_course: null,
+  });
   const GetListCTDTByDonVi = async () => {
     const res = await ListCTDTPermissionAPI.GetListCTDTPermission();
     setListCTDT(res);
@@ -104,6 +114,9 @@ function CourseInterfaceCtdt() {
     if (name === "id_semester") {
       setFormData((prev) => ({ ...prev, id_semester: Number(value) }));
     }
+    if (name === "code_civilSer") {
+      setPermissionData((prev) => ({ ...prev, code_civilSer: value }));
+    }
   }
   const GetDataListOptionCourse = async (id_ctdt: number) => {
     const res = await CourseCTDTAPI.GetListOptionCourse({ id_program: id_ctdt });
@@ -136,6 +149,18 @@ function CourseInterfaceCtdt() {
     { label: "Số giờ thực hành", key: "totalPractice" },
     { label: "Số tín chỉ", key: "credits" },
     { label: "Ngày tạo", key: "tim_cre" },
+    { label: "Cập nhật lần cuối", key: "time_up" },
+    { label: "Số lượng giảng viên phụ trách đề cương", key: "count_syllabus" },
+    { label: "*", key: "*" },
+  ];
+  const headersPermission = [
+    { label: "STT", key: "stt" },
+    { label: "Mã viên chức", key: "code_civilSer" },
+    { label: "Họ và tên", key: "fullname_civilSer" },
+    { label: "Email", key: "email" },
+    { label: "Chương trình đào tạo", key: "name_program" },
+    { label: "Ngày sinh", key: "birthday" },
+    { label: "Ngày tạo", key: "time_cre" },
     { label: "Cập nhật lần cuối", key: "time_up" },
     { label: "*", key: "*" },
   ];
@@ -298,6 +323,42 @@ function CourseInterfaceCtdt() {
       finally {
         setLoading(false);
       }
+    }
+  }
+  const SavePermissionCourse = async () => {
+    const res = await CourseCTDTAPI.SavePermissionCourse({ id_program: Number(optionFilter.id_ctdt), code_civilSer: permissionData.code_civilSer, id_course: Number(permissionData.id_course) });
+    if (res.success) {
+      SweetAlert("success", res.message);
+      LoadDataCivilServantsPermission(Number(permissionData.id_course));
+    }
+    else {
+      SweetAlert("error", res.message);
+    }
+  }
+  const HandleOpenPermission = async (id_course: number) => {
+    setPermissionOpen(true);
+
+    setPermissionData((prev) => ({ ...prev, id_course: Number(id_course) }));
+
+    await LoadDataCivilServantsPermission(id_course);
+  };
+
+  const LoadDataCivilServantsPermission = async (id_course: number) => {
+    const res = await CourseCTDTAPI.LoadInfoPermissionCourse({ id_course });
+    if (res.success) {
+      setListCivilServantsPermission(res.data);
+    } else {
+      SweetAlert("error", res.message);
+    }
+  };
+  const handleDeletePermission = async (id_teacherbysubject: number) => {
+    const res = await CourseCTDTAPI.DeletePermissionCourse({ id_teacherbysubject });
+    if (res.success) {
+      SweetAlert("success", res.message);
+      LoadDataCivilServantsPermission(Number(permissionData.id_course));
+    }
+    else {
+      SweetAlert("error", res.message);
     }
   }
   useEffect(() => {
@@ -518,19 +579,30 @@ function CourseInterfaceCtdt() {
                           <td className="formatSo">{item.credits}</td>
                           <td className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
                           <td className="formatSo">{unixTimestampToDate(item.time_up)}</td>
-                          <td className="formatSo">
-                            <button
-                              className="btn btn-icon btn-hover btn-sm btn-rounded pull-right"
-                              onClick={() => handleInfo(item.id_course)}
-                            >
-                              <i className="anticon anticon-edit" />
-                            </button>
-                            <button
-                              className="btn btn-icon btn-hover btn-sm btn-rounded pull-right"
-                              onClick={() => handleDelete(item.id_course)}
-                            >
-                              <i className="anticon anticon-delete" />
-                            </button>
+                          <td className="formatSo">{item.count_syllabus}</td>
+                          <td >
+                            <div className="d-flex justify-content flex-wrap gap-2">
+                              <button
+                                className="btn btn-sm btn-outline-primary"
+                                onClick={() => handleInfo(item.id_course)}
+                              >
+                                ✏️ Chỉnh sửa
+                              </button>
+
+                              <button
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={() => handleDelete(item.id_course)}
+                              >
+                                🗑️ Xóa
+                              </button>
+
+                              <button
+                                className="btn btn-sm btn-outline-success"
+                                onClick={() => HandleOpenPermission(item.id_course)}
+                              >
+                                🔐 Xem chi tiết giảng viên phụ trách đề cương và phân quyền
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -671,6 +743,81 @@ function CourseInterfaceCtdt() {
           </div>
         </form>
       </Modal>
+
+
+      <Modal
+        isOpen={permissionOpen}
+        title="Quản lý quyền hạn"
+        onClose={() => setPermissionOpen(false)}
+        onSave={SavePermissionCourse}
+      >
+        <form id="modal-body" autoComplete="off">
+          <h5 className="text-center text-uppercase font-size-20">Nhập mã giảng viên vào ô để phân quyền vào đề cương môn học này</h5>
+          <hr />
+          <div className="form-group row">
+            <label className="col-sm-2 col-form-label">Mã cán bộ</label>
+            <div className="col-sm-10">
+              <input
+                type="text"
+                name="code_civilSer"
+                value={permissionData.code_civilSer}
+                className="form-control"
+                onChange={handleInputChange}
+                autoComplete="off"
+              />
+            </div>
+          </div>
+          <hr />
+          <div className="table-responsive">
+            <table className="table table-bordered">
+              <thead>
+                <tr>
+                  {headersPermission.map((h, idx) => (
+                    <th key={idx}>{h.label}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {listCivilServantsPermission.length > 0 ? (
+                  listCivilServantsPermission.map((item, index) => (
+                    <tr key={item.id_teacherbysubject}>
+                      <td>{(page - 1) * pageSize + index + 1}</td>
+                      <td>{item.code_civilSer}</td>
+                      <td>{item.fullname_civilSer}</td>
+                      <td>{item.email}</td>
+                      <td>{item.name_program}</td>
+                      <td>{item.birthday}</td>
+                      <td>{unixTimestampToDate(item.time_cre)}</td>
+                      <td>{unixTimestampToDate(item.time_up)}</td>
+                      <td >
+                        <div className="d-flex justify-content flex-wrap gap-2">
+                          <button
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleDeletePermission(item.id_teacherbysubject);
+                            }
+                            }
+                          >
+                            🗑️ Xóa giảng viêng này ra khỏi đề cương
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={headers.length} className="text-center text-danger">
+                      Không có dữ liệu giảng viên nào được phân quyền.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </form>
+      </Modal>
+
     </div>
   );
 }

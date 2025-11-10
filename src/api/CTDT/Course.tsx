@@ -52,4 +52,19 @@ export const CourseCTDTAPI = {
                 withCredentials: true,
             })
             .then((res) => res.data),
+    LoadInfoPermissionCourse: (data: { id_course: number }) =>
+        axios.post(`${URL_API_CTDT}/course/loads-giang-vien-de-cuong-by-mon-hoc`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
+    SavePermissionCourse: (data: { id_program: number, code_civilSer: string, id_course: number }) =>
+        axios.post(`${URL_API_CTDT}/course/save-phan-quyen-viet-de-cuong-cbvc`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
+    DeletePermissionCourse: (data: { id_teacherbysubject: number }) =>
+        axios.post(`${URL_API_CTDT}/course/delete-permission-gv-ra-de-cuong`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
 }

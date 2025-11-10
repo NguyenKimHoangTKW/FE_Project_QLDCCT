@@ -18,11 +18,16 @@ const Modal: React.FC<ModalProps> = ({ isOpen, title, children, onClose, onSave 
             role="dialog"
             style={{ background: "rgba(0,0,0,0.5)" }}
         >
-            <div className="modal-dialog modal-lg" role="document">
+            <div className="modal-dialog modal-xl" role="document">
                 <div className="modal-content">
                     <div className="modal-header">
-                        <h5 className="modal-title h4">{title}</h5>
-                        <button type="button" className="btn-close" onClick={onClose}></button>
+                        <h5 className="modal-title h4 mb-0">{title}</h5>
+                        <button
+                            type="button"
+                            className="btn-close"
+                            onClick={onClose}
+                            aria-label="Đóng"
+                        ></button>
                     </div>
 
                     <div className="modal-body">{children}</div>
