@@ -1,9 +1,6 @@
 import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
-import axios from "axios";
-import { URL_USER } from "../../../URL_Config";
 import { LoginServicesAPI } from "../../../api/LoginServicesAPI";
-import { SweetAlert } from "../../ui/SweetAlert";
 import { useState } from "react";
 import Loading from "../../ui/Loading";
 
@@ -22,9 +19,9 @@ function ClientSideNav() {
       });
 
       if (res.status === 200 && res.data.success) {
-        const { token, user } = res.data;
-
-        localStorage.setItem("accessToken", token);
+        const { user } = res.data;
+        
+        localStorage.setItem("accessToken",  res.data.token);
 
         switch (user.id_type_users) {
           case 2:
@@ -35,6 +32,9 @@ function ClientSideNav() {
             break;
           case 3:
             window.location.href = "/donvi";
+            break;
+          case 4:
+            window.location.href = "/gv-de-cuong";
             break;
           default:
             window.location.href = "/";

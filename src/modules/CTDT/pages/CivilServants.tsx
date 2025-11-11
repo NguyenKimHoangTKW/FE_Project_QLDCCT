@@ -13,6 +13,8 @@ export default function CivilServantsInterfaceDonVi() {
     const [totalPages, setTotalPages] = useState(0);
     const [modalOpen, setModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+    const [listSubjectByCivilServant, setListSubjectByCivilServant] = useState<any[]>([]);
+    const [modalSubjectByCivilServantOpen, setModalSubjectByCivilServantOpen] = useState(false);
     interface FormData {
         id_civilSer: number | null;
         code_civilSer: string;
@@ -55,6 +57,19 @@ export default function CivilServantsInterfaceDonVi() {
         { label: "Số lượng đề cương mà giảng viên này phụ trách", key: "count_teacher_subjects" },
         { label: "*", key: "*" },
     ];
+    const handleOpenModalSubjectByCivilServant = (id_civilSer: number) => {
+        setModalSubjectByCivilServantOpen(true);
+        LoadListSubjectByCivilServant(id_civilSer);
+    }
+    const LoadListSubjectByCivilServant = async (id_civilSer: number) => {
+        const res = await CivilServantsCTDTAPI.LoadListCourseByCivilServant({ id_civilSer: id_civilSer });
+        if (res.success) {
+            setListSubjectByCivilServant(res.data);
+        }
+        else {
+            SweetAlert("error", res.message);
+        }
+    }
     const ShowData = async () => {
         const res = await CivilServantsCTDTAPI.GetListCivilServantsCTDT({ id_program: Number(formData.id_program || 0), Page: page, PageSize: pageSize });
         if (res.success) {
@@ -223,6 +238,7 @@ export default function CivilServantsInterfaceDonVi() {
 
                                                     <button
                                                         className="btn btn-sm btn-outline-success"
+                                                        onClick={() => handleOpenModalSubjectByCivilServant(item.id_civilSer)}
                                                     >
                                                         🔐 Xem chi tiết đề cương mà giảng viên này phụ trách
                                                     </button>
@@ -298,6 +314,46 @@ export default function CivilServantsInterfaceDonVi() {
                         </div>
                     </div>
                 </form>
+            </Modal>
+            <Modal
+                isOpen={modalSubjectByCivilServantOpen}
+                title="Danh sách đề cương mà giảng viên này phụ trách"
+                onClose={() => setModalSubjectByCivilServantOpen(false)}
+            >
+                <div className="table-responsive">
+                    <table className="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Mã học phần</th>
+                                <th>Tên học phần</th>
+                                <th>Thuộc khóa học</th>
+                                <th>Thuộc học kỳ</th>
+                                <th>Kiểm tra học phần bắt buộc</th>
+                                <th>Nhóm học phần</th>
+                                <th>Số giờ lý thuyết</th>
+                                <th>Số giờ thực hành</th>
+                                <th>Số tín chỉ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {listSubjectByCivilServant.map((item, index) => (
+                                <tr key={item.id_teacherbysubject}>
+                                    <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
+                                    <td className="formatSo">{item.code_course}</td>
+                                    <td className="formatSo">{item.name_course}</td>
+                                    <td className="formatSo">{item.keyYearSemester}</td>
+                                    <td className="formatSo">{item.semester}</td>
+                                    <td className="formatSo">{item.isCourse}</td>
+                                    <td className="formatSo">{item.groupCourse}</td>
+                                    <td className="formatSo">{item.totalTheory}</td>
+                                    <td className="formatSo">{item.totalPractice}</td>
+                                    <td className="formatSo">{item.credits}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </Modal>
         </div>
     );

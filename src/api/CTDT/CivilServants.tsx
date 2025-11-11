@@ -27,4 +27,10 @@ export const CivilServantsCTDTAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
+
+    LoadListCourseByCivilServant: (data: { id_civilSer: number }) =>
+        axios.post(`${URL_API_CTDT}/civil-servants/loads-list-de-cuong-by-gv`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
 }
