@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { CourseDonViAPI } from "../../../api/DonVi/CourseAPI";
 import { unixTimestampToDate } from "../../../URL_Config";
 import Modal from "../../../components/ui/Modal";
 import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
@@ -31,6 +30,7 @@ function CourseInterfaceCtdt() {
   const [checkClickFilter, setCheckClickFilter] = useState(false);
   const [permissionOpen, setPermissionOpen] = useState(false);
   const [listCivilServantsPermission, setListCivilServantsPermission] = useState<any[]>([]);
+  const [setUpTimeOpen, setSetUpTimeOpen] = useState(false);
   interface FormData {
     id_course: number | null;
     code_course: string;
@@ -79,6 +79,17 @@ function CourseInterfaceCtdt() {
     code_civilSer: "",
     id_course: null,
   });
+
+  interface SetUpTimeData {
+    open_time: number | null;
+    close_time: number | null;
+    reason: string;
+  }
+  const [setUpTimeData, setSetUpTimeData] = useState<SetUpTimeData>({
+    open_time: null,
+    close_time: null,
+    reason: "",
+  });
   const GetListCTDTByDonVi = async () => {
     const res = await ListCTDTPermissionAPI.GetListCTDTPermission();
     setListCTDT(res);
@@ -118,6 +129,28 @@ function CourseInterfaceCtdt() {
       setPermissionData((prev) => ({ ...prev, code_civilSer: value }));
     }
   }
+  const handleInputChangeSetUpTime = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (name === "open_time" || name === "close_time") {
+      const unixTime = value ? Math.floor(new Date(value).getTime() / 1000) : null;
+      setSetUpTimeData((prev) => ({ ...prev, [name]: unixTime }));
+    } else {
+      setSetUpTimeData((prev) => ({ ...prev, [name]: value }));
+    }
+    if (name === "reason") {
+      setSetUpTimeData((prev) => ({ ...prev, reason: value }));
+    }
+  };
+const unixToLocal = (timestamp: number | null) => {
+  if (!timestamp) return "";
+  const date = new Date(timestamp * 1000);
+
+  const tzOffset = date.getTimezoneOffset() * 60000;
+  const localISOTime = new Date(date.getTime() - tzOffset).toISOString();
+
+  return localISOTime.slice(0, 16);
+};
+
   const GetDataListOptionCourse = async (id_ctdt: number) => {
     const res = await CourseCTDTAPI.GetListOptionCourse({ id_program: id_ctdt });
     setListKiemTraHocPhanBatBuoc(res.is_hoc_phan);
@@ -374,6 +407,18 @@ function CourseInterfaceCtdt() {
       SweetAlert("error", res.message);
     }
   }
+  const handleSetUpTimeCourse = async () => {
+    const res = await CourseCTDTAPI.SetUpTimeCourse({ id_keyYearSemester: Number(optionFilter.id_key_year_semester), open_time: Number(setUpTimeData.open_time), close_time: Number(setUpTimeData.close_time), reason: setUpTimeData.reason });
+    if (res.success) {
+      SweetAlert("success", res.message);
+    }
+    else {
+      SweetAlert("error", res.message);
+    }
+  }
+  const handleOpenSetUpTimeCourse = () => {
+    setSetUpTimeOpen(true);
+  }
   useEffect(() => {
     if (!didFetch.current) {
       GetListCTDTByDonVi();
@@ -461,6 +506,9 @@ function CourseInterfaceCtdt() {
                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
                   <button className="btn btn-success" onClick={AddNewCourse}>
                     <i className="fas fa-plus-circle mr-1" /> Thêm mới
+                  </button>
+                  <button className="btn btn-success" onClick={handleOpenSetUpTimeCourse}>
+                    <i className="fas fa-plus-circle mr-1" /> Thiết lập thời gian mở học phần đề cương
                   </button>
                   <button
                     className="btn btn-success"
@@ -856,6 +904,33 @@ function CourseInterfaceCtdt() {
         </form>
       </Modal>
 
+      <Modal
+        isOpen={setUpTimeOpen}
+        title="Thiết lập thời gian mở học phần đề cương"
+        onClose={() => setSetUpTimeOpen(false)}
+        onSave={handleSetUpTimeCourse}
+      >
+        <form id="modal-body" autoComplete="off">
+          <div className="form-group row">
+            <label className="col-sm-2 col-form-label">Thời gian mở học phần đề cương</label> 
+            <div className="col-sm-10">
+              <input type="datetime-local" className="form-control" name="open_time" value={unixToLocal(setUpTimeData.open_time) ?? ""} onChange={handleInputChangeSetUpTime} />
+            </div>
+          </div>
+          <div className="form-group row">
+            <label className="col-sm-2 col-form-label">Thời gian đóng học phần đề cương</label>
+            <div className="col-sm-10">
+              <input type="datetime-local" className="form-control" name="close_time" value={unixToLocal(setUpTimeData.close_time) ?? ""} onChange={handleInputChangeSetUpTime} />
+            </div>
+          </div>
+          <div className="form-group row">
+            <label className="col-sm-2 col-form-label">Lý do</label>
+            <div className="col-sm-10">
+              <input type="text" className="form-control" name="reason" value={setUpTimeData.reason} onChange={handleInputChangeSetUpTime} />
+            </div>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

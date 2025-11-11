@@ -67,4 +67,10 @@ export const CourseCTDTAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
+
+    SetUpTimeCourse: (data: { id_keyYearSemester: number, open_time: number, close_time: number, reason: string }) =>
+        axios.post(`${URL_API_CTDT}/course/set-up-time-open-course-by-key`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
 }
