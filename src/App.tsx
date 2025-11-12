@@ -7,8 +7,8 @@ import CTDTLayout from "./layouts/CTDTLayout";
 import DonViLayout from "./layouts/DonViLayout";
 import DonViRoutes from "./modules/DonVi/routes/DonViRoutes";
 import GVDeCuongLayout from "./layouts/GVDeCuongLayout";
-import GVDeCuongRoutes from "./modules/GVDeCuong/GVDeCuongRoutes";
 import ProtectedRoute from "./components/ProtectedRoute";
+import GVDeCuongRoutes from "./modules/GVDeCuong/routes/GVDeCuongRoutes";
 
 function App() {
   return (
