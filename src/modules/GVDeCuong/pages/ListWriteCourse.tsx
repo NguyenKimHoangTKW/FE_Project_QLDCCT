@@ -3,7 +3,9 @@ import { SweetAlert } from "../../../components/ui/SweetAlert";
 import { useEffect, useState } from "react";
 import { unixTimestampToDate } from "../../../URL_Config";
 import Modal from "../../../components/ui/Modal";
+import { useNavigate } from "react-router-dom";
 function ListWriteCourseDVDC() {
+    const navigate = useNavigate();
     const [listCourse, setListCourse] = useState<any[]>([]);
     const [showModal, setShowModal] = useState(false);
     const [listTeacher, setListTeacher] = useState<{
@@ -84,6 +86,9 @@ function ListWriteCourseDVDC() {
         } else {
             SweetAlert("error", res.message);
         }
+    }
+    const handleViewDetailTemplateWriteCourse = async (id_syllabus: number) => {
+        navigate(`/gv-de-cuong/xem-truc-tuyen-mau-de-cuong/${id_syllabus}`);
     }
     useEffect(() => {
         GetListCourse();
@@ -199,7 +204,7 @@ function ListWriteCourseDVDC() {
                                             <td className="formatSo">{teacher.version}</td>
                                             <td>
                                                 {teacher.code_status === 1 ? (
-                                                    <button className="btn btn-light border-primary text-primary btn-sm" >
+                                                    <button className="btn btn-light border-primary text-primary btn-sm" onClick={() => handleViewDetailTemplateWriteCourse(teacher.id_syllabus)}>
                                                         <i className="fas fa-edit me-2 text-primary"></i> Tiếp tục viết đề cương
                                                     </button>
                                                 ) : teacher.code_status === 2 ? (
@@ -207,7 +212,7 @@ function ListWriteCourseDVDC() {
                                                         <i className="fas fa-edit me-2 text-primary"></i> Tiếp tục viết đề cương
                                                     </button>
                                                 ) : teacher.code_status === 3 ? (
-                                                    <button className="btn btn-light border-primary text-primary btn-sm">
+                                                    <button className="btn btn-light border-primary text-primary btn-sm" onClick={() => handleViewDetailTemplateWriteCourse(teacher.id_syllabus)}>
                                                         <i className="fas fa-edit me-2 text-primary"></i> Tiếp tục viết đề cương
                                                     </button>
                                                 ) : teacher.code_status === 4 ? (
