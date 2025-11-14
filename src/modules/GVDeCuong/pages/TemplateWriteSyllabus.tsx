@@ -17,8 +17,8 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   const storageKey = `syllabus_draft_${id_syllabus}`;
   const [draftData, setDraftData] = useState<any>({});
   const [loadPreviewLevelContribution, setLoadPreviewLevelContribution] = useState<any[]>([]);
-  const [loadPreviewMapPLObySyllabus, setLoadPreviewMapPLObySyllabus] = useState<any[]>([]);
-  const [editableRows, setEditableRows] = useState<any[]>([]);
+  const [mappingRows, setMappingRows] = useState<any[]>([]);
+  const [levelMatrix, setLevelMatrix] = useState<Record<string, number>>({});
   const LoadData = async () => {
     try {
       const res = await TemplateWriteCourseAPI.PreviewTemplate({
@@ -42,7 +42,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
       id_syllabus: Number(id_syllabus),
     });
 
-    setLoadPreviewLevelContribution(res.data || []);
+    setLoadPreviewLevelContribution(res || []);
   };
 
   const LoadPreviewProgramLearningOutcome = async () => {
@@ -70,43 +70,57 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   };
 
   const LoadPreviewMapPLObySyllabus = async () => {
-    const res = await TemplateWriteCourseAPI.PreviewMapPLObySyllabus({ id_syllabus: Number(id_syllabus) });
-    setLoadPreviewMapPLObySyllabus(res);
-  };
-  const addNewRow = () => {
-    setEditableRows([
-      ...editableRows,
-      { map_clo: "", description: "" }
-    ]);
-  };
-  const updateRow = (index: number, field: string, value: string) => {
-    const updated = [...editableRows];
-    updated[index][field] = value;
-    setEditableRows(updated);
+    const res = await TemplateWriteCourseAPI.PreviewMapPLObySyllabus({
+      id_syllabus: Number(id_syllabus)
+    });
+
+    const formatted = res.map((x: any) => ({
+      id: x.id ?? null,
+      map_clo: x.map_clo && x.map_clo !== "" ? x.map_clo : "CLO1",
+      description: x.description ?? ""
+    }));
+
+
+    setMappingRows(formatted);
   };
 
+  const addNewRow = () => {
+    setMappingRows(prev => [
+      ...prev,
+      { id: null, map_clo: "CLO1", description: "" }
+    ]);
+  };
+
+  const updateRow = (index: number, field: string, value: string) => {
+    setMappingRows(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
   useEffect(() => {
-    const savedDraft = localStorage.getItem(storageKey);
-    if (savedDraft) {
-      setDraftData(JSON.parse(savedDraft));
-    }
-    LoadData();
-    LoadPreviewCourseObjectives();
-    LoadPreviewCourseLearningOutcome();
-    LoadPreviewProgramLearningOutcome();
-    LoadListPLOCourse();
-    LoadPreviewLevelContribution();
-    LoadPreviewMapPLObySyllabus();
+    const loadAll = async () => {
+      const savedDraft = localStorage.getItem(storageKey);
+      if (savedDraft) {
+        setDraftData(JSON.parse(savedDraft));
+      }
+  
+      await LoadData();
+      await LoadPreviewCourseObjectives();
+      await LoadPreviewCourseLearningOutcome();
+      await LoadPreviewProgramLearningOutcome();
+      await LoadListPLOCourse();
+      await LoadPreviewLevelContribution();
+      await LoadPreviewMapPLObySyllabus(); // chỉ load mappingRows thôi
+    };
+  
+    loadAll();
   }, []);
   useEffect(() => {
-    if (loadPreviewMapPLObySyllabus.length > 0) {
-      setEditableRows(loadPreviewMapPLObySyllabus);
-    } else {
-      setEditableRows([
-        { map_clo: "", description: "" }
-      ]);
+    if (mappingRows.length > 0) {
+      LoadSavedMappingCLOPI();
     }
-  }, [loadPreviewMapPLObySyllabus]);
+  }, [mappingRows]);
   const RenderTableCourseObjectives = (section: any) => {
     const bindingType = section.dataBinding.split(" - ")[0];
     if (bindingType === "CO") {
@@ -316,135 +330,185 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
       case "CLO":
         return (
           <>
-            <table className="table table-bordered mt-2">
+            <table className="table table-bordered">
               <thead>
                 <tr>
-                  <th className="text-center" style={{ width: "60px" }}>STT</th>
-                  <th className="text-center" style={{ width: "200px" }}>Chuẩn đầu ra học phần</th>
+                  <th className="text-center">STT</th>
+                  <th className="text-center">Chuẩn đầu ra học phần</th>
                   <th className="text-center">Nội dung chuẩn đầu ra học phần</th>
+                  <th className="text-center">Save</th>
+                  <th className="text-center">Xóa</th>
                 </tr>
               </thead>
 
               <tbody>
-                {editableRows.map((item: any, index: number) => (
+                {mappingRows.map((item, index) => (
                   <tr key={index}>
                     <td className="text-center">{index + 1}</td>
-
                     <td>
-                      <input
+                      <select
                         className="form-control"
                         value={item.map_clo}
                         onChange={(e) => updateRow(index, "map_clo", e.target.value)}
-                        placeholder="Nhập CLO (vd: CLO1)"
-                      />
+                      >
+                        {Array.from({ length: 20 }, (_, i) => (
+                          <option key={i + 1} value={`CLO${i + 1}`}>
+                            CLO{i + 1}
+                          </option>
+                        ))}
+                      </select>
+
                     </td>
 
                     <td>
                       <textarea
                         className="form-control"
                         rows={2}
-                        value={item.description}
+                        value={item.description || ""}
                         onChange={(e) => updateRow(index, "description", e.target.value)}
-                        placeholder="Nhập mô tả..."
                       />
+                    </td>
+
+                    <td className="text-center">
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => saveMappingCLO(index)}
+                      >
+                        💾
+                      </button>
+                    </td>
+
+                    <td className="text-center">
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => deleteMappingCLO(index)}
+                      >
+                        Xóa
+                      </button>
                     </td>
                   </tr>
                 ))}
 
                 <tr>
-                  <td colSpan={3} className="text-center">
-                    <button className="btn btn-primary btn-sm" onClick={addNewRow}>
-                      + Thêm CLO
+                  <td colSpan={5} className="text-center">
+                    <button className="btn btn-success btn-sm" onClick={addNewRow}>
+                      + Thêm CLO mới
                     </button>
                   </td>
                 </tr>
               </tbody>
             </table>
-
           </>
         )
       case "PLO": {
+        const cloList = mappingRows;
         const ploData = loadListPLOCourse || [];
         const levelList = loadPreviewLevelContribution || [];
 
         if (!ploData || ploData.length === 0) {
-          return `
-                <p style="text-align:center;font-style:italic;">
-                  (Chưa có dữ liệu ma trận PLO-PI)
-                </p>`;
+          return (
+            <p className="text-center fst-italic">
+              (Chưa có dữ liệu ma trận PLO - PI)
+            </p>
+          );
         }
 
-        let cloList: string[] = [];
+        const totalPiCols = ploData.reduce(
+          (sum: number, p: any) => sum + p.pi_list.length,
+          0
+        );
 
-        const cloHtml = draftData["CLO"] || "";
+        return (
+          <div style={{ overflowX: "auto" }}>
+            <table className="table table-bordered" style={{ width: "100%", tableLayout: "fixed" }}>
+              <thead>
+                <tr>
+                  <th
+                    rowSpan={3}
+                    className="text-center"
+                    style={{ width: "90px", background: "#d9e7ff" }}
+                  >
+                    CLO
+                  </th>
+                  <th
+                    colSpan={totalPiCols}
+                    className="text-center"
+                    style={{ background: "#d9e7ff" }}
+                  >
+                    PLO và PI
+                  </th>
+                </tr>
 
-        const cloMatches = cloHtml.match(/CLO\d+/g);
-        if (cloMatches && cloMatches.length > 0) {
-          cloList = Array.from(new Set(cloMatches));
-        }
+                <tr>
+                  {ploData.map((p: any) => (
+                    <th
+                      key={`plo-${p.plo_code}`}
+                      colSpan={p.pi_list.length}
+                      className="text-center"
+                      style={{ background: "#eaf2ff", whiteSpace: "nowrap" }}
+                    >
+                      {p.plo_code}
+                    </th>
+                  ))}
+                </tr>
 
-        if (cloList.length === 0) {
-          cloList = loadPreviewCourseLearningOutcome?.map((x: any) => x.name_CLO) || [];
-        }
+                <tr>
+                  {ploData.flatMap((p: any) =>
+                    p.pi_list.map((pi: any) => (
+                      <th
+                        key={`pi-${p.plo_code}-${pi.pi_code}`}
+                        className="text-center"
+                        style={{ background: "#b4d5ff", whiteSpace: "nowrap" }}
+                      >
+                        {pi.pi_code}
+                      </th>
+                    ))
+                  )}
+                </tr>
+              </thead>
 
-        const totalPiCols = ploData.reduce((sum, p) => sum + p.pi_list.length, 0);
+              <tbody>
+                {cloList.map((clo: any, rowIndex: number) => (
+                  <tr key={`clo-${rowIndex}`}>
+                    <td>{clo.map_clo}</td>
 
-        const ploRow = ploData
-          .map(
-            (p) =>
-              `<th colspan="${p.pi_list.length}" style="padding:6px;text-align:center;">${p.plo_code}</th>`
-          )
-          .join("");
+                    {ploData.flatMap(p =>
+                      p.pi_list.map((pi: any) => (
+                        <td key={`cell-${rowIndex}-${pi.id_PI}`}>
+                          <select
+                            value={levelMatrix[`${rowIndex}_${pi.id_PI}`] ?? 0}
+                            onChange={(e) =>
+                              handleLevelChange(
+                                rowIndex,
+                                pi.id_PI,
+                                Number(e.target.value)
+                              )
+                            }
+                          >
+                            <option key={0} value={0}>--</option>
+                            {levelList.map(lv => (
+                              <option key={lv.id} value={lv.id}>{lv.code}</option>
+                            ))}
+                          </select>
+                        </td>
+                      ))
+                    )}
+                  </tr>
+                ))}
 
-        const piRow = ploData
-          .flatMap((p) =>
-            p.pi_list.map(
-              (pi: any) =>
-                `<th style="padding:6px;text-align:center;">${pi.pi_code}</th>`
-            )
-          )
-          .join("");
+              </tbody>
+            </table>
 
-        const selectOptions = levelList
-          .map((lv: any) => `<option value="${lv.code}">${lv.code} — ${lv.description}</option>`)
-          .join("");
+            <hr />
 
-        const buildSelectCell = () => `
-                  <td style="padding:6px;text-align:center;">
-                    <select style="width: 100%; padding: 5px; text-align:center;">
-                      <option value=""></option>
-                      ${selectOptions}
-                    </select>
-                  </td>
-                `;
-        const bodyRows = cloList
-          .map(
-            (clo) => `
-                      <tr>
-                        <td style="padding:6px;text-align:center;font-weight:600;">${clo}</td>
-                        ${Array(totalPiCols).fill(buildSelectCell()).join("")}
-                      </tr>
-                    `
-          )
-          .join("");
-
-        return `
-                  <table border="1" style="border-collapse:collapse;width:100%;border-color:#444;">
-                    <thead>
-                      <tr>
-                        <th rowspan="3" style="padding:6px;text-align:center;">CLO</th>
-                        <th colspan="${totalPiCols}" style="padding:6px;text-align:center;">PLO và PI</th>
-                      </tr>
-                      <tr>${ploRow}</tr>
-                      <tr>${piRow}</tr>
-                    </thead>
-                    <tbody>
-                      ${bodyRows}
-                    </tbody>
-                  </table>
-                `;
+            <div className="mt-3 d-flex justify-content-end gap-2">
+              <button className="btn btn-primary btn-sm px-4" onClick={saveLevelMapping}>
+                 Lưu mapping CLO–PI và kiểm tra tham chiếu mức độ đóng góp
+              </button>
+            </div>
+          </div>
+        );
       }
-
 
       case "LearningResources":
         return `
@@ -537,7 +601,82 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         return "<p><br/></p>";
     }
   };
+  const saveMappingCLO = async (index: number) => {
+    const row = mappingRows[index];
 
+    if (!row) return;
+
+    const res = await TemplateWriteCourseAPI.AddNewMappingCLO({
+      id: row.id ?? 0,
+      id_syllabus: Number(id_syllabus),
+      map_clo: row.map_clo,
+      description: row.description
+    });
+    if (res.success) {
+      SweetAlert("success", "Đã lưu dòng CLO!");
+      LoadPreviewMapPLObySyllabus();
+    }
+    else {
+      SweetAlert("error", res.message);
+    }
+  };
+
+  const deleteMappingCLO = async (index: number) => {
+    const row = mappingRows[index];
+    if (!row.id) {
+      setMappingRows(prev => prev.filter((_, i) => i !== index));
+      return;
+    }
+
+    await TemplateWriteCourseAPI.DeleteMappingCLO({ id: row.id });
+
+    setMappingRows(prev => prev.filter((_, i) => i !== index));
+  };
+  const handleLevelChange = (rowIndex: number, piId: number, levelId: number) => {
+    setLevelMatrix(prev => ({
+      ...prev,
+      [`${rowIndex}_${piId}`]: levelId
+    }));
+  };
+
+  const saveLevelMapping = async () => {
+    const entries = Object.entries(levelMatrix);
+
+    const payload = entries.map(([key, levelId]) => {
+      const [rowIndex, piId] = key.split("_");
+      const clo = mappingRows[Number(rowIndex)];
+
+      return {
+        id_CLoMapping: Number(clo.id),
+        Id_PI: Number(piId),
+        Id_Level: Number(levelId),
+      };
+    });
+
+    const res = await TemplateWriteCourseAPI.SaveMappingCLOPI(payload);
+
+    if (res.success) {
+      SweetAlert("success", "Đã lưu mapping CLO – PI!");
+    } else {
+      SweetAlert("error", res.message || "Lưu mapping CLO – PI thất bại!");
+    }
+  };
+  const LoadSavedMappingCLOPI = async () => {
+    const res = await TemplateWriteCourseAPI.GetMappingCLOPI({ id_syllabus: Number(id_syllabus) });
+  
+    const matrix: Record<string, number> = {};
+  
+    res.forEach((item: any) => {
+      const rowIndex = mappingRows.findIndex(x => x.id === item.id_CLoMapping);
+  
+      if (rowIndex !== -1) {
+        const key = `${rowIndex}_${item.id_PI}`;
+        matrix[key] = item.id_Level;
+      }
+    });
+  
+    setLevelMatrix(matrix);
+  };
   const renderSectionContent = (section: any) => {
     const type = section.contentType?.split(" - ")[0] || "";
     const bindingCode = section.dataBinding ? section.dataBinding.split(" - ")[0].trim() : "";
@@ -545,6 +684,9 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
     switch (type) {
       case "text":
       case "obe_structured":
+        if (bindingCode === "CLO" || bindingCode === "PLO") {
+          return getDefaultTemplateContent(bindingCode);
+        }
         return (
           <div className="tinymce-wrapper">
             <Editor

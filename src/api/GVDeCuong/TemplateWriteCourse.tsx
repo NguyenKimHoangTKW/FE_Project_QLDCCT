@@ -42,4 +42,26 @@ export const TemplateWriteCourseAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
+
+    AddNewMappingCLO: (data: { id: number, id_syllabus: number, map_clo: string, description: string }) =>
+        axios.post(`${URL_API_DVDC}/write-template-syllabus/save-mapping-clo`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
+    DeleteMappingCLO: (data: { id: number }) =>
+        axios.post(`${URL_API_DVDC}/write-template-syllabus/delete-mapping-clo`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
+    SaveMappingCLOPI: (data: any[]) =>
+        axios.post(`${URL_API_DVDC}/write-template-syllabus/save-mapping-clo-pi`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then(res => res.data),
+    GetMappingCLOPI: (data: { id_syllabus: number }) =>
+        axios.post(`${URL_API_DVDC}/write-template-syllabus/get-mapping-clo-pi`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
+
 }
