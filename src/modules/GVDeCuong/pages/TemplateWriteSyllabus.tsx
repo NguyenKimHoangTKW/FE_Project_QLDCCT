@@ -19,6 +19,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   const [loadPreviewLevelContribution, setLoadPreviewLevelContribution] = useState<any[]>([]);
   const [mappingRows, setMappingRows] = useState<any[]>([]);
   const [levelMatrix, setLevelMatrix] = useState<Record<string, number>>({});
+
   const LoadData = async () => {
     try {
       const res = await TemplateWriteCourseAPI.PreviewTemplate({
@@ -104,7 +105,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
       if (savedDraft) {
         setDraftData(JSON.parse(savedDraft));
       }
-  
+
       await LoadData();
       await LoadPreviewCourseObjectives();
       await LoadPreviewCourseLearningOutcome();
@@ -113,7 +114,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
       await LoadPreviewLevelContribution();
       await LoadPreviewMapPLObySyllabus(); // chỉ load mappingRows thôi
     };
-  
+
     loadAll();
   }, []);
   useEffect(() => {
@@ -357,9 +358,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
                           </option>
                         ))}
                       </select>
-
                     </td>
-
                     <td>
                       <textarea
                         className="form-control"
@@ -472,27 +471,34 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
                   <tr key={`clo-${rowIndex}`}>
                     <td>{clo.map_clo}</td>
 
-                    {ploData.flatMap(p =>
-                      p.pi_list.map((pi: any) => (
-                        <td key={`cell-${rowIndex}-${pi.id_PI}`}>
-                          <select
-                            value={levelMatrix[`${rowIndex}_${pi.id_PI}`] ?? 0}
-                            onChange={(e) =>
-                              handleLevelChange(
-                                rowIndex,
-                                pi.id_PI,
-                                Number(e.target.value)
-                              )
-                            }
-                          >
-                            <option key={0} value={0}>--</option>
-                            {levelList.map(lv => (
-                              <option key={lv.id} value={lv.id}>{lv.code}</option>
-                            ))}
-                          </select>
-                        </td>
-                      ))
+                    {ploData.flatMap((p: any) =>
+                      p.pi_list.map((pi: any) => {
+                        const key = `${rowIndex}_${pi.id_PI}`;
+                        const cell = levelMatrix[key];
+
+                        return (
+                          <td key={`cell-${rowIndex}-${pi.id_PI}`}>
+                            <select
+                              value={cell ? `${(cell as any).Id_Level}|${(cell as any).code_Level}` : ""}
+                              onChange={(e) =>
+                                handleLevelChange(rowIndex, pi.id_PI, e.target.value)
+                              }
+                            >
+                              <option value="">--</option>
+                              {levelList.map((lv: any) => (
+                                <option
+                                  key={lv.id}
+                                  value={`${lv.id}|${lv.code}`}
+                                >
+                                  {lv.code}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                        );
+                      })
                     )}
+
                   </tr>
                 ))}
 
@@ -503,7 +509,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
 
             <div className="mt-3 d-flex justify-content-end gap-2">
               <button className="btn btn-primary btn-sm px-4" onClick={saveLevelMapping}>
-                 Lưu mapping CLO–PI và kiểm tra tham chiếu mức độ đóng góp
+                Lưu mapping CLO–PI và kiểm tra tham chiếu mức độ đóng góp
               </button>
             </div>
           </div>
@@ -632,24 +638,49 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
 
     setMappingRows(prev => prev.filter((_, i) => i !== index));
   };
-  const handleLevelChange = (rowIndex: number, piId: number, levelId: number) => {
-    setLevelMatrix(prev => ({
+  const handleLevelChange = (rowIndex: number, piId: number, value: string) => {
+    const key = `${rowIndex}_${piId}`;
+
+    // Nếu chọn lại "--" thì xóa mapping
+    if (!value) {
+      setLevelMatrix(prev => {
+        const clone = { ...prev };
+        delete clone[key];
+        return clone;
+      });
+      return;
+    }
+
+    const [idLevelStr, codeLevel] = value.split("|");
+    const idLevel = Number(idLevelStr) || 0;
+
+    setLevelMatrix((prev: any) => ({
       ...prev,
-      [`${rowIndex}_${piId}`]: levelId
+      [key]: {
+        Id_Level: idLevel,
+        code_Level: codeLevel
+      }
     }));
   };
 
-  const saveLevelMapping = async () => {
-    const entries = Object.entries(levelMatrix);
 
-    const payload = entries.map(([key, levelId]) => {
+
+  const saveLevelMapping = async () => {
+    const entries = Object.entries(levelMatrix) as unknown as [
+      string,
+      { Id_Level: number; code_Level: string }
+    ][];
+
+    const payload = entries.map(([key, obj]) => {
       const [rowIndex, piId] = key.split("_");
       const clo = mappingRows[Number(rowIndex)];
 
       return {
+        id_syllabus: Number(id_syllabus),
         id_CLoMapping: Number(clo.id),
         Id_PI: Number(piId),
-        Id_Level: Number(levelId),
+        Id_Level: obj.Id_Level,
+        code_Level: obj.code_Level
       };
     });
 
@@ -661,22 +692,32 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
       SweetAlert("error", res.message || "Lưu mapping CLO – PI thất bại!");
     }
   };
+
+
   const LoadSavedMappingCLOPI = async () => {
-    const res = await TemplateWriteCourseAPI.GetMappingCLOPI({ id_syllabus: Number(id_syllabus) });
-  
-    const matrix: Record<string, number> = {};
-  
+    const res = await TemplateWriteCourseAPI.GetMappingCLOPI({
+      id_syllabus: Number(id_syllabus),
+    });
+
+    const matrix: Record<string, { Id_Level: number; code_Level: string }> = {};
+
     res.forEach((item: any) => {
-      const rowIndex = mappingRows.findIndex(x => x.id === item.id_CLoMapping);
-  
+      const rowIndex = mappingRows.findIndex(
+        (x: any) => x.id === item.id_CLoMapping
+      );
+
       if (rowIndex !== -1) {
         const key = `${rowIndex}_${item.id_PI}`;
-        matrix[key] = item.id_Level;
+        matrix[key] = {
+          Id_Level: item.Id_Level ?? item.id_Level, // tùy tên field backend
+          code_Level: item.code_Level ?? item.Code_Level,
+        };
       }
     });
-  
-    setLevelMatrix(matrix);
+
+    setLevelMatrix(matrix as any);
   };
+
   const renderSectionContent = (section: any) => {
     const type = section.contentType?.split(" - ")[0] || "";
     const bindingCode = section.dataBinding ? section.dataBinding.split(" - ")[0].trim() : "";
