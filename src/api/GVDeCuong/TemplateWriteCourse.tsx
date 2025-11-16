@@ -63,5 +63,9 @@ export const TemplateWriteCourseAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
-
+    SaveFinalSyllabus: (data: { id_syllabus: number, data: any[] }) =>
+        axios.post(`${URL_API_DVDC}/write-template-syllabus/save-final`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
 }

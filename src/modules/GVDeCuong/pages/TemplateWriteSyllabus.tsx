@@ -6,6 +6,8 @@ import "../../../assets/css/template-preview.css";
 import { TemplateWriteCourseAPI } from "../../../api/GVDeCuong/TemplateWriteCourse";
 import "../../../tinymce.config";
 import { Editor } from "@tinymce/tinymce-react";
+import Swal from "sweetalert2";
+import Modal from "../../../components/ui/Modal";
 export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   const { id_syllabus } = useParams();
   const [templateSections, setTemplateSections] = useState<any[]>([]);
@@ -18,8 +20,17 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   const [draftData, setDraftData] = useState<any>({});
   const [loadPreviewLevelContribution, setLoadPreviewLevelContribution] = useState<any[]>([]);
   const [mappingRows, setMappingRows] = useState<any[]>([]);
-  const [levelMatrix, setLevelMatrix] = useState<Record<string, number>>({});
-
+  const [levelMatrix, setLevelMatrix] = useState<
+    Record<string, { Id_Level: number; code_Level: string }>
+  >({});
+  const [showAddSection, setShowAddSection] = useState(false);
+  const [newSectionName, setNewSectionName] = useState("");
+  const [newAllowInput, setNewAllowInput] = useState("Cho phép nhập liệu");
+  const [editingSectionIndex, setEditingSectionIndex] = useState<number | null>(null);
+  const [editName, setEditName] = useState("");
+  const [checkOpen, setCheckOpen] = useState<{
+    status?: boolean;
+  }>({});
   const LoadData = async () => {
     try {
       const res = await TemplateWriteCourseAPI.PreviewTemplate({
@@ -28,11 +39,11 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
       if (res.success) {
         const jsonString = res.data?.syllabus_json || "[]";
         setTemplateSections(JSON.parse(jsonString));
+        setCheckOpen({ status: res.data.status });
         SweetAlert("success", res.message);
-      } else SweetAlert("error", res.message);
-    } catch (err) {
-      SweetAlert("error", "Lỗi khi tải dữ liệu biểu mẫu");
-      console.error(err);
+      } else {
+        setCheckOpen({ status: false });
+      }
     } finally {
       setLoading(false);
     }
@@ -99,29 +110,50 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
       return updated;
     });
   };
+
+
   useEffect(() => {
-    const loadAll = async () => {
-      const savedDraft = localStorage.getItem(storageKey);
-      if (savedDraft) {
-        setDraftData(JSON.parse(savedDraft));
-      }
+    LoadData();
 
-      await LoadData();
-      await LoadPreviewCourseObjectives();
-      await LoadPreviewCourseLearningOutcome();
-      await LoadPreviewProgramLearningOutcome();
-      await LoadListPLOCourse();
-      await LoadPreviewLevelContribution();
-      await LoadPreviewMapPLObySyllabus(); // chỉ load mappingRows thôi
-    };
-
-    loadAll();
   }, []);
+
   useEffect(() => {
-    if (mappingRows.length > 0) {
+    if (checkOpen.status === false) {
+      const loadAll = async () => {
+        const savedDraft = localStorage.getItem(storageKey);
+        if (savedDraft) {
+          setDraftData(JSON.parse(savedDraft));
+        }
+
+        await LoadPreviewCourseObjectives();
+        await LoadPreviewCourseLearningOutcome();
+        await LoadPreviewProgramLearningOutcome();
+        await LoadListPLOCourse();
+        await LoadPreviewLevelContribution();
+        await LoadPreviewMapPLObySyllabus();
+      };
+
+      loadAll();
+    }
+  }, [checkOpen.status === false]);
+  useEffect(() => {
+    if (checkOpen.status === true) return;
+
+    if (
+      mappingRows.length > 0 &&
+      loadPreviewLevelContribution.length > 0 &&
+      loadListPLOCourse.length > 0
+    ) {
       LoadSavedMappingCLOPI();
     }
-  }, [mappingRows]);
+  }, [
+    mappingRows,
+    loadPreviewLevelContribution,
+    loadListPLOCourse,
+    checkOpen.status === false
+  ]);
+
+
   const RenderTableCourseObjectives = (section: any) => {
     const bindingType = section.dataBinding.split(" - ")[0];
     if (bindingType === "CO") {
@@ -285,10 +317,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
               </tr>
               <tr>
                 <td style="padding: 6px;"><strong>Thuộc khối kiến thức/kỹ năng:</strong></td>
-                <td style="padding: 6px;">
-                  <p>Giáo dục đại cương □ &nbsp;&nbsp; Cơ sở ngành ☑️</p>
-                  <p>Chuyên ngành □ &nbsp;&nbsp; Đồ án/Khóa luận □</p>
-                </td>
+                <td style="padding: 6px;"></td>
               </tr>
               <tr>
                 <td style="padding: 6px;"><strong>Số tín chỉ:</strong></td>
@@ -479,17 +508,12 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
                         return (
                           <td key={`cell-${rowIndex}-${pi.id_PI}`}>
                             <select
-                              value={cell ? `${(cell as any).Id_Level}|${(cell as any).code_Level}` : ""}
-                              onChange={(e) =>
-                                handleLevelChange(rowIndex, pi.id_PI, e.target.value)
-                              }
+                              value={cell ? `${cell.Id_Level}|${cell.code_Level}` : ""}
+                              onChange={(e) => handleLevelChange(rowIndex, pi.id_PI, e.target.value)}
                             >
                               <option value="">--</option>
                               {levelList.map((lv: any) => (
-                                <option
-                                  key={lv.id}
-                                  value={`${lv.id}|${lv.code}`}
-                                >
+                                <option key={lv.id} value={`${lv.id}|${lv.code}`}>
                                   {lv.code}
                                 </option>
                               ))}
@@ -641,20 +665,21 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   const handleLevelChange = (rowIndex: number, piId: number, value: string) => {
     const key = `${rowIndex}_${piId}`;
 
-    // Nếu chọn lại "--" thì xóa mapping
     if (!value) {
-      setLevelMatrix(prev => {
-        const clone = { ...prev };
-        delete clone[key];
-        return clone;
-      });
+      setLevelMatrix(prev => ({
+        ...prev,
+        [key]: {
+          Id_Level: 0,
+          code_Level: ""
+        }
+      }));
       return;
     }
 
     const [idLevelStr, codeLevel] = value.split("|");
     const idLevel = Number(idLevelStr) || 0;
 
-    setLevelMatrix((prev: any) => ({
+    setLevelMatrix(prev => ({
       ...prev,
       [key]: {
         Id_Level: idLevel,
@@ -662,9 +687,6 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
       }
     }));
   };
-
-
-
   const saveLevelMapping = async () => {
     const entries = Object.entries(levelMatrix) as unknown as [
       string,
@@ -706,17 +728,70 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         (x: any) => x.id === item.id_CLoMapping
       );
 
-      if (rowIndex !== -1) {
-        const key = `${rowIndex}_${item.id_PI}`;
-        matrix[key] = {
-          Id_Level: item.Id_Level ?? item.id_Level, // tùy tên field backend
-          code_Level: item.code_Level ?? item.Code_Level,
-        };
-      }
+      if (rowIndex === -1) return;
+      const levelId = item.Id_Level ?? item.id_Level;
+
+      if (!levelId) return;
+      const levelInfo = loadPreviewLevelContribution.find(
+        (lv: any) => lv.id === levelId
+      );
+
+      const codeLevel =
+        item.code_Level ??
+        item.Code_Level ??
+        levelInfo?.code ??
+        levelInfo?.Code ??
+        "";
+
+      const key = `${rowIndex}_${(item.Id_PI ?? item.id_PI)}`;
+
+      matrix[key] = {
+        Id_Level: levelId,
+        code_Level: codeLevel,
+      };
     });
 
     setLevelMatrix(matrix as any);
   };
+  const saveFinalSyllabus = async () => {
+    const confirm = await Swal.fire({
+      title: "Bạn có chắc chắn muốn lưu đề cương này không?",
+      text: "Bạn sẽ không thể hoàn tác lại!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Có, lưu ngay!",
+      cancelButtonText: "Hủy"
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    const finalData = templateSections.map(section => ({
+      ...section,
+      id_template_section: Number(section.id_template_section) || 0,
+      value: draftData[section.section_code] || section.value || ""
+    }));
+    const res = await TemplateWriteCourseAPI.SaveFinalSyllabus({
+      id_syllabus: Number(id_syllabus),
+      data: finalData
+    });
+    if (res.success) {
+      Swal.fire({
+        title: "Đã lưu!",
+        text: "Đề cương đã được lưu hoàn chỉnh.",
+        icon: "success"
+      });
+      window.history.back();
+    } else {
+      Swal.fire({
+        title: "Lỗi!",
+        text: res.message || "Không thể lưu đề cương.",
+        icon: "error"
+      });
+    }
+  };
+
 
   const renderSectionContent = (section: any) => {
     const type = section.contentType?.split(" - ")[0] || "";
@@ -811,6 +886,107 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
     }
   };
 
+
+  const addNewSection = () => {
+    if (!newSectionName.trim()) {
+      SweetAlert("error", "Tên tiêu đề không được để trống!");
+      return;
+    }
+
+    const topLevelCount = templateSections.filter(
+      s => !s.section_code.includes(".")
+    ).length;
+
+    const newCode = `${topLevelCount + 1}`;
+
+    const newSection = {
+      id_template_section: null,
+      section_code: newCode,
+      section_name: newSectionName,
+      order_index: templateSections.length + 1,
+      allow_input: newAllowInput,
+      contentType: "text - Dạng Text tự do",
+      dataBinding: "",
+      value: ""
+    };
+
+    const updated = sortSectionCodes([...templateSections, newSection]);
+    setTemplateSections(updated);
+
+    localStorage.setItem(
+      `syllabus_draft_${id_syllabus}_sections`,
+      JSON.stringify(updated)
+    );
+
+    setShowAddSection(false);
+    setNewSectionName("");
+  };
+
+  const saveSectionEdit = () => {
+    if (!editName.trim()) return;
+
+    const updated = [...templateSections];
+    updated[editingSectionIndex].section_name = editName;
+
+    setTemplateSections(updated);
+    localStorage.setItem(`syllabus_draft_${id_syllabus}_sections`, JSON.stringify(updated));
+
+    setEditingSectionIndex(null);
+  };
+  const deleteSection = (index: number) => {
+    let updated = templateSections.filter((_, i) => i !== index);
+
+    updated = sortSectionCodes(updated);
+
+    setTemplateSections(updated);
+
+    localStorage.setItem(
+      `syllabus_draft_${id_syllabus}_sections`,
+      JSON.stringify(updated)
+    );
+  };
+
+  const addChildSection = (parentCode: string) => {
+    const children = templateSections.filter(s =>
+      s.section_code.startsWith(parentCode + ".")
+    );
+
+    const nextChildIndex = children.length + 1;
+    const newCode = `${parentCode}.${nextChildIndex}`;
+
+    const newSection = {
+      id_template_section: null,
+      section_code: newCode,
+      section_name: `Tiêu đề ${newCode}`,
+      order_index: templateSections.length + 1,
+      allow_input: "Cho phép nhập liệu",
+      contentType: "text - Dạng Text tự do",
+      dataBinding: "",
+      value: ""
+    };
+
+    const updated = sortSectionCodes([...templateSections, newSection]);
+    setTemplateSections(updated);
+
+    localStorage.setItem(
+      `syllabus_draft_${id_syllabus}_sections`,
+      JSON.stringify(updated)
+    );
+  };
+
+  const sortSectionCodes = (sections: any[]) => {
+    return sections.sort((a, b) => {
+      const aParts = a.section_code.split(".").map(Number);
+      const bParts = b.section_code.split(".").map(Number);
+
+      for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+        const aNum = aParts[i] ?? 0;
+        const bNum = bParts[i] ?? 0;
+        if (aNum !== bNum) return aNum - bNum;
+      }
+      return 0;
+    });
+  };
   if (loading)
     return (
       <div className="p-4 text-center">
@@ -828,8 +1004,17 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
               <h2 className="text-uppercase">Xem trước Mẫu đề cương</h2>
               <hr />
             </div>
-            {templateSections.length === 0 ? (
-              <p className="text-muted">Không có dữ liệu trong template này.</p>
+            {checkOpen.status === true ? (
+              <div className="p-3 rounded shadow-sm" style={{
+                background: "#f0f6ff",
+                border: "1px solid #bcd2f7",
+                fontSize: "15px",
+                lineHeight: "22px"
+              }}>
+                <strong className="text-primary"><i className="fas fa-bell me-2"></i>Thông báo:</strong>
+                <div className="mt-1">Đề cương này đã được duyệt và hoàn chỉnh, không thể thay đổi chỉnh sửa</div>
+              </div>
+
             ) : (
               <div className="template-preview">
                 {templateSections.map((section, index) => {
@@ -845,6 +1030,35 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
                   return (
                     <div key={index} className={`template-section ${levelClass}`}>
                       <h6>{section.section_code}. {section.section_name}</h6>
+                      {section.id_template_section === null && (
+                        <>
+                          <button
+                            className="btn btn-sm btn-outline-success ms-2"
+                            onClick={() => addChildSection(section.section_code)}
+                          >
+                            + Thêm tiêu đề con
+                          </button>
+
+                          <button
+                            className="btn btn-sm btn-outline-secondary ms-2"
+                            onClick={() => {
+                              setEditingSectionIndex(index);
+                              setEditName(section.section_name);
+                            }}
+                          >
+                            ✏️
+                          </button>
+
+                          <button
+                            className="btn btn-sm btn-outline-danger ms-2"
+                            onClick={() => deleteSection(index)}
+                          >
+                            🗑 Xóa
+                          </button>
+                        </>
+                      )}
+
+
                       {allowInput ? (
                         <div className="template-section-content">
                           {RenderTableCourseObjectives(section)}
@@ -862,7 +1076,93 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
             )}
           </div>
         </div>
+        <div className="text-center border-top pt-3 d-flex justify-content-center gap-3 flex-wrap sticky-toolbar">
+          {checkOpen.status === false ? (
+            <>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={saveFinalSyllabus}
+              >
+                <i className="fas fa-save me-1"></i> Lưu đề cương
+              </button>
+
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowAddSection(true)}
+              >
+                <i className="fas fa-plus me-1"></i> Thêm tiêu đề cha
+              </button>
+
+              <button
+                className="btn btn-success"
+                onClick={() => window.history.back()}
+              >
+                📝 Trở về trang trước
+              </button>
+            </>
+          ) : (
+            <button
+              className="btn btn-success"
+              onClick={() => window.history.back()}
+            >
+              📝 Trở về trang trước
+            </button>
+          )}
+
+        </div>
       </div>
+      <Modal
+        isOpen={showAddSection}
+        onClose={() => setShowAddSection(false)}
+        onSave={addNewSection}
+      >
+        <div className="modal-custom">
+          <h5>Thêm tiêu đề cha</h5>
+
+          <label>Tên tiêu đề:</label>
+          <input
+            className="form-control mb-2"
+            value={newSectionName}
+            onChange={e => setNewSectionName(e.target.value)}
+          />
+
+          <label>Cho phép nhập liệu?</label>
+          <select
+            className="form-control mb-3"
+            value={newAllowInput}
+            onChange={e => setNewAllowInput(e.target.value)}
+          >
+            <option>Cho phép nhập liệu</option>
+            <option>Không cho phép nhập liệu</option>
+          </select>
+        </div>
+      </Modal>
+      {editingSectionIndex !== null && (
+        <Modal
+          isOpen={editingSectionIndex !== null}
+          onClose={() => setEditingSectionIndex(null)}
+          onSave={saveSectionEdit}
+        >
+          <div className="modal-custom">
+            <h5>Chỉnh sửa tiêu đề</h5>
+
+            <input
+              className="form-control mb-3"
+              value={editName}
+              onChange={e => setEditName(e.target.value)}
+            />
+
+            <div className="d-flex justify-content-end gap-2">
+              <button className="btn btn-secondary"
+                onClick={() => setEditingSectionIndex(null)}>
+                Hủy
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
     </div>
   );
 }

@@ -90,6 +90,9 @@ function ListWriteCourseDVDC() {
     const handleViewDetailTemplateWriteCourse = async (id_syllabus: number) => {
         navigate(`/gv-de-cuong/xem-truc-tuyen-mau-de-cuong/${id_syllabus}`);
     }
+    const handleViewDetailTemplateWriteCourseFinal = async (id_syllabus: number) => {
+        navigate(`/gv-de-cuong/xem-truc-tuyen-mau-de-cuong-preview/${id_syllabus}`);
+    }
     useEffect(() => {
         GetListCourse();
     }, []);
@@ -203,26 +206,70 @@ function ListWriteCourseDVDC() {
                                             </td>
                                             <td className="formatSo">{teacher.version}</td>
                                             <td>
-                                                {teacher.code_status === 1 ? (
-                                                    <button className="btn btn-light border-primary text-primary btn-sm" onClick={() => handleViewDetailTemplateWriteCourse(teacher.id_syllabus)}>
-                                                        <i className="fas fa-edit me-2 text-primary"></i> Tiếp tục viết đề cương
-                                                    </button>
-                                                ) : teacher.code_status === 2 ? (
-                                                    <button className="btn btn-light border-primary text-primary btn-sm" disabled>
-                                                        <i className="fas fa-edit me-2 text-primary"></i> Tiếp tục viết đề cương
-                                                    </button>
-                                                ) : teacher.code_status === 3 ? (
-                                                    <button className="btn btn-light border-primary text-primary btn-sm" onClick={() => handleViewDetailTemplateWriteCourse(teacher.id_syllabus)}>
-                                                        <i className="fas fa-edit me-2 text-primary"></i> Tiếp tục viết đề cương
-                                                    </button>
-                                                ) : teacher.code_status === 4 ? (
-                                                    <button className="btn btn-light border-primary text-primary btn-sm">
-                                                        <i className="fas fa-edit me-2 text-primary"></i> Xem đề cương
-                                                    </button>
-                                                ) : (
-                                                    <span className="badge badge-pill badge-secondary">{teacher.status}</span>
-                                                )}
+                                                <div className="btn-group" role="group" style={{ gap: "6px" }}>
+                                                    {teacher.code_status === 1 && (
+                                                        <button
+                                                            className="btn btn-sm btn-outline-primary d-flex align-items-center"
+                                                            title="Tiếp tục viết đề cương"
+                                                            onClick={() => handleViewDetailTemplateWriteCourse(teacher.id_syllabus)}
+                                                        >
+                                                            <i className="fas fa-pen-nib me-2"></i>
+                                                            Tiếp tục viết
+                                                        </button>
+                                                    )}
+
+                                                    {teacher.code_status === 2 && (
+                                                        <>
+                                                            <button
+                                                                className="btn btn-sm btn-outline-success d-flex align-items-center"
+                                                                title="Xem đề cương chi tiết"
+                                                                onClick={() => handleViewDetailTemplateWriteCourseFinal(teacher.id_syllabus)}
+                                                            >
+                                                                <i className="fas fa-eye me-2"></i>
+                                                                Xem
+                                                            </button>
+
+                                                            <button
+                                                                className="btn btn-sm btn-outline-warning d-flex align-items-center"
+                                                                title="Chỉnh sửa đề cương"
+                                                                onClick={() => handleViewDetailTemplateWriteCourse(teacher.id_syllabus)}
+                                                            >
+                                                                <i className="fas fa-edit me-2"></i>
+                                                                Chỉnh sửa
+                                                            </button>
+                                                        </>
+                                                    )}
+
+                                                    {teacher.code_status === 3 && (
+                                                        <button
+                                                            className="btn btn-sm btn-outline-warning d-flex align-items-center"
+                                                            title="Chỉnh sửa đề cương"
+                                                            onClick={() => handleViewDetailTemplateWriteCourse(teacher.id_syllabus)}
+                                                        >
+                                                            <i className="fas fa-edit me-2"></i>
+                                                            Chỉnh sửa
+                                                        </button>
+                                                    )}
+
+                                                    {teacher.code_status === 4 && (
+                                                        <button
+                                                            className="btn btn-sm btn-outline-success d-flex align-items-center"
+                                                            title="Xem đề cương"
+                                                            onClick={() => handleViewDetailTemplateWriteCourseFinal(teacher.id_syllabus)}
+                                                        >
+                                                            <i className="fas fa-eye me-2"></i>
+                                                            Xem
+                                                        </button>
+                                                    )}
+
+                                                    {![1, 2, 3, 4].includes(teacher.code_status) && (
+                                                        <span className="badge bg-secondary px-3 py-2">
+                                                            {teacher.status}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
+
                                         </tr>
                                     ))
                                 )}

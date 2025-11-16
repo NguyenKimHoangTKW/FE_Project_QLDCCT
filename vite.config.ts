@@ -10,10 +10,23 @@ export default defineConfig({
   plugins: [react()],
   build: {
     sourcemap: false,
+    commonjsOptions: {
+      include: [/html-docx-js/, /node_modules/],
+      transformMixedEsModules: true,
+    },
   },
   resolve: {
     alias: {
       tinymce: resolve(__dirname, "node_modules/tinymce"),
+    },
+  },
+  optimizeDeps: {
+    exclude: ['html-docx-js'],
+    esbuildOptions: {
+      target: 'es2020',
+      supported: {
+        'top-level-await': true,
+      },
     },
   },
 });
