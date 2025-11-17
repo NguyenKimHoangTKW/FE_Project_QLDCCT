@@ -21,4 +21,9 @@ export const WriteCourseAPI = {
             withCredentials: true,
         })
     .then((res) => res.data),
+    InheritSyllabusTemplate: (data: { id_syllabus1: number, id_syllabus2: number ,id_course: number}) =>
+        axios.post(`${URL_API_DVDC}/write-course/inherit-template-syllabus`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
 }

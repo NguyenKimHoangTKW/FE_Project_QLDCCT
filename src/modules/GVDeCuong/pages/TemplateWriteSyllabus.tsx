@@ -30,6 +30,8 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   const [editName, setEditName] = useState("");
   const [checkOpen, setCheckOpen] = useState<{
     status?: boolean;
+    is_open?: boolean;
+    name_course?: string;
   }>({});
   const LoadData = async () => {
     try {
@@ -39,10 +41,10 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
       if (res.success) {
         const jsonString = res.data?.syllabus_json || "[]";
         setTemplateSections(JSON.parse(jsonString));
-        setCheckOpen({ status: res.data.status });
+        setCheckOpen({ status: res.data.status, is_open: res.data.is_open, name_course: res.data.course });
         SweetAlert("success", res.message);
       } else {
-        setCheckOpen({ status: false });
+        setCheckOpen({ status: true, is_open: false, name_course:res.data.course  });
       }
     } finally {
       setLoading(false);
@@ -118,7 +120,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   }, []);
 
   useEffect(() => {
-    if (checkOpen.status === false) {
+    if (checkOpen.status === false && checkOpen.is_open === true) {
       const loadAll = async () => {
         const savedDraft = localStorage.getItem(storageKey);
         if (savedDraft) {
@@ -135,9 +137,9 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
 
       loadAll();
     }
-  }, [checkOpen.status === false]);
+  }, [checkOpen.status === false && checkOpen.is_open === true]);
   useEffect(() => {
-    if (checkOpen.status === true) return;
+    if (checkOpen.status === true && checkOpen.is_open === true) return;
 
     if (
       mappingRows.length > 0 &&
@@ -150,7 +152,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
     mappingRows,
     loadPreviewLevelContribution,
     loadListPLOCourse,
-    checkOpen.status === false
+    checkOpen.status === false && checkOpen.is_open === true
   ]);
 
 
@@ -782,13 +784,12 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         text: "Đề cương đã được lưu hoàn chỉnh.",
         icon: "success"
       });
-      window.history.back();
+      localStorage.removeItem(storageKey);
+      setTimeout(() => {
+        window.history.back();
+      }, 1000);
     } else {
-      Swal.fire({
-        title: "Lỗi!",
-        text: res.message || "Không thể lưu đề cương.",
-        icon: "error"
-      });
+      SweetAlert("error", res.message);
     }
   };
 
@@ -1001,9 +1002,10 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         <div className="card shadow-sm border-0">
           <div className="card-body">
             <div className="page-header no-gutters">
-              <h2 className="text-uppercase">Xem trước Mẫu đề cương</h2>
+              <h2 className="text-uppercase">Viết đề cương cho môn học <span style={{ color: "red" }}>{checkOpen.name_course}</span></h2>
               <hr />
             </div>
+
             {checkOpen.status === true ? (
               <div className="p-3 rounded shadow-sm" style={{
                 background: "#f0f6ff",
@@ -1015,6 +1017,16 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
                 <div className="mt-1">Đề cương này đã được duyệt và hoàn chỉnh, không thể thay đổi chỉnh sửa</div>
               </div>
 
+            ) : checkOpen.is_open === false ? (
+              <div className="p-3 rounded shadow-sm" style={{
+                background: "#f0f6ff",
+                border: "1px solid #bcd2f7",
+                fontSize: "15px",
+                lineHeight: "22px"
+              }}>
+                <strong className="text-primary"><i className="fas fa-bell me-2"></i>Thông báo:</strong>
+                <div className="mt-1">Ngoài thời gian thực hiện viết đề cương</div>
+              </div>
             ) : (
               <div className="template-preview">
                 {templateSections.map((section, index) => {
@@ -1077,37 +1089,35 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
           </div>
         </div>
         <div className="text-center border-top pt-3 d-flex justify-content-center gap-3 flex-wrap sticky-toolbar">
-          {checkOpen.status === false ? (
+          {checkOpen.status === false && checkOpen.is_open === true ? (
             <>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={saveFinalSyllabus}
-              >
-                <i className="fas fa-save me-1"></i> Lưu đề cương
-              </button>
+              <div className="d-flex flex-wrap justify-content-center gap-3">
 
-              <button
-                className="btn btn-primary"
-                onClick={() => setShowAddSection(true)}
-              >
-                <i className="fas fa-plus me-1"></i> Thêm tiêu đề cha
-              </button>
+                <button
+                  type="button"
+                  className="btn btn-lg px-4 btn-primary shadow-sm d-flex align-items-center"
+                  style={{ borderRadius: "10px" }}
+                  onClick={saveFinalSyllabus}
+                >
+                  <i className="fas fa-save me-2 fs-5"></i>
+                  <span className="fw-semibold">Lưu đề cương</span>
+                </button>
 
-              <button
-                className="btn btn-success"
-                onClick={() => window.history.back()}
-              >
-                📝 Trở về trang trước
-              </button>
+                <button
+                  className="btn btn-lg px-4 btn-outline-primary shadow-sm d-flex align-items-center"
+                  style={{ borderRadius: "10px" }}
+                  onClick={() => setShowAddSection(true)}
+                >
+                  <i className="fas fa-plus-circle me-2 fs-5"></i>
+                  <span className="fw-semibold">Thêm tiêu đề cha</span>
+                </button>
+
+              </div>
+
             </>
           ) : (
-            <button
-              className="btn btn-success"
-              onClick={() => window.history.back()}
-            >
-              📝 Trở về trang trước
-            </button>
+            <>
+            </>
           )}
 
         </div>

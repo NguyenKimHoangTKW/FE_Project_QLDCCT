@@ -3,17 +3,18 @@ import { SweetAlert } from "../../../components/ui/SweetAlert";
 import { useEffect, useState } from "react";
 import { unixTimestampToDate } from "../../../URL_Config";
 import Modal from "../../../components/ui/Modal";
-import { useNavigate } from "react-router-dom";
 function ListWriteCourseDVDC() {
-    const navigate = useNavigate();
     const [listCourse, setListCourse] = useState<any[]>([]);
     const [showModal, setShowModal] = useState(false);
+    const [nameCourse, setNameCourse] = useState<string>("");
+    const [showButton, setShowButton] = useState(false);
+    const [countdown, setCountdown] = useState<string>("");
     const [listTeacher, setListTeacher] = useState<{
         success?: boolean;
         data?: any[];
         message?: string;
+        is_open?: number;
     }>({});
-
     interface FormData {
         id_course: number | null;
         id_teacherbysubject: number | null;
@@ -21,6 +22,14 @@ function ListWriteCourseDVDC() {
     const [formData, setFormData] = useState<FormData>({
         id_course: null,
         id_teacherbysubject: null,
+    });
+    interface InheritSyllabusTemplate {
+        id_syllabus1: number | null;
+        id_syllabus2: number | null;
+    }
+    const [inheritSyllabusTemplate, setInheritSyllabusTemplate] = useState<InheritSyllabusTemplate>({
+        id_syllabus1: null,
+        id_syllabus2: null,
     });
     const headers = [
         { label: "STT", key: "" },
@@ -55,6 +64,38 @@ function ListWriteCourseDVDC() {
             SweetAlert("success", res.message);
         }
     }
+    const formatCountdown = (ms: number) => {
+        if (ms <= 0) return "Hết hạn";
+
+        const totalSeconds = Math.floor(ms / 1000);
+        const days = Math.floor(totalSeconds / 86400);
+        const hours = Math.floor((totalSeconds % 86400) / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        return `${days} ngày ${hours} giờ ${minutes} phút ${seconds} giây`;
+    };
+    const HandleDestroyButton = () => {
+        setShowButton(false);
+        setInheritSyllabusTemplate({ id_syllabus1: null, id_syllabus2: null });
+    }
+    const handleInheritSyllabusTemplate = (id_syllabus: number) => {
+        if(listTeacher.data?.length <= 1){
+            SweetAlert("error", "Bạn không thể kế thừa mẫu đề cương vì chỉ có 1 giảng viên");
+            return;
+        }
+        setShowButton(true);
+        setInheritSyllabusTemplate({ id_syllabus1: id_syllabus, id_syllabus2: null });
+    }
+    const SaveInheritSyllabusTemplate = async (id_syllabus: number) => {
+        const res = await WriteCourseAPI.InheritSyllabusTemplate({ id_syllabus1: Number(inheritSyllabusTemplate.id_syllabus1), id_syllabus2: Number(id_syllabus) ,id_course: Number(formData.id_course)});
+        if (res.success) {
+            SweetAlert("success", res.message);
+            setShowButton(false);
+        } else {
+            SweetAlert("error", res.message);
+        }
+    }
     const handleViewDetail = async (id_course: number, id_teacherbysubject: number) => {
         setShowModal(true);
         getListTeacherbyWriteCourse(id_course);
@@ -68,15 +109,43 @@ function ListWriteCourseDVDC() {
                 success: true,
                 data: res.data,
                 message: res.message,
+                is_open: res.data[0].is_open,
             });
+            setNameCourse(res.name_course);
+
+            const closeTime = res.data[0].time_close * 1000;
+
+            if (window.countdownInterval) clearInterval(window.countdownInterval);
+
+            window.countdownInterval = setInterval(() => {
+                const now = Date.now();
+                const diff = closeTime - now;
+                setCountdown(formatCountdown(diff));
+            }, 1000);
         } else {
             setListTeacher({
                 success: false,
                 data: [],
                 message: res.message,
             });
+            setNameCourse(res.name_course);
+            const closeTime = res.data.time_close * 1000;
+
+            if (window.countdownInterval) clearInterval(window.countdownInterval);
+
+            window.countdownInterval = setInterval(() => {
+                const now = Date.now();
+                const diff = closeTime - now;
+                setCountdown(formatCountdown(diff));
+            }, 1000);
         }
     };
+
+    useEffect(() => {
+        if (!showModal) {
+            if (window.countdownInterval) clearInterval(window.countdownInterval);
+        }
+    }, [showModal]);
 
     const CreateTemplateWriteCourse = async () => {
         const res = await WriteCourseAPI.CreateTemplateWriteCourse({ id_teacherbysubject: Number(formData.id_teacherbysubject) });
@@ -88,11 +157,14 @@ function ListWriteCourseDVDC() {
         }
     }
     const handleViewDetailTemplateWriteCourse = async (id_syllabus: number) => {
-        navigate(`/gv-de-cuong/xem-truc-tuyen-mau-de-cuong/${id_syllabus}`);
+        const url = `/gv-de-cuong/xem-truc-tuyen-mau-de-cuong/${id_syllabus}`;
+        window.open(url, "_blank");
     }
-    const handleViewDetailTemplateWriteCourseFinal = async (id_syllabus: number) => {
-        navigate(`/gv-de-cuong/xem-truc-tuyen-mau-de-cuong-preview/${id_syllabus}`);
-    }
+    const handleViewDetailTemplateWriteCourseFinal = (id_syllabus: number) => {
+        const url = `/gv-de-cuong/xem-truc-tuyen-mau-de-cuong-preview/${id_syllabus}`;
+        window.open(url, "_blank");
+    };
+
     useEffect(() => {
         GetListCourse();
     }, []);
@@ -102,7 +174,7 @@ function ListWriteCourseDVDC() {
                 <div className="card-body">
                     <div className="page-header no-gutters">
                         <h2 className="text-uppercase">
-                            Danh sách Đề cương được phân công
+                            Danh sách Đề cương được phân công soạn
                         </h2>
                     </div>
                     <div className="table-responsive">
@@ -163,16 +235,40 @@ function ListWriteCourseDVDC() {
             </div>
             <Modal
                 isOpen={showModal}
-                title="Xem chi tiết đề cương"
+                title={`Xem chi tiết đề cương cho môn học ${nameCourse}`}
                 onClose={() => setShowModal(false)}
             >
                 <div className="modal-footer">
-                    <button type="button" className="btn btn-primary" onClick={CreateTemplateWriteCourse}>
+                    <button type="button" className="btn btn-primary" onClick={CreateTemplateWriteCourse} disabled={listTeacher.is_open === 0}>
                         Tạo mới mẫu soạn đề cương
                     </button>
+                    {showButton && (
+                        <button type="button" className="btn btn-danger" onClick={HandleDestroyButton}>
+                            <i className="fas fa-times me-2"></i>
+                            Hủy chức năng kế thừa mẫu đề cương
+                        </button>
+                    )}
                 </div>
                 <hr />
                 <div className="table-responsive">
+                    {listTeacher.is_open === 1 && (
+                        <div className="alert alert-info" style={{ textAlign: "center", marginTop: "20px" }}>
+                            Đề cương đang được mở.
+                            <br />
+                            <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+                                Thời gian còn lại:  <span style={{ color: "red" }}>{countdown}</span>
+                            </span>
+                        </div>
+                    )}
+                    {listTeacher.is_open === 0 && (
+                        <>
+                            {listTeacher.data && listTeacher.data?.length > 0 && (
+                                <div className="alert alert-danger" style={{ textAlign: "center", marginTop: "20px" }}>
+                                    Ngoài thời gian thực hiện đề cương, chỉ được xem nội dung
+                                </div>
+                            )}
+                        </>
+                    )}
                     {listTeacher.success ? (
                         <table className="table table-bordered">
                             <thead>
@@ -206,70 +302,110 @@ function ListWriteCourseDVDC() {
                                             </td>
                                             <td className="formatSo">{teacher.version}</td>
                                             <td>
-                                                <div className="btn-group" role="group" style={{ gap: "6px" }}>
-                                                    {teacher.code_status === 1 && (
+                                                <div className="btn-group d-flex flex-wrap" style={{ gap: "8px" }}>
+
+                                                    {listTeacher.is_open === 0 && (
                                                         <button
-                                                            className="btn btn-sm btn-outline-primary d-flex align-items-center"
-                                                            title="Tiếp tục viết đề cương"
-                                                            onClick={() => handleViewDetailTemplateWriteCourse(teacher.id_syllabus)}
-                                                        >
-                                                            <i className="fas fa-pen-nib me-2"></i>
-                                                            Tiếp tục viết
-                                                        </button>
-                                                    )}
-
-                                                    {teacher.code_status === 2 && (
-                                                        <>
-                                                            <button
-                                                                className="btn btn-sm btn-outline-success d-flex align-items-center"
-                                                                title="Xem đề cương chi tiết"
-                                                                onClick={() => handleViewDetailTemplateWriteCourseFinal(teacher.id_syllabus)}
-                                                            >
-                                                                <i className="fas fa-eye me-2"></i>
-                                                                Xem
-                                                            </button>
-
-                                                            <button
-                                                                className="btn btn-sm btn-outline-warning d-flex align-items-center"
-                                                                title="Chỉnh sửa đề cương"
-                                                                onClick={() => handleViewDetailTemplateWriteCourse(teacher.id_syllabus)}
-                                                            >
-                                                                <i className="fas fa-edit me-2"></i>
-                                                                Chỉnh sửa
-                                                            </button>
-                                                        </>
-                                                    )}
-
-                                                    {teacher.code_status === 3 && (
-                                                        <button
-                                                            className="btn btn-sm btn-outline-warning d-flex align-items-center"
-                                                            title="Chỉnh sửa đề cương"
-                                                            onClick={() => handleViewDetailTemplateWriteCourse(teacher.id_syllabus)}
-                                                        >
-                                                            <i className="fas fa-edit me-2"></i>
-                                                            Chỉnh sửa
-                                                        </button>
-                                                    )}
-
-                                                    {teacher.code_status === 4 && (
-                                                        <button
-                                                            className="btn btn-sm btn-outline-success d-flex align-items-center"
-                                                            title="Xem đề cương"
+                                                            className="btn btn-sm btn-outline-secondary d-flex align-items-center"
+                                                            title="Xem nội dung đề cương"
                                                             onClick={() => handleViewDetailTemplateWriteCourseFinal(teacher.id_syllabus)}
                                                         >
                                                             <i className="fas fa-eye me-2"></i>
-                                                            Xem
+                                                            Xem nội dung
                                                         </button>
                                                     )}
 
-                                                    {![1, 2, 3, 4].includes(teacher.code_status) && (
-                                                        <span className="badge bg-secondary px-3 py-2">
-                                                            {teacher.status}
-                                                        </span>
+                                                    {listTeacher.is_open === 1 && (
+                                                        <>
+                                                            {teacher.code_status === 1 && (
+                                                                <>
+                                                                    <button
+                                                                        className="btn btn-sm btn-primary d-flex align-items-center"
+                                                                        title="Tiếp tục viết đề cương"
+                                                                        onClick={() => handleViewDetailTemplateWriteCourse(teacher.id_syllabus)}
+                                                                    >
+                                                                        <i className="fas fa-pen me-2"></i>
+                                                                        Tiếp tục viết
+                                                                    </button>
+
+                                                                    <button
+                                                                        className="btn btn-sm btn-outline-primary d-flex align-items-center"
+                                                                        title="Kế thừa Mẫu đề cương"
+                                                                        onClick={() => handleInheritSyllabusTemplate(teacher.id_syllabus)}
+                                                                    >
+                                                                        <i className="fas fa-file-import me-2"></i>
+                                                                        Kế thừa mẫu
+                                                                    </button>
+                                                                </>
+                                                            )}
+
+                                                            {teacher.code_status === 2 && (
+                                                                <>
+                                                                    <button
+                                                                        className="btn btn-sm btn-success d-flex align-items-center"
+                                                                        title="Xem đề cương chi tiết"
+                                                                        onClick={() => handleViewDetailTemplateWriteCourseFinal(teacher.id_syllabus)}
+                                                                    >
+                                                                        <i className="fas fa-eye me-2"></i>
+                                                                        Xem
+                                                                    </button>
+
+                                                                    <button
+                                                                        className="btn btn-sm btn-warning d-flex align-items-center"
+                                                                        title="Chỉnh sửa đề cương"
+                                                                        onClick={() => handleViewDetailTemplateWriteCourse(teacher.id_syllabus)}
+                                                                    >
+                                                                        <i className="fas fa-edit me-2"></i>
+                                                                        Chỉnh sửa
+                                                                    </button>
+                                                                </>
+                                                            )}
+
+                                                            {teacher.code_status === 3 && (
+                                                                <button
+                                                                    className="btn btn-sm btn-warning d-flex align-items-center"
+                                                                    title="Chỉnh sửa đề cương"
+                                                                    onClick={() => handleViewDetailTemplateWriteCourse(teacher.id_syllabus)}
+                                                                >
+                                                                    <i className="fas fa-edit me-2"></i>
+                                                                    Chỉnh sửa
+                                                                </button>
+                                                            )}
+
+                                                            {teacher.code_status === 4 && (
+                                                                <>
+                                                                    <button
+                                                                        className="btn btn-sm btn-success d-flex align-items-center"
+                                                                        title="Xem đề cương"
+                                                                        onClick={() => handleViewDetailTemplateWriteCourseFinal(teacher.id_syllabus)}
+                                                                    >
+                                                                        <i className="fas fa-eye me-2"></i>
+                                                                        Xem
+                                                                    </button>
+
+                                                                    {showButton && (
+                                                                        <button
+                                                                            className="btn btn-sm btn-outline-primary d-flex align-items-center"
+                                                                            title="Kế thừa mẫu đề cương"
+                                                                            onClick={() => SaveInheritSyllabusTemplate(teacher.id_syllabus)}
+                                                                        >
+                                                                            <i className="fas fa-file-import me-2"></i>
+                                                                            Chọn để kế thừa
+                                                                        </button>
+                                                                    )}
+                                                                </>
+                                                            )}
+
+                                                            {!([1, 2, 3, 4].includes(teacher.code_status)) && (
+                                                                <span className="badge bg-secondary px-3 py-2">
+                                                                    {teacher.status}
+                                                                </span>
+                                                            )}
+                                                        </>
                                                     )}
+
                                                 </div>
                                             </td>
-
                                         </tr>
                                     ))
                                 )}
@@ -281,6 +417,10 @@ function ListWriteCourseDVDC() {
                             style={{ textAlign: "center", marginTop: "20px" }}
                         >
                             {listTeacher.message}
+                            <br />
+                            <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+                                Thời gian còn lại:  <span style={{ color: "red" }}>{countdown}</span>
+                            </span>
                         </div>
                     )}
                 </div>

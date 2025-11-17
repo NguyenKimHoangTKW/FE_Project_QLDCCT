@@ -68,4 +68,5 @@ export const TemplateWriteCourseAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
+
 }

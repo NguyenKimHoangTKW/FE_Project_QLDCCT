@@ -11,14 +11,12 @@ export default function PreviewTemplateSyllabusFinal() {
     const [templateSections, setTemplateSections] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [loadListPLOCourse, setLoadListPLOCourse] = useState<any[]>([]);
-    const storageKey = `syllabus_draft_${id_syllabus}`;
-    const [draftData, setDraftData] = useState<any>({});
     const [loadPreviewLevelContribution, setLoadPreviewLevelContribution] = useState<any[]>([]);
     const [mappingRows, setMappingRows] = useState<any[]>([]);
     const [levelMatrix, setLevelMatrix] = useState<
         Record<string, { Id_Level: number; code_Level: string }>
     >({});
-
+    const [nameCourse, setNameCourse] = useState<string>("");
     const LoadData = async () => {
         try {
             const res = await TemplateWriteCourseAPI.PreviewTemplate({
@@ -28,6 +26,7 @@ export default function PreviewTemplateSyllabusFinal() {
                 const jsonString = res.data?.syllabus_json || "[]";
                 setTemplateSections(JSON.parse(jsonString));
                 SweetAlert("success", res.message);
+                setNameCourse(res.data.course);
             } else SweetAlert("error", res.message);
         } catch (err) {
             SweetAlert("error", "Lỗi khi tải dữ liệu biểu mẫu");
@@ -70,11 +69,6 @@ export default function PreviewTemplateSyllabusFinal() {
     };
     useEffect(() => {
         const loadAll = async () => {
-            const savedDraft = localStorage.getItem(storageKey);
-            if (savedDraft) {
-                setDraftData(JSON.parse(savedDraft));
-            }
-
             await LoadData();
             await LoadListPLOCourse();
             await LoadPreviewLevelContribution();
@@ -217,26 +211,6 @@ export default function PreviewTemplateSyllabusFinal() {
                 );
             }
 
-                return `
-          <table style="border-collapse: collapse; width: 100%;" border="1">
-            <thead>
-              <tr>
-                <th style="padding: 6px; text-align:center">Buổi</th>
-                <th style="padding: 6px; text-align:center">Nội dung</th>
-                <th style="padding: 6px; text-align:center">Hoạt động dạy, học và đánh giá</th>
-                <th style="padding: 6px; text-align:center">CLO liên quan</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style="padding: 6px;">...</td>
-                <td style="padding: 6px;">...</td>
-                <td style="padding: 6px;">...</td>
-                <td style="padding: 6px;">...</td>
-              </tr>
-            </tbody>
-          </table>
-          `;
             default:
                 return "<p><br/></p>";
         }
@@ -293,7 +267,6 @@ export default function PreviewTemplateSyllabusFinal() {
 
                 const htmlContent =
                     section.value ||
-                    draftData[section.section_code] ||
                     getDefaultTemplateContent(bindingCode);
 
                 return (
@@ -343,7 +316,6 @@ export default function PreviewTemplateSyllabusFinal() {
         templateSections.forEach(section => {
             const binding = section.dataBinding?.split(" - ")[0] ?? "";
             const content =
-                draftData[section.section_code] ||
                 section.value ||
                 "(không có nội dung)";
 
@@ -438,7 +410,7 @@ export default function PreviewTemplateSyllabusFinal() {
             });
 
             const blob = await res.blob();
-            saveAs(blob, `Syllabus_${id_syllabus}.docx`);
+            saveAs(blob, `Exports.docx`);
 
         } catch (e) {
             SweetAlert("error", "Không thể xuất file Word");
@@ -459,7 +431,7 @@ export default function PreviewTemplateSyllabusFinal() {
                 <div className="card shadow-sm border-0">
                     <div className="card-body">
                         <div className="page-header no-gutters">
-                            <h2 className="text-uppercase">Xem trước Mẫu đề cương</h2>
+                            <h2 className="text-uppercase">Xem dạng hoàn chỉnh của đề cương <span style={{ color: "red" }}>{nameCourse}</span></h2>
                             <hr />
                         </div>
                         {templateSections.length === 0 ? (
@@ -498,9 +470,6 @@ export default function PreviewTemplateSyllabusFinal() {
                 <div className="text-center border-top pt-3 d-flex justify-content-center gap-3 flex-wrap sticky-toolbar">
                     <button className="btn btn-success" onClick={exportWordHTML}>
                         📝 Xuất Word
-                    </button>
-                    <button className="btn btn-warning" onClick={() => window.history.back()}>
-                        📝 Trở về trang trước
                     </button>
                 </div>
             </div>
