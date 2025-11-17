@@ -31,6 +31,11 @@ function CourseInterfaceCtdt() {
   const [permissionOpen, setPermissionOpen] = useState(false);
   const [listCivilServantsPermission, setListCivilServantsPermission] = useState<any[]>([]);
   const [setUpTimeOpen, setSetUpTimeOpen] = useState(false);
+  const [countdownMap, setCountdownMap] = useState<any>({});
+  const [openFunction, setOpenFunction] = useState(false);
+  const [selectedIdCourse, setSelectedIdCourse] = useState<number | null>(null);
+  const [openViewSyllabus, setOpenViewSyllabus] = useState(false);
+  const [searchText, setSearchText] = useState("");
   interface FormData {
     id_course: number | null;
     code_course: string;
@@ -95,6 +100,37 @@ function CourseInterfaceCtdt() {
     setListCTDT(res);
     setOptionFilter((prev) => ({ ...prev, id_ctdt: Number(res[0].value) }));
   }
+  const formatCountdown = (ms: number) => {
+    if (ms <= 0) return "Hết hạn";
+
+    const totalSeconds = Math.floor(ms / 1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${days} ngày ${hours} giờ ${minutes} phút ${seconds} giây`;
+  };
+  const startCountdownForCourses = (courses: any[]) => {
+    if (window.courseCountdownInterval) clearInterval(window.courseCountdownInterval);
+
+    window.courseCountdownInterval = setInterval(() => {
+      const newCountdowns: any = {};
+
+      courses.forEach((course) => {
+        if (!course.time_close) {
+          newCountdowns[course.id_course] = "Chưa mở thời gian";
+          return;
+        }
+
+        const diff = course.time_close * 1000 - Date.now();
+        newCountdowns[course.id_course] = formatCountdown(diff);
+      });
+
+      setCountdownMap(newCountdowns);
+    }, 1000);
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -141,15 +177,15 @@ function CourseInterfaceCtdt() {
       setSetUpTimeData((prev) => ({ ...prev, reason: value }));
     }
   };
-const unixToLocal = (timestamp: number | null) => {
-  if (!timestamp) return "";
-  const date = new Date(timestamp * 1000);
+  const unixToLocal = (timestamp: number | null) => {
+    if (!timestamp) return "";
+    const date = new Date(timestamp * 1000);
 
-  const tzOffset = date.getTimezoneOffset() * 60000;
-  const localISOTime = new Date(date.getTime() - tzOffset).toISOString();
+    const tzOffset = date.getTimezoneOffset() * 60000;
+    const localISOTime = new Date(date.getTime() - tzOffset).toISOString();
 
-  return localISOTime.slice(0, 16);
-};
+    return localISOTime.slice(0, 16);
+  };
 
   const GetDataListOptionCourse = async (id_ctdt: number) => {
     const res = await CourseCTDTAPI.GetListOptionCourse({ id_program: id_ctdt });
@@ -169,6 +205,18 @@ const unixToLocal = (timestamp: number | null) => {
       id_semester: Number(res.semester[0]?.value || 0),
     }));
   }
+  const filteredData = allData.filter((item) => {
+    const keyword = searchText.toLowerCase().trim();
+
+    return (
+      item.code_course?.toLowerCase().includes(keyword) ||
+      item.name_course?.toLowerCase().includes(keyword) ||
+      item.name_program?.toLowerCase().includes(keyword) ||
+      item.name_semester?.toLowerCase().includes(keyword) ||
+      item.name_key_year_semester?.toLowerCase().includes(keyword)
+    );
+  });
+
   const headers = [
     { label: "STT", key: "" },
     { label: "Thuộc khóa học", key: "name_key_year_semester" },
@@ -183,7 +231,11 @@ const unixToLocal = (timestamp: number | null) => {
     { label: "Số tín chỉ", key: "credits" },
     { label: "Ngày tạo", key: "tim_cre" },
     { label: "Cập nhật lần cuối", key: "time_up" },
+    { label: "Thời gian mở học phần đề cương", key: "open_time" },
+    { label: "Thời gian đóng học phần đề cương", key: "close_time" },
+    { label: "Thời gian còn lại để đề cương", key: "time_remaining" },
     { label: "Số lượng giảng viên phụ trách đề cương", key: "count_syllabus" },
+    { label: "Trạng thái đề cương", key: "is_syllabus" },
     { label: "*", key: "*" },
   ];
   const headersPermission = [
@@ -204,6 +256,7 @@ const unixToLocal = (timestamp: number | null) => {
       if (res.success) {
         setListCourseByKeyYear(res.data);
         SweetAlert("success", res.message);
+        startCountdownForCourses(res.data);
       }
       else {
         SweetAlert("error", res.message);
@@ -248,6 +301,7 @@ const unixToLocal = (timestamp: number | null) => {
         setTotalRecords(Number(res.totalRecords) || 0);
         setTotalPages(Number(res.totalPages) || 1);
         setPageSize(Number(res.pageSize) || 10);
+        startCountdownForCourses(res.data);
       } else {
         setAllData([]);
         setTotalRecords(0);
@@ -408,7 +462,7 @@ const unixToLocal = (timestamp: number | null) => {
     }
   }
   const handleSetUpTimeCourse = async () => {
-    const res = await CourseCTDTAPI.SetUpTimeCourse({ id_keyYearSemester: Number(optionFilter.id_key_year_semester), open_time: Number(setUpTimeData.open_time), close_time: Number(setUpTimeData.close_time), reason: setUpTimeData.reason });
+    const res = await CourseCTDTAPI.SetUpTimeCourse({ id_keyYearSemester: Number(optionFilter.id_key_year_semester), open_time: Number(setUpTimeData.open_time), close_time: Number(setUpTimeData.close_time) });
     if (res.success) {
       SweetAlert("success", res.message);
     }
@@ -418,6 +472,13 @@ const unixToLocal = (timestamp: number | null) => {
   }
   const handleOpenSetUpTimeCourse = () => {
     setSetUpTimeOpen(true);
+  }
+  const handleOpenFunction = (id_course: number) => {
+    setSelectedIdCourse(Number(id_course));
+    setOpenFunction(true);
+  }
+  const handleViewSyllabus = () => {
+    setOpenViewSyllabus(true);
   }
   useEffect(() => {
     if (!didFetch.current) {
@@ -440,125 +501,158 @@ const unixToLocal = (timestamp: number | null) => {
         <div className="card-body">
           <div className="page-header no-gutters">
             <h2 className="text-uppercase">
-              Quản lý Danh sách Học phần thuộc Đơn vị
+              Quản lý Danh sách Học phần thuộc Chương trình
             </h2>
             <hr />
-            <fieldset className="border rounded-3 p-3">
-              <legend className="float-none w-auto px-3">Chức năng</legend>
-              <div className="row mb-3">
-                <div className="col-md-6">
-                  <label className="form-label">Lọc theo CTĐT</label>
-                  <select className="form-control" name="id_ctdt_filter" value={optionFilter.id_ctdt || 0} onChange={handleInputChange}>
+            <fieldset className="ceo-panel">
+              <legend className="ceo-title">Chức năng</legend>
+
+              {/* HÀNG 1: FILTER */}
+              <div className="row g-3 mb-2">
+                <div className="col-md-4">
+                  <label className="ceo-label">Chương trình đào tạo</label>
+                  <select
+                    className="form-control ceo-input"
+                    name="id_ctdt_filter"
+                    value={optionFilter.id_ctdt || 0}
+                    onChange={handleInputChange}
+                  >
                     {listCTDT.map((items, idx) => (
-                      <option key={idx} value={items.value}>
-                        {items.text}
-                      </option>
+                      <option key={idx} value={items.value}>{items.text}</option>
                     ))}
                   </select>
                 </div>
-                <div className="col-md-6">
-                  <label className="form-label">Lọc theo kiểm tra học phần bắt buộc</label>
-                  <select className="form-control" name="id_isCourse_filter" value={optionFilter.id_isCourse || 0} onChange={handleInputChange}>
+
+                <div className="col-md-4">
+                  <label className="ceo-label">Kiểm tra học phần bắt buộc</label>
+                  <select
+                    className="form-control ceo-input"
+                    name="id_isCourse_filter"
+                    value={optionFilter.id_isCourse || 0}
+                    onChange={handleInputChange}
+                  >
                     <option value="0">Tất cả</option>
                     {listKiemTraHocPhanBatBuocFilter.map((items, idx) => (
-                      <option key={idx} value={items.value}>
-                        {items.text}
-                      </option>
+                      <option key={idx} value={items.value}>{items.text}</option>
                     ))}
                   </select>
                 </div>
-                <div className="col-md-6">
-                  <label className="form-label">Lọc theo nhóm học phần</label>
-                  <select className="form-control" name="id_gr_course_filter" value={optionFilter.id_gr_course || 0} onChange={handleInputChange}>
+
+                <div className="col-md-4">
+                  <label className="ceo-label">Nhóm học phần</label>
+                  <select
+                    className="form-control ceo-input"
+                    name="id_gr_course_filter"
+                    value={optionFilter.id_gr_course || 0}
+                    onChange={handleInputChange}
+                  >
                     <option value="0">Tất cả</option>
                     {lisNhomHocPhanFilter.map((items, idx) => (
-                      <option key={idx} value={items.value}>
-                        {items.text}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label">Lọc theo khóa học</label>
-                  <select className="form-control" name="id_key_year_semester_filter" value={optionFilter.id_key_year_semester || 0} onChange={handleInputChange}>
-                    <option value="0">Tất cả</option>
-                    {listKeyYearSemesterFilter.map((items, idx) => (
-                      <option key={idx} value={items.value}>
-                        {items.text}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label">Lọc theo học kỳ</label>
-                  <select className="form-control" name="id_semester_filter" value={optionFilter.id_semester || 0} onChange={handleInputChange}>
-                    <option value="0">Tất cả</option>
-                    {listSemesterFilter.map((items, idx) => (
-                      <option key={idx} value={items.value}>
-                        {items.text}
-                      </option>
+                      <option key={idx} value={items.value}>{items.text}</option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              <div className="row">
-                <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-                  <button className="btn btn-success" onClick={AddNewCourse}>
-                    <i className="fas fa-plus-circle mr-1" /> Thêm mới
+              {/* HÀNG 2: FILTER */}
+              <div className="row g-3">
+                <div className="col-md-4">
+                  <label className="ceo-label">Khóa học</label>
+                  <select
+                    className="form-control ceo-input"
+                    name="id_key_year_semester_filter"
+                    value={optionFilter.id_key_year_semester || 0}
+                    onChange={handleInputChange}
+                  >
+                    <option value="0">Tất cả</option>
+                    {listKeyYearSemesterFilter.map((items, idx) => (
+                      <option key={idx} value={items.value}>{items.text}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="col-md-4">
+                  <label className="ceo-label">Học kỳ</label>
+                  <select
+                    className="form-control ceo-input"
+                    name="id_semester_filter"
+                    value={optionFilter.id_semester || 0}
+                    onChange={handleInputChange}
+                  >
+                    <option value="0">Tất cả</option>
+                    {listSemesterFilter.map((items, idx) => (
+                      <option key={idx} value={items.value}>{items.text}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="col-md-4">
+                  <label className="ceo-label">Tìm kiếm</label>
+                  <input
+                    type="text"
+                    className="form-control ceo-input"
+                    placeholder="🔍 Nhập mã / tên học phần..."
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* ACTION BUTTONS */}
+              <div className="row mt-4">
+                <div className="col-12 d-flex flex-wrap gap-3 justify-content-end">
+
+                  <button className="btn btn-ceo-green" onClick={AddNewCourse}>
+                    <i className="fas fa-plus-circle"></i> Thêm mới
                   </button>
-                  <button className="btn btn-success" onClick={handleOpenSetUpTimeCourse}>
-                    <i className="fas fa-plus-circle mr-1" /> Thiết lập thời gian mở học phần đề cương
+
+                  <button className="btn btn-ceo-green" onClick={handleOpenSetUpTimeCourse}>
+                    <i className="fas fa-clock"></i> Thiết lập thời gian
                   </button>
+
                   <button
-                    className="btn btn-success"
+                    className="btn btn-ceo-green"
                     id="exportExcel"
                     data-toggle="modal"
                     data-target="#importExcelModal"
                   >
-                    <i className="fas fa-file-excel mr-1" /> Import từ Excel
+                    <i className="fas fa-file-excel"></i> Import Excel
                   </button>
-                  <button className="btn btn-primary" onClick={() => handleClickFilter()}>
-                    <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
+
+                  <button className="btn btn-ceo-blue" onClick={handleClickFilter}>
+                    <i className="fas fa-filter"></i> Lọc dữ liệu
                   </button>
+
                 </div>
               </div>
-              {checkClickFilter === true && allData.length > 0 ? (
+
+              {/* KEY YEAR BUTTONS */}
+              {checkClickFilter && allData.length > 0 && (
                 <>
                   <hr />
-                  <div className="row justify-content-center align-items-center my-3">
-                    <div className="col-12 d-flex flex-wrap justify-content-center gap-3 text-center">
-                      <button
-                        className="btn btn-outline-primary px-4 py-2 d-flex align-items-center justify-content-center"
-                        style={{ maxWidth: "420px", whiteSpace: "normal" }}
-                        onClick={handleClickKeyYearFalse}
-                      >
-                        <span>
-                          Hiện danh sách môn học tổng hợp<br />theo chương trình đào tạo
-                        </span>
+                  <div className="row justify-content-center mt-4">
+                    <div className="col-12 d-flex flex-wrap justify-content-center gap-4">
+                      <button className="btn btn-outline-ceo-primary" onClick={handleClickKeyYearFalse}>
+                        <i className="fas fa-list-ul mb-1 d-block"></i>
+                        Danh sách tổng hợp<br />theo CTĐT
                       </button>
 
-                      <button
-                        className="btn btn-outline-success px-4 py-2 d-flex align-items-center justify-content-center"
-                        style={{ maxWidth: "420px", whiteSpace: "normal" }}
-                        onClick={handleClickKeyYearTrue}
-                      >
-                        <span>
-                          Hiện danh sách môn học theo học kỳ<br />theo chương trình đào tạo
-                        </span>
+                      <button className="btn btn-outline-ceo-green" onClick={handleClickKeyYearTrue}>
+                        <i className="fas fa-calendar-alt mb-1 d-block"></i>
+                        Danh sách theo học kỳ<br />theo CTĐT
                       </button>
                     </div>
                   </div>
                 </>
-
-              ) : null}
+              )}
 
             </fieldset>
+
           </div>
 
           {checkClickKeyYear === true ? (
             <div className="table-responsive mt-3">
-              <table className="table table-bordered">
+             <table className="table table-bordered table-rounded">
                 <thead className="table-light">
                   <tr>
                     <th style={{ width: "8%" }}>Mã môn học</th>
@@ -568,6 +662,11 @@ const unixToLocal = (timestamp: number | null) => {
                     <th style={{ width: "10%" }}>Số giờ lý thuyết</th>
                     <th style={{ width: "10%" }}>Số giờ thực hành</th>
                     <th style={{ width: "8%" }}>Số tín chỉ</th>
+                    <th style={{ width: "10%" }}>Thời gian mở học phần đề cương</th>
+                    <th style={{ width: "10%" }}>Thời gian đóng học phần đề cương</th>
+                    <th style={{ width: "10%" }}>Thời gian còn lại để đề cương</th>
+                    <th style={{ width: "10%" }}>Số lượng giảng viên phụ trách đề cương</th>
+                    <th style={{ width: "10%" }}>Trạng thái đề cương</th>
                     <th style={{ width: "10%" }}>Hành động</th>
                   </tr>
                 </thead>
@@ -576,7 +675,7 @@ const unixToLocal = (timestamp: number | null) => {
                   listCourseByKeyYear.map((semester: any, sIdx: number) => (
                     <tbody key={sIdx} style={{ color: "black" }}>
                       <tr className="table-secondary" >
-                        <td colSpan={9} className="fw-bold text-start" style={{ backgroundColor: "#bfd1ec" }}>
+                        <td colSpan={13} className="fw-bold text-start" style={{ backgroundColor: "#bfd1ec" }}>
                           {semester.name_se}
                         </td>
                       </tr>
@@ -591,29 +690,19 @@ const unixToLocal = (timestamp: number | null) => {
                             <td className="text-center">{course.totalTheory}</td>
                             <td className="text-center">{course.totalPractice}</td>
                             <td className="text-center">{course.credits}</td>
+                            <td className="formatSo">{course.time_open == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-primary">{unixTimestampToDate(course.time_open)}</span>}</td>
+                            <td className="formatSo">{course.time_close == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-primary">{unixTimestampToDate(course.time_close)}</span>}</td>
+                            <td className="formatSo">{course.time_close == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-success">{formatCountdown(course.time_close * 1000 - Date.now())}</span>}</td>
+                            <td className="formatSo">{course.count_syllabus}</td>
+                            <td className="formatSo">{course.is_syllabus == true ? <span className="text-success">Môn học này đã hoàn thành đề cương</span> : <span className="text-danger">Môn học này chưa hoàn thành đề cương</span>}</td>
                             <td>
-                              <div className="d-flex justify-content flex-wrap gap-2">
-                                <button
-                                  className="btn btn-sm btn-outline-primary"
-                                  onClick={() => handleInfo(course.id_course)}
-                                >
-                                  ✏️ Chỉnh sửa
-                                </button>
+                              <button
+                                className="btn btn-sm btn-function-ceo"
+                                onClick={() => handleOpenFunction(course.id_course)}
+                              >
+                                ⚙️ Mở chức năng
+                              </button>
 
-                                <button
-                                  className="btn btn-sm btn-outline-danger"
-                                  onClick={() => handleDelete(course.id_course)}
-                                >
-                                  🗑️ Xóa
-                                </button>
-
-                                <button
-                                  className="btn btn-sm btn-outline-success"
-                                  onClick={() => HandleOpenPermission(course.id_course)}
-                                >
-                                  🔐 Xem chi tiết giảng viên phụ trách đề cương và phân quyền
-                                </button>
-                              </div>
                             </td>
                           </tr>
                         ))
@@ -640,7 +729,7 @@ const unixToLocal = (timestamp: number | null) => {
           ) : (
             <>
               <div className="table-responsive">
-                <table className="table table-bordered">
+              <table className="table table-bordered table-rounded">
                   <thead>
                     <tr>
                       {headers.map((h, idx) => (
@@ -649,8 +738,8 @@ const unixToLocal = (timestamp: number | null) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {allData.length > 0 ? (
-                      allData.map((item, index) => (
+                    {filteredData.length > 0 ? (
+                      filteredData.map((item, index) => (
                         <tr key={item.id_course}>
                           <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
                           <td>{item.name_key_year_semester}</td>
@@ -665,30 +754,21 @@ const unixToLocal = (timestamp: number | null) => {
                           <td className="formatSo">{item.credits}</td>
                           <td className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
                           <td className="formatSo">{unixTimestampToDate(item.time_up)}</td>
+                          <td className="formatSo">{item.time_open == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-primary">{unixTimestampToDate(item.time_open)}</span>}</td>
+                          <td className="formatSo">{item.time_close == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-primary">{unixTimestampToDate(item.time_close)}</span>}</td>
+                          <td className="formatSo">
+                            {item.time_close == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-success">{formatCountdown(item.time_close * 1000 - Date.now())}</span>}
+                          </td>
                           <td className="formatSo">{item.count_syllabus}</td>
+                          <td className="formatSo">{item.is_syllabus == true ? <span className="text-success">Môn học này đã hoàn thành đề cương</span> : <span className="text-danger">Môn học này chưa hoàn thành đề cương</span>}</td>
                           <td>
-                            <div className="d-flex justify-content flex-wrap gap-2">
-                              <button
-                                className="btn btn-sm btn-outline-primary"
-                                onClick={() => handleInfo(item.id_course)}
-                              >
-                                ✏️ Chỉnh sửa
-                              </button>
+                            <button
+                              className="btn btn-sm btn-function-ceo"
+                              onClick={() => handleOpenFunction(item.id_course)}
+                            >
+                              ⚙️ Mở chức năng
+                            </button>
 
-                              <button
-                                className="btn btn-sm btn-outline-danger"
-                                onClick={() => handleDelete(item.id_course)}
-                              >
-                                🗑️ Xóa
-                              </button>
-
-                              <button
-                                className="btn btn-sm btn-outline-success"
-                                onClick={() => HandleOpenPermission(item.id_course)}
-                              >
-                                🔐 Xem chi tiết giảng viên phụ trách đề cương và phân quyền
-                              </button>
-                            </div>
                           </td>
                         </tr>
                       ))
@@ -912,7 +992,7 @@ const unixToLocal = (timestamp: number | null) => {
       >
         <form id="modal-body" autoComplete="off">
           <div className="form-group row">
-            <label className="col-sm-2 col-form-label">Thời gian mở học phần đề cương</label> 
+            <label className="col-sm-2 col-form-label">Thời gian mở học phần đề cương</label>
             <div className="col-sm-10">
               <input type="datetime-local" className="form-control" name="open_time" value={unixToLocal(setUpTimeData.open_time) ?? ""} onChange={handleInputChangeSetUpTime} />
             </div>
@@ -923,13 +1003,91 @@ const unixToLocal = (timestamp: number | null) => {
               <input type="datetime-local" className="form-control" name="close_time" value={unixToLocal(setUpTimeData.close_time) ?? ""} onChange={handleInputChangeSetUpTime} />
             </div>
           </div>
-          <div className="form-group row">
-            <label className="col-sm-2 col-form-label">Lý do</label>
-            <div className="col-sm-10">
-              <input type="text" className="form-control" name="reason" value={setUpTimeData.reason} onChange={handleInputChangeSetUpTime} />
+        </form>
+      </Modal>
+      <Modal
+        isOpen={openViewSyllabus}
+        title="Xem chi tiết đề cương đã hoàn thiện"
+        onClose={() => setOpenViewSyllabus(false)}
+      >
+        <div className="table-responsive">
+          <table className="table table-bordered"></table>
+        </div>
+      </Modal>
+      <Modal
+        isOpen={openFunction}
+        title={`CHỨC NĂNG HỌC PHẦN`}
+        onClose={() => setOpenFunction(false)}
+      >
+        <div className="action-menu">
+
+          {/* Chỉnh sửa */}
+          <div
+            className="action-card edit"
+            onClick={() => {
+              handleInfo(Number(selectedIdCourse));
+              setOpenFunction(false);
+            }}
+          >
+            <div className="icon-area">
+              <i className="fas fa-edit"></i>
+            </div>
+            <div className="text-area">
+              <h5>Chỉnh sửa học phần</h5>
+              <p>Cập nhật thông tin học phần, số tín chỉ, giờ học, nhóm học phần…</p>
             </div>
           </div>
-        </form>
+          {/* Xem chi tiết đề cương đã hoàn thiện */}
+          <div
+            className="action-card edit"
+            onClick={() => {
+              handleViewSyllabus();
+              setOpenFunction(false);
+            }}
+          >
+            <div className="icon-area">
+              <i className="fas fa-file-alt"></i>
+            </div>
+            <div className="text-area">
+              <h5>Xem chi tiết đề cương đã hoàn thiện</h5>
+              <p>Xem chi tiết đề cương đã hoàn thiện của học phần</p>
+            </div>
+          </div>
+          {/* Phân quyền */}
+          <div
+            className="action-card permission"
+            onClick={() => {
+              HandleOpenPermission(Number(selectedIdCourse));
+              setOpenFunction(false);
+            }}
+          >
+            <div className="icon-area">
+              <i className="fas fa-user-shield"></i>
+            </div>
+            <div className="text-area">
+              <h5>Phân quyền giảng viên</h5>
+              <p>Quản lý danh sách giảng viên được phân nhiệm vụ soạn đề cương.</p>
+            </div>
+          </div>
+
+          {/* Xóa */}
+          <div
+            className="action-card delete"
+            onClick={() => {
+              handleDelete(Number(selectedIdCourse));
+              setOpenFunction(false);
+            }}
+          >
+            <div className="icon-area">
+              <i className="fas fa-trash-alt"></i>
+            </div>
+            <div className="text-area">
+              <h5>Xóa học phần</h5>
+              <p>Xóa học phần và toàn bộ dữ liệu liên quan (không thể khôi phục).</p>
+            </div>
+          </div>
+
+        </div>
       </Modal>
     </div>
   );

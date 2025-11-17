@@ -15,6 +15,9 @@ export default function CivilServantsInterfaceDonVi() {
     const [modalMode, setModalMode] = useState<"create" | "edit">("create");
     const [listSubjectByCivilServant, setListSubjectByCivilServant] = useState<any[]>([]);
     const [modalSubjectByCivilServantOpen, setModalSubjectByCivilServantOpen] = useState(false);
+    const [searchText, setSearchText] = useState("");
+    const [openFunction, setOpenFunction] = useState(false);
+    const [selectedIdCivilServant, setSelectedIdCivilServant] = useState<number | null>(null);
     interface FormData {
         id_civilSer: number | null;
         code_civilSer: string;
@@ -85,6 +88,15 @@ export default function CivilServantsInterfaceDonVi() {
             setPageSize(10);
         }
     }
+    const filteredData = allData.filter((item) => {
+        const keyword = searchText.toLowerCase().trim();
+
+        return (
+            item.code_civilSer?.toLowerCase().includes(keyword) ||
+            item.fullname_civilSer?.toLowerCase().includes(keyword) ||
+            item.email?.toLowerCase().includes(keyword) ||
+            item.programName?.toLowerCase().includes(keyword));
+    });
     const handleEditCivilServant = async (id_civilSer: number) => {
         const res = await CivilServantsCTDTAPI.InfoCivilServant({ id_civilSer: id_civilSer });
         if (res.success) {
@@ -158,6 +170,10 @@ export default function CivilServantsInterfaceDonVi() {
             }
         }
     }
+    const handleOpenFunction = (id_civilSer: number) => {
+        setSelectedIdCivilServant(Number(id_civilSer));
+        setOpenFunction(true);
+      }
     useEffect(() => {
         ShowData();
     }, [page, pageSize]);
@@ -173,25 +189,35 @@ export default function CivilServantsInterfaceDonVi() {
                             Quản lý Danh sách Mục tiêu học phần
                         </h2>
                         <hr />
-                        <fieldset className="border rounded-3 p-3">
+                        <fieldset className="ceo-panel">
                             <legend className="float-none w-auto px-3">Chức năng</legend>
                             <div className="row mb-3">
                                 <div className="col-md-6">
                                     <label className="form-label">Lọc theo CTĐT</label>
-                                    <select className="form-control" name="id_program" value={formData.id_program ?? ""} onChange={handleInputChange} >
+                                    <select className="form-control  ceo-input" name="id_program" value={formData.id_program ?? ""} onChange={handleInputChange} >
                                         {listCTDT.map((item, index) => (
                                             <option key={index} value={item.value}>{item.text}</option>
                                         ))}
                                     </select>
                                 </div>
+                                <div className="col-md-4">
+                                    <label className="ceo-label">Tìm kiếm</label>
+                                    <input
+                                        type="text"
+                                        className="form-control ceo-input"
+                                        placeholder="🔍 Từ khóa bất kỳ để tìm ..."
+                                        value={searchText}
+                                        onChange={(e) => setSearchText(e.target.value)}
+                                    />
+                                </div>
                             </div>
 
                             <div className="row">
                                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-                                    <button className="btn btn-success" onClick={handleAddNewCivilServant} >
+                                    <button className="btn btn-ceo-green" onClick={handleAddNewCivilServant} >
                                         <i className="fas fa-plus-circle mr-1" /> Thêm mới
                                     </button>
-                                    <button className="btn btn-primary" onClick={() => ShowData()} >
+                                    <button className="btn btn-ceo-blue" onClick={() => ShowData()} >
                                         <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
                                     </button>
                                 </div>
@@ -208,8 +234,8 @@ export default function CivilServantsInterfaceDonVi() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {allData.length > 0 ? (
-                                    allData.map((item, index) => (
+                                {filteredData.length > 0 ? (
+                                    filteredData.map((item, index) => (
                                         <tr key={item.id_civilSer}>
                                             <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
                                             <td className="formatSo">{item.code_civilSer}</td>
@@ -221,28 +247,9 @@ export default function CivilServantsInterfaceDonVi() {
                                             <td className="formatSo">{unixTimestampToDate(item.time_up)}</td>
                                             <td className="formatSo">{item.count_teacher_subjects}</td>
                                             <td>
-                                                <div className="d-flex justify-content flex-wrap gap-2">
-                                                    <button
-                                                        className="btn btn-sm btn-outline-primary"
-                                                        onClick={() => handleEditCivilServant(item.id_civilSer)}
-                                                    >
-                                                        ✏️ Chỉnh sửa
-                                                    </button>
-
-                                                    <button
-                                                        className="btn btn-sm btn-outline-danger"
-                                                        onClick={() => handleDeleteCivilServant(item.id_civilSer)}
-                                                    >
-                                                        🗑️ Xóa
-                                                    </button>
-
-                                                    <button
-                                                        className="btn btn-sm btn-outline-success"
-                                                        onClick={() => handleOpenModalSubjectByCivilServant(item.id_civilSer)}
-                                                    >
-                                                        🔐 Xem chi tiết đề cương mà giảng viên này phụ trách
-                                                    </button>
-                                                </div>
+                                                <button className="btn btn-sm btn-function-ceo" onClick={() => handleOpenFunction(item.id_civilSer)}>
+                                                    ⚙️ Chức năng
+                                                </button>
                                             </td>
                                         </tr>
                                     ))
@@ -353,6 +360,64 @@ export default function CivilServantsInterfaceDonVi() {
                             ))}
                         </tbody>
                     </table>
+                </div>
+            </Modal>
+            <Modal
+                isOpen={openFunction}
+                title="CHỨC NĂNG CÁN BỘ VIÊN CHỨC"
+                onClose={() => setOpenFunction(false)}
+            >
+                <div className="action-menu">
+
+                    {/* Chỉnh sửa */}
+                    <div
+                        className="action-card edit"
+                        onClick={() => {
+                            handleEditCivilServant(Number(selectedIdCivilServant));
+                            setOpenFunction(false);
+                        }}
+                    >
+                        <div className="icon-area">
+                            <i className="fas fa-edit"></i>
+                        </div>
+                        <div className="text-area">
+                            <h5>Chỉnh sửa Cán bộ viên chức</h5>
+                            <p>Cập nhật thông tin Cán bộ viên chức</p>
+                        </div>
+                    </div>
+                    {/* Xem chi tiết đề cương đã hoàn thiện */}
+                    <div
+                        className="action-card edit"
+                        onClick={() => {
+                            handleOpenModalSubjectByCivilServant(Number(selectedIdCivilServant));
+                            setOpenFunction(false);
+                        }}
+                    >
+                        <div className="icon-area">
+                            <i className="fas fa-file-alt"></i>
+                        </div>
+                        <div className="text-area">
+                            <h5>Xem chi tiết đề cương mà Cán bộ viên chức này phụ trách</h5>
+                            <p>Xem chi tiết đề cương mà Cán bộ viên chức này phụ trách</p>
+                        </div>
+                    </div>
+                    {/* Xóa */}
+                    <div
+                        className="action-card delete"
+                        onClick={() => {
+                            handleDeleteCivilServant(Number(selectedIdCivilServant));
+                            setOpenFunction(false);
+                        }}
+                    >
+                        <div className="icon-area">
+                            <i className="fas fa-trash-alt"></i>
+                        </div>
+                        <div className="text-area">
+                            <h5>Xóa Cán bộ viên chức</h5>
+                            <p>Xóa Cán bộ viên chức và toàn bộ dữ liệu liên quan (không thể khôi phục).</p>
+                        </div>
+                    </div>
+
                 </div>
             </Modal>
         </div>

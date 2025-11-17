@@ -44,7 +44,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         setCheckOpen({ status: res.data.status, is_open: res.data.is_open, name_course: res.data.course });
         SweetAlert("success", res.message);
       } else {
-        setCheckOpen({ status: true, is_open: false, name_course:res.data.course  });
+        setCheckOpen({ status: true, is_open: false, name_course: res.data.course });
       }
     } finally {
       setLoading(false);
@@ -999,31 +999,21 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   return (
     <div className="main-content">
       <div className="container py-4">
-        <div className="card shadow-sm border-0">
+        <div className="card card-ceo">
           <div className="card-body">
-            <div className="page-header no-gutters">
+            <div className="page-header-ceo mb-3">
               <h2 className="text-uppercase">Viết đề cương cho môn học <span style={{ color: "red" }}>{checkOpen.name_course}</span></h2>
               <hr />
             </div>
 
             {checkOpen.status === true ? (
-              <div className="p-3 rounded shadow-sm" style={{
-                background: "#f0f6ff",
-                border: "1px solid #bcd2f7",
-                fontSize: "15px",
-                lineHeight: "22px"
-              }}>
+              <div className="alert-ceo">
                 <strong className="text-primary"><i className="fas fa-bell me-2"></i>Thông báo:</strong>
                 <div className="mt-1">Đề cương này đã được duyệt và hoàn chỉnh, không thể thay đổi chỉnh sửa</div>
               </div>
 
             ) : checkOpen.is_open === false ? (
-              <div className="p-3 rounded shadow-sm" style={{
-                background: "#f0f6ff",
-                border: "1px solid #bcd2f7",
-                fontSize: "15px",
-                lineHeight: "22px"
-              }}>
+              <div className="alert-ceo">
                 <strong className="text-primary"><i className="fas fa-bell me-2"></i>Thông báo:</strong>
                 <div className="mt-1">Ngoài thời gian thực hiện viết đề cương</div>
               </div>
@@ -1095,7 +1085,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
 
                 <button
                   type="button"
-                  className="btn btn-lg px-4 btn-primary shadow-sm d-flex align-items-center"
+                  className="btn-ceo-primary shadow-sm"
                   style={{ borderRadius: "10px" }}
                   onClick={saveFinalSyllabus}
                 >
@@ -1172,7 +1162,150 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
           </div>
         </Modal>
       )}
+      <style>
+        {`
+        /* ===============================
+   CEO UI DESIGN SYSTEM
+   TDMU - Syllabus Authoring Suite
+   =============================== */
 
+/* Card tổng thể */
+.card-ceo {
+  border-radius: 14px !important;
+  border: none !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06) !important;
+  background: #ffffff;
+}
+
+/* Header */
+.page-header-ceo h2 {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Thông báo */
+.alert-ceo {
+  background: #eef4ff;
+  border-left: 5px solid #3f73ff;
+  padding: 16px 20px;
+  border-radius: 10px;
+}
+
+/* Mỗi section */
+.template-section {
+  padding: 22px;
+  border-radius: 14px;
+  background: #ffffff;
+  margin-bottom: 18px;
+  border: 1px solid #e6e6e6;
+  transition: 0.2s;
+}
+
+.template-section:hover {
+  border-color: #bfd7ff;
+  box-shadow: 0 2px 10px rgba(30, 90, 200, 0.08);
+}
+
+/* Section tiêu đề */
+.template-section h6 {
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-size: 17px;
+}
+
+/* Cấp 1 */
+.main-level {
+  background: #f9fbff;
+  border-left: 5px solid #3f73ff;
+}
+
+/* Cấp 2 */
+.child-level-1 {
+  background: #fcfcff;
+  border-left: 4px solid #7aa4ff;
+}
+
+/* Cấp 3 */
+.child-level-2 {
+  background: #ffffff;
+  border-left: 4px solid #c6d7ff;
+}
+
+/* Nút hành động trên section */
+.template-section button {
+  border-radius: 8px !important;
+  font-size: 13px;
+  padding: 3px 10px !important;
+}
+
+/* Sticky toolbar */
+.sticky-toolbar {
+  position: sticky;
+  bottom: 0;
+  background: #ffffff;
+  padding: 18px 10px;
+  border-top: 1px solid #d7d7d7;
+  z-index: 50;
+}
+
+/* Nút CEO */
+.btn-ceo-primary {
+  background: linear-gradient(135deg, #3f73ff, #2c58d9);
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: 10px;
+}
+
+.btn-ceo-primary:hover {
+  background: linear-gradient(135deg, #5a89ff, #3f73ff);
+}
+
+.btn-ceo-outline {
+  border: 2px solid #3f73ff !important;
+  color: #3f73ff !important;
+  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: 10px;
+}
+/* Background tổng cho toàn trang */
+body, .main-content {
+  background: linear-gradient(135deg, #f5f8ff 0%, #eef3ff 40%, #ffffff 100%) !important;
+  min-height: 100vh;
+}
+
+.btn-ceo-outline:hover {
+  background: #3f73ff !important;
+  color: white !important;
+}
+
+/* Modal CEO */
+.modal-custom h5 {
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.modal-content {
+  border-radius: 18px !important;
+  padding: 5px 10px;
+}
+
+input.form-control,
+select.form-control,
+textarea.form-control {
+  border-radius: 10px !important;
+  border: 1px solid #d6d6d6 !important;
+}
+
+input.form-control:focus,
+select.form-control:focus {
+  border-color: #3f73ff !important;
+  box-shadow: 0 0 0 3px rgba(63, 115, 255, 0.15) !important;
+}
+
+        `}
+      </style>
     </div>
   );
 }
