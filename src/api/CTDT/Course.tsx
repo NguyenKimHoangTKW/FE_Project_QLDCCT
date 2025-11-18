@@ -73,4 +73,9 @@ export const CourseCTDTAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
+    ListSyllabusByCourseFinal: (data: { id_course: number }) =>
+        axios.post(`${URL_API_CTDT}/course/load-list-de-cuong-da-hoan-thien`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
 }

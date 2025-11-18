@@ -297,27 +297,27 @@ export default function CivilServantsInterfaceDonVi() {
             >
                 <form id="modal-body" autoComplete="off">
                     <div className="form-group row">
-                        <label className="col-sm-2 col-form-label">Mã viên chức</label>
+                        <label className="ceo-label col-sm-2 col-form-label">Mã viên chức</label>
                         <div className="col-sm-10">
-                            <input type="text" className="form-control" name="code_civilSer" value={formData.code_civilSer ?? ""} onChange={handleInputChange} />
+                            <input type="text" className="form-control ceo-input" name="code_civilSer" value={formData.code_civilSer ?? ""} onChange={handleInputChange} />
                         </div>
                     </div>
                     <div className="form-group row">
-                        <label className="col-sm-2 col-form-label">Tên viên chức</label>
+                        <label className="ceo-label col-sm-2 col-form-label">Tên viên chức</label>
                         <div className="col-sm-10">
-                            <input type="text" className="form-control" name="fullname_civilSer" value={formData.fullname_civilSer ?? ""} onChange={handleInputChange} />
+                            <input type="text" className="form-control ceo-input" name="fullname_civilSer" value={formData.fullname_civilSer ?? ""} onChange={handleInputChange} />
                         </div>
                     </div>
                     <div className="form-group row">
-                        <label className="col-sm-2 col-form-label">Email</label>
+                        <label className="ceo-label col-sm-2 col-form-label">Email</label>
                         <div className="col-sm-10">
-                            <input type="text" className="form-control" name="email" value={formData.email ?? ""} onChange={handleInputChange} />
+                            <input type="text" className="form-control ceo-input" name="email" value={formData.email ?? ""} onChange={handleInputChange} />
                         </div>
                     </div>
                     <div className="form-group row">
-                        <label className="col-sm-2 col-form-label">Ngày sinh</label>
+                        <label className="ceo-label col-sm-2 col-form-label">Ngày sinh</label>
                         <div className="col-sm-10">
-                            <input type="date" className="form-control" name="birthday" value={formData.birthday ?? ""} onChange={handleInputChange} />
+                            <input type="date" className="form-control ceo-input" name="birthday" value={formData.birthday ?? ""} onChange={handleInputChange} />
                         </div>
                     </div>
                 </form>

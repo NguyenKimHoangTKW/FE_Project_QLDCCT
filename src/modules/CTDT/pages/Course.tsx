@@ -36,6 +36,11 @@ function CourseInterfaceCtdt() {
   const [selectedIdCourse, setSelectedIdCourse] = useState<number | null>(null);
   const [openViewSyllabus, setOpenViewSyllabus] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [listSyllabusByCourseFinal, setListSyllabusByCourseFinal] = useState<{
+    message?: string;
+    success?: boolean;
+    data?: any[];
+  }>({});
   interface FormData {
     id_course: number | null;
     code_course: string;
@@ -479,6 +484,25 @@ function CourseInterfaceCtdt() {
   }
   const handleViewSyllabus = () => {
     setOpenViewSyllabus(true);
+    LoadListSyllabusByCourseFinal();
+  }
+  const LoadListSyllabusByCourseFinal = async () => {
+    const res = await CourseCTDTAPI.ListSyllabusByCourseFinal({ id_course: Number(selectedIdCourse) });
+    if (res.success) {
+      setListSyllabusByCourseFinal({
+        success: true,
+        data: res.data,
+        message: res.message,
+      });
+    }
+    else {
+      SweetAlert("error", res.message);
+      setListSyllabusByCourseFinal({
+        success: false,
+        data: [],
+        message: res.message,
+      });
+    }
   }
   useEffect(() => {
     if (!didFetch.current) {
@@ -816,35 +840,35 @@ function CourseInterfaceCtdt() {
       >
         <form id="modal-body" autoComplete="off">
           <div className="form-group row">
-            <label className="col-sm-2 col-form-label">Mã học phần</label>
+            <label className="ceo-label col-sm-2 col-form-label">Mã học phần</label>
             <div className="col-sm-10">
               <input
                 type="text"
                 name="code_course"
                 value={formData.code_course}
-                className="form-control"
+                className="form-control ceo-input"
                 onChange={handleInputChange}
                 autoComplete="off"
               />
             </div>
           </div>
           <div className="form-group row">
-            <label className="col-sm-2 col-form-label">Tên học phần</label>
+            <label className="ceo-label col-sm-2 col-form-label">Tên học phần</label>
             <div className="col-sm-10">
               <input
                 type="text"
                 name="name_course"
                 value={formData.name_course}
-                className="form-control"
+                className="form-control ceo-input"
                 onChange={handleInputChange}
                 autoComplete="off"
               />
             </div>
           </div>
           <div className="form-group row">
-            <label className="col-sm-2 col-form-label">Kiểm tra học phần bắt buộc</label>
+            <label className="ceo-label col-sm-2 col-form-label">Kiểm tra học phần bắt buộc</label>
             <div className="col-sm-10">
-              <select className="form-control" name="id_isCourse" value={formData.id_isCourse || 0} onChange={handleInputChange}>
+              <select className="form-control ceo-input" name="id_isCourse" value={formData.id_isCourse || 0} onChange={handleInputChange}>
                 {listKiemTraHocPhanBatBuoc.map((items, idx) => (
                   <option key={idx} value={items.value}>
                     {items.text}
@@ -854,9 +878,9 @@ function CourseInterfaceCtdt() {
             </div>
           </div>
           <div className="form-group row">
-            <label className="col-sm-2 col-form-label">Nhóm học phần</label>
+            <label className="ceo-label col-sm-2 col-form-label">Nhóm học phần</label>
             <div className="col-sm-10">
-              <select className="form-control" name="id_gr_course" value={formData.id_gr_course || 0} onChange={handleInputChange}>
+              <select className="form-control ceo-input" name="id_gr_course" value={formData.id_gr_course || 0} onChange={handleInputChange}>
                 {lisNhomHocPhan.map((items, idx) => (
                   <option key={idx} value={items.value}>
                     {items.text}
@@ -866,27 +890,27 @@ function CourseInterfaceCtdt() {
             </div>
           </div>
           <div className="form-group row">
-            <label className="col-sm-2 col-form-label">Số giờ lý thuyết</label>
+            <label className="ceo-label col-sm-2 col-form-label">Số giờ lý thuyết</label>
             <div className="col-sm-10">
-              <input type="number" className="form-control" name="totalTheory" min={1} max={100} value={formData.totalTheory || 1} onChange={handleInputChange} />
+              <input type="number" className="form-control ceo-input" name="totalTheory" min={1} max={100} value={formData.totalTheory || 1} onChange={handleInputChange} />
             </div>
           </div>
           <div className="form-group row">
-            <label className="col-sm-2 col-form-label">Số giờ thực hành</label>
+            <label className="ceo-label col-sm-2 col-form-label">Số giờ thực hành</label>
             <div className="col-sm-10">
-              <input type="number" className="form-control" name="totalPractice" min={1} max={100} value={formData.totalPractice || 1} onChange={handleInputChange} />
+              <input type="number" className="form-control ceo-input" name="totalPractice" min={1} max={100} value={formData.totalPractice || 1} onChange={handleInputChange} />
             </div>
           </div>
           <div className="form-group row">
-            <label className="col-sm-2 col-form-label">Số tín chỉ</label>
+            <label className="ceo-label col-sm-2 col-form-label">Số tín chỉ</label>
             <div className="col-sm-10">
-              <input type="number" className="form-control" name="credits" min={1} max={100} value={formData.credits || 1} onChange={handleInputChange} />
+              <input type="number" className="form-control ceo-input" name="credits" min={1} max={100} value={formData.credits || 1} onChange={handleInputChange} />
             </div>
           </div>
           <div className="form-group row">
-            <label className="col-sm-2 col-form-label">Thuộc khóa học</label>
+            <label className="ceo-label col-sm-2 col-form-label">Thuộc khóa học</label>
             <div className="col-sm-10">
-              <select className="form-control" name="id_key_year_semester" value={formData.id_key_year_semester || 0} onChange={handleInputChange}>
+              <select className="form-control ceo-input" name="id_key_year_semester" value={formData.id_key_year_semester || 0} onChange={handleInputChange}>
                 {listKeyYearSemester.map((items, idx) => (
                   <option key={idx} value={items.value}>
                     {items.text}
@@ -896,9 +920,9 @@ function CourseInterfaceCtdt() {
             </div>
           </div>
           <div className="form-group row">
-            <label className="col-sm-2 col-form-label">Thuộc học kỳ</label>
+            <label className="ceo-label col-sm-2 col-form-label">Thuộc học kỳ</label>
             <div className="col-sm-10">
-              <select className="form-control" name="id_semester" value={formData.id_semester || 0} onChange={handleInputChange}>
+              <select className="form-control ceo-input" name="id_semester" value={formData.id_semester || 0} onChange={handleInputChange}>
                 {listSemester.map((items, idx) => (
                   <option key={idx} value={items.value}>
                     {items.text}
@@ -921,13 +945,13 @@ function CourseInterfaceCtdt() {
           <h5 className="text-center text-uppercase font-size-20">Nhập mã giảng viên vào ô để phân quyền vào đề cương môn học này</h5>
           <hr />
           <div className="form-group row">
-            <label className="col-sm-2 col-form-label">Mã cán bộ</label>
+            <label className="ceo-label col-sm-2 col-form-label">Mã cán bộ</label>
             <div className="col-sm-10">
               <input
                 type="text"
                 name="code_civilSer"
                 value={permissionData.code_civilSer}
-                className="form-control"
+                className="form-control ceo-input"
                 onChange={handleInputChange}
                 autoComplete="off"
               />
@@ -992,15 +1016,15 @@ function CourseInterfaceCtdt() {
       >
         <form id="modal-body" autoComplete="off">
           <div className="form-group row">
-            <label className="col-sm-2 col-form-label">Thời gian mở học phần đề cương</label>
+            <label className="ceo-label col-sm-2 col-form-label">Thời gian mở học phần đề cương</label>
             <div className="col-sm-10">
-              <input type="datetime-local" className="form-control" name="open_time" value={unixToLocal(setUpTimeData.open_time) ?? ""} onChange={handleInputChangeSetUpTime} />
+              <input type="datetime-local" className="form-control ceo-input" name="open_time" value={unixToLocal(setUpTimeData.open_time) ?? ""} onChange={handleInputChangeSetUpTime} />
             </div>
           </div>
           <div className="form-group row">
-            <label className="col-sm-2 col-form-label">Thời gian đóng học phần đề cương</label>
+            <label className="ceo-label col-sm-2 col-form-label">Thời gian đóng học phần đề cương</label>
             <div className="col-sm-10">
-              <input type="datetime-local" className="form-control" name="close_time" value={unixToLocal(setUpTimeData.close_time) ?? ""} onChange={handleInputChangeSetUpTime} />
+              <input type="datetime-local" className="form-control ceo-input" name="close_time" value={unixToLocal(setUpTimeData.close_time) ?? ""} onChange={handleInputChangeSetUpTime} />
             </div>
           </div>
         </form>
@@ -1011,7 +1035,46 @@ function CourseInterfaceCtdt() {
         onClose={() => setOpenViewSyllabus(false)}
       >
         <div className="table-responsive">
-          <table className="table table-bordered"></table>
+          <table className="table table-bordered">
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Mã giảng viên</th>
+                <th>Họ và tên giảng viên</th>
+                <th>Email</th>
+                <th>Thuộc chương trình đào tạo</th>
+                <th>Mã học phần</th>
+                <th>Tên học phần</th>
+                <th>Version đề cương</th>
+                <th>Thời gian tạo đề cương</th>
+                <th>Thời gian hoàn thành đề cương</th>
+                <th>Trạng thái đề cương</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {listSyllabusByCourseFinal.data?.map((item, index) => (
+                <tr key={item.id_syllabus}>
+                  <td>{index + 1}</td>
+                  <td>{item.code_civilSer}</td>
+                  <td>{item.fullname_civilSer}</td>
+                  <td>{item.email}</td>
+                  <td>{item.name_program}</td>
+                  <td>{item.code_course}</td>
+                  <td>{item.name_course}</td>
+                  <td className="formatSo">{item.version}</td>
+                  <td className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
+                  <td className="formatSo">{unixTimestampToDate(item.time_up)}</td>
+                  <td>{item.status == "Duyệt thành công" ? <span className="text-success">Đã hoàn thành</span> : <span className="text-danger">Chưa hoàn thành</span>}</td>
+                  <td>
+                    <button className="btn btn-sm btn-function-ceo">
+                      <i className="fas fa-eye"></i> Xem đề cương
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </Modal>
       <Modal

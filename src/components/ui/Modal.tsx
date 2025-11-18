@@ -35,7 +35,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, title, children, onClose, onSave 
                     <div className="modal-footer">
                         <button
                             type="button"
-                            className="btn btn-secondary"
+                            className="btn btn-ceo-butterfly"
                             onClick={onClose}
                         >
                             Đóng
@@ -43,7 +43,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, title, children, onClose, onSave 
                         {onSave && (
                             <button
                                 type="button"
-                                className="btn btn-primary"
+                                className="btn btn-ceo-blue"
                                 onClick={onSave}
                             >
                                 Lưu dữ liệu
