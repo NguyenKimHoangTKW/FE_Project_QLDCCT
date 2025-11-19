@@ -26,4 +26,9 @@ export const WriteCourseAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
+    RefundSyllabus: (data: { id_syllabus: number }) =>
+        axios.post(`${URL_API_DVDC}/write-course/preview-content-refund-syllabus`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
 }

@@ -385,6 +385,7 @@ pre {
     opacity: 0.9;
     transform: translateY(-1px);
 }
+
 /* ===== BUTTON CEO GREEN ===== */
 .btn-ceo-green {
     background: linear-gradient(135deg, #43c465, #2ea24e);
@@ -477,6 +478,31 @@ pre {
     padding: 14px 18px;
     font-weight: 600;
     width: 320px;
+}
+
+.template-preview table {
+    border: 1px solid #d4d4d4 !important;
+}
+
+.template-preview th {
+    background: #eef2ff !important;
+    border: 1px solid #c7c7c7 !important;
+    font-weight: 600 !important;
+}
+
+.template-preview td {
+    border: 1px solid #e5e7eb !important;
+    padding: 6px !important;
+}
+
+.preview-html p {
+    margin-bottom: 10px !important;
+}
+
+.preview-html table td,
+.preview-html table th {
+    font-size: 14px !important;
+    font-family: "Times New Roman", serif !important;
 }
 
 figure {

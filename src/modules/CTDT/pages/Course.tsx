@@ -5,9 +5,11 @@ import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import Loading from "../../../components/ui/Loading";
 import { CourseCTDTAPI } from "../../../api/CTDT/Course";
 import { ListCTDTPermissionAPI } from "../../../api/CTDT/ListCTDTPermissionAPI";
+import { useNavigate } from "react-router-dom";
 
 function CourseInterfaceCtdt() {
   const didFetch = useRef(false);
+  const navigate = useNavigate();
   const [listKiemTraHocPhanBatBuoc, setListKiemTraHocPhanBatBuoc] = useState<any[]>([]);
   const [lisNhomHocPhan, setLisNhomHocPhan] = useState<any[]>([]);
   const [listKiemTraHocPhanBatBuocFilter, setListKiemTraHocPhanBatBuocFilter] = useState<any[]>([]);
@@ -485,6 +487,9 @@ function CourseInterfaceCtdt() {
   const handleViewSyllabus = () => {
     setOpenViewSyllabus(true);
     LoadListSyllabusByCourseFinal();
+  }
+  const handlePreviewSyllabus = (id_syllabus: number) => {
+    window.open(`/ctdt/preview-syllabus/${id_syllabus}/false`, "_blank");
   }
   const LoadListSyllabusByCourseFinal = async () => {
     const res = await CourseCTDTAPI.ListSyllabusByCourseFinal({ id_course: Number(selectedIdCourse) });
@@ -1067,7 +1072,7 @@ function CourseInterfaceCtdt() {
                   <td className="formatSo">{unixTimestampToDate(item.time_up)}</td>
                   <td>{item.status == "Duyệt thành công" ? <span className="text-success">Đã hoàn thành</span> : <span className="text-danger">Chưa hoàn thành</span>}</td>
                   <td>
-                    <button className="btn btn-sm btn-function-ceo">
+                    <button className="btn btn-sm btn-function-ceo" onClick={() => handlePreviewSyllabus(item.id_syllabus)}>
                       <i className="fas fa-eye"></i> Xem đề cương
                     </button>
                   </td>

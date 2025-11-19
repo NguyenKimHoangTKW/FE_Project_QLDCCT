@@ -9,6 +9,8 @@ function ListWriteCourseDVDC() {
     const [nameCourse, setNameCourse] = useState<string>("");
     const [showButton, setShowButton] = useState(false);
     const [countdown, setCountdown] = useState<string>("");
+    const [showModalRefundSyllabus, setShowModalRefundSyllabus] = useState(false);
+    const [returned_content, setReturned_content] = useState<string>("");
     const [listTeacher, setListTeacher] = useState<{
         success?: boolean;
         data?: any[];
@@ -80,7 +82,7 @@ function ListWriteCourseDVDC() {
         setInheritSyllabusTemplate({ id_syllabus1: null, id_syllabus2: null });
     }
     const handleInheritSyllabusTemplate = (id_syllabus: number) => {
-        if(listTeacher.data?.length <= 1){
+        if (listTeacher.data?.length <= 1) {
             SweetAlert("error", "Bạn không thể kế thừa mẫu đề cương vì chỉ có 1 giảng viên");
             return;
         }
@@ -88,7 +90,7 @@ function ListWriteCourseDVDC() {
         setInheritSyllabusTemplate({ id_syllabus1: id_syllabus, id_syllabus2: null });
     }
     const SaveInheritSyllabusTemplate = async (id_syllabus: number) => {
-        const res = await WriteCourseAPI.InheritSyllabusTemplate({ id_syllabus1: Number(inheritSyllabusTemplate.id_syllabus1), id_syllabus2: Number(id_syllabus) ,id_course: Number(formData.id_course)});
+        const res = await WriteCourseAPI.InheritSyllabusTemplate({ id_syllabus1: Number(inheritSyllabusTemplate.id_syllabus1), id_syllabus2: Number(id_syllabus), id_course: Number(formData.id_course) });
         if (res.success) {
             SweetAlert("success", res.message);
             setShowButton(false);
@@ -164,6 +166,16 @@ function ListWriteCourseDVDC() {
         const url = `/gv-de-cuong/xem-truc-tuyen-mau-de-cuong-preview/${id_syllabus}`;
         window.open(url, "_blank");
     };
+    const handleShowModalRefundSyllabus = async (id_syllabus: number) => {
+        setShowModalRefundSyllabus(true);
+        const res = await WriteCourseAPI.RefundSyllabus({ id_syllabus: Number(id_syllabus) });
+        if (res.success) {
+            SweetAlert("success", "Tải nội dung thành công!");
+            setReturned_content(res.data);
+        } else {
+            SweetAlert("error", res.message);
+        }
+    }
 
     useEffect(() => {
         GetListCourse();
@@ -362,14 +374,25 @@ function ListWriteCourseDVDC() {
                                                             )}
 
                                                             {teacher.code_status === 3 && (
-                                                                <button
-                                                                    className="btn btn-sm btn-warning d-flex align-items-center"
-                                                                    title="Chỉnh sửa đề cương"
-                                                                    onClick={() => handleViewDetailTemplateWriteCourse(teacher.id_syllabus)}
-                                                                >
-                                                                    <i className="fas fa-edit me-2"></i>
-                                                                    Chỉnh sửa
-                                                                </button>
+                                                                <>
+                                                                    <button
+                                                                        className="btn btn-sm btn-warning d-flex align-items-center"
+                                                                        title="Chỉnh sửa đề cương"
+                                                                        onClick={() => handleViewDetailTemplateWriteCourse(teacher.id_syllabus)}
+                                                                    >
+                                                                        <i className="fas fa-edit me-2"></i>
+                                                                        Chỉnh sửa
+                                                                    </button>
+                                                                    <button
+                                                                        className="btn btn-ceo-red"
+                                                                        title="Hoàn trả đề cương"
+                                                                        onClick={() => handleShowModalRefundSyllabus(teacher.id_syllabus)}
+                                                                    >
+                                                                        <i className="fas fa-edit me-2"></i>
+                                                                        Xem lý do hoàn trả
+                                                                    </button>
+                                                                </>
+
                                                             )}
 
                                                             {teacher.code_status === 4 && (
@@ -426,6 +449,39 @@ function ListWriteCourseDVDC() {
                 </div>
 
             </Modal>
+            <Modal
+                isOpen={showModalRefundSyllabus}
+                title="📌 Lý do hoàn trả đề cương"
+                onClose={() => setShowModalRefundSyllabus(false)}
+            >
+                <div
+                    style={{
+                        background: "#f8fafc",
+                        border: "1px solid #e2e8f0",
+                        borderRadius: "12px",
+                        padding: "16px",
+                        maxHeight: "400px",
+                        overflowY: "auto",
+                    }}
+                >
+                    {returned_content ? (
+                        <div
+                            className="preview-html"
+                            dangerouslySetInnerHTML={{ __html: returned_content }}
+                            style={{
+                                fontSize: "15px",
+                                lineHeight: "1.6",
+                                color: "#1e293b",
+                            }}
+                        />
+                    ) : (
+                        <p className="text-muted fst-italic text-center">
+                            (Không có nội dung hoàn trả)
+                        </p>
+                    )}
+                </div>
+            </Modal>
+
         </div>
     );
 }

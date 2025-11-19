@@ -22,6 +22,14 @@ function CTDTSideNav() {
             </Link>
           </li>
           <li>
+            <Link className="dropdown-toggle" to={"/ctdt/danh-sach-de-cuong-can-duyet"}>
+              <span className="icon-holder">
+                <i className="anticon anticon-logout" />
+              </span>
+              <span className="title">Quản lý danh sách đề cương cần duyệt</span>
+            </Link>
+          </li>
+          <li>
             <Link className="dropdown-toggle" onClick={Logout}>
               <span className="icon-holder">
                 <i className="anticon anticon-logout" />

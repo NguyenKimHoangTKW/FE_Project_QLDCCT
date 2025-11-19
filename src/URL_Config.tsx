@@ -6,6 +6,7 @@ export const URL_API_DONVI = "https://localhost:44314/api/donvi";
 export const URL_API_SHARED = "https://localhost:44314/api/evaluate";
 export const URL_API_DVDC = "https://localhost:44314/api/gvdc";
 export const URL = "https://localhost:44314";
+export const URL_PREVIEW = "https://localhost:44314/api/preview";
 export function unixTimestampToDate(unixTimestamp: number) {
     var date = new Date(unixTimestamp * 1000);
     var weekdays = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];

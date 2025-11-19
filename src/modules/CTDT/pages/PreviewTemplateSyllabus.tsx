@@ -2,12 +2,16 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { SweetAlert } from "../../../components/ui/SweetAlert";
 import "../../../assets/css/template-preview.css";
-import { TemplateWriteCourseAPI } from "../../../api/GVDeCuong/TemplateWriteCourse";
 import "../../../tinymce.config";
-import { URL_API_DVDC } from "../../../URL_Config";
+import { URL_PREVIEW } from "../../../URL_Config";
 import { saveAs } from "file-saver";
+import { PreviewTemplateAPI } from "../../../api/Shared/PreviewTemplate";
+import { BrowseOutlineAPI } from "../../../api/CTDT/BrowseOutline";
+import Swal from "sweetalert2";
+import Modal from "../../../components/ui/Modal";
+import { Editor } from "@tinymce/tinymce-react";
 export default function PreviewTemplateSyllabusFinal() {
-    const { id_syllabus } = useParams();
+    const { id_syllabus, check_view } = useParams();
     const [templateSections, setTemplateSections] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [loadListPLOCourse, setLoadListPLOCourse] = useState<any[]>([]);
@@ -17,9 +21,11 @@ export default function PreviewTemplateSyllabusFinal() {
         Record<string, { Id_Level: number; code_Level: string }>
     >({});
     const [nameCourse, setNameCourse] = useState<string>("");
+    const [showModalRefundSyllabus, setShowModalRefundSyllabus] = useState(false);
+    const [returned_content, setReturned_content] = useState<string>("");
     const LoadData = async () => {
         try {
-            const res = await TemplateWriteCourseAPI.PreviewTemplate({
+            const res = await PreviewTemplateAPI.PreviewTemplate({
                 id_syllabus: Number(id_syllabus),
             });
             if (res.success) {
@@ -37,7 +43,7 @@ export default function PreviewTemplateSyllabusFinal() {
     };
 
     const LoadPreviewLevelContribution = async () => {
-        const res = await TemplateWriteCourseAPI.PreviewLevelContribution({
+        const res = await PreviewTemplateAPI.PreviewLevelContribution({
             id_syllabus: Number(id_syllabus),
         });
 
@@ -45,7 +51,7 @@ export default function PreviewTemplateSyllabusFinal() {
     };
 
     const LoadListPLOCourse = async () => {
-        const res = await TemplateWriteCourseAPI.ListPLOCourse({ id_syllabus: Number(id_syllabus) });
+        const res = await PreviewTemplateAPI.ListPLOCourse({ id_syllabus: Number(id_syllabus) });
         if (res.success) {
             setLoadListPLOCourse(res.data);
         }
@@ -54,7 +60,7 @@ export default function PreviewTemplateSyllabusFinal() {
 
 
     const LoadPreviewMapPLObySyllabus = async () => {
-        const res = await TemplateWriteCourseAPI.PreviewMapPLObySyllabus({
+        const res = await PreviewTemplateAPI.PreviewMapPLObySyllabus({
             id_syllabus: Number(id_syllabus)
         });
 
@@ -67,6 +73,66 @@ export default function PreviewTemplateSyllabusFinal() {
 
         setMappingRows(formatted);
     };
+    const handleApproveSyllabus = async () => {
+        const confirm = await Swal.fire({
+            title: "Xác nhận duyệt đề cương?",
+            text: "Sau khi duyệt, giảng viên sẽ không thể chỉnh sửa lại.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Có, duyệt ngay",
+            cancelButtonText: "Hủy"
+        });
+
+        if (!confirm.isConfirmed) return;
+
+        const res = await BrowseOutlineAPI.ApproveSyllabus({
+            id_syllabus: Number(id_syllabus)
+        });
+
+        if (res.success) {
+            SweetAlert("success", res.message);
+            localStorage.setItem("reload_syllabus_list", Date.now().toString());
+            setTimeout(() => {
+                window.close();
+            }, 1000);
+        } else {
+            SweetAlert("error", res.message);
+        }
+    };
+    const handleOpenModalRefundSyllabus = () => {
+        setShowModalRefundSyllabus(true);
+    }
+    const handleSaveRefundSyllabus = async () => {
+        const confirm = await Swal.fire({
+            title: "Xác nhận duyệt đề cương?",
+            text: "Sau khi hoàn trả, giảng viên sẽ chỉnh sửa, bạn chỉ có thể xem lại đề cương sau khi giảng viên hoàn thành chỉnh sửa.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Có, hoàn trả ngay",
+            cancelButtonText: "Hủy"
+        });
+
+        if (!confirm.isConfirmed) return;
+
+        const res = await BrowseOutlineAPI.RefundSyllabus({
+            id_syllabus: Number(id_syllabus),
+            returned_content: returned_content
+        });
+
+        if (res.success) {
+            SweetAlert("success", res.message);
+            localStorage.setItem("reload_syllabus_list", Date.now().toString());
+            setTimeout(() => {
+                window.close();
+            }, 1000);
+        } else {
+            SweetAlert("error", res.message);
+        }
+    }
     useEffect(() => {
         const loadAll = async () => {
             await LoadData();
@@ -217,7 +283,7 @@ export default function PreviewTemplateSyllabusFinal() {
     };
 
     const LoadSavedMappingCLOPI = async () => {
-        const res = await TemplateWriteCourseAPI.GetMappingCLOPI({
+        const res = await PreviewTemplateAPI.GetMappingCLOPI({
             id_syllabus: Number(id_syllabus),
         });
 
@@ -286,7 +352,7 @@ export default function PreviewTemplateSyllabusFinal() {
     const getHeadingTag = (sectionCode: string) => {
         const level = sectionCode.split(".").length - 1;
 
-        if (level === 0) return "h1"; 
+        if (level === 0) return "h1";
         if (level === 1) return "h2";
         if (level === 2) return "h3";
         return "h4";
@@ -403,7 +469,7 @@ export default function PreviewTemplateSyllabusFinal() {
         try {
             const html = buildFullHTML();
 
-            const res = await fetch(`${URL_API_DVDC}/write-template-syllabus/export-word-html`, {
+            const res = await fetch(`${URL_PREVIEW}/export-word-html`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ html })
@@ -425,135 +491,242 @@ export default function PreviewTemplateSyllabusFinal() {
             </div>
         );
 
-        return (
-            <div
-                className="main-content"
-                style={{
-                    background: "linear-gradient(135deg, #f7f9fb, #eef3f8)",
-                    minHeight: "100vh",
-                    padding: "24px"
-                }}
-            >
-                <div className="container">
-    
-                    <div
-                        className="p-4 mb-4"
+    return (
+        <div
+            className="main-content"
+            style={{
+                background: "linear-gradient(135deg, #f7f9fb, #eef3f8)",
+                minHeight: "100vh",
+                padding: "24px",
+                marginTop: "55px"
+            }}
+        >
+            <div className="container">
+
+                <div
+                    className="p-4 mb-4"
+                    style={{
+                        background: "white",
+                        borderRadius: "18px",
+                        boxShadow: "0 4px 18px rgba(0,0,0,0.06)"
+                    }}
+                >
+                    <h1
+                        className="text-uppercase fw-bold"
+                        style={{ fontSize: "26px", color: "#1e3a8a" }}
+                    >
+                        📘 Xem bản hoàn chỉnh đề cương
+                    </h1>
+
+                    <p
                         style={{
-                            background: "white",
-                            borderRadius: "18px",
-                            boxShadow: "0 4px 18px rgba(0,0,0,0.06)"
+                            fontSize: "16px",
+                            opacity: 0.8,
+                            marginTop: "6px"
                         }}
                     >
-                        <h1
-                            className="text-uppercase fw-bold"
-                            style={{ fontSize: "26px", color: "#1e3a8a" }}
-                        >
-                            📘 Xem bản hoàn chỉnh đề cương
-                        </h1>
-    
-                        <p
-                            style={{
-                                fontSize: "16px",
-                                opacity: 0.8,
-                                marginTop: "6px"
-                            }}
-                        >
-                            Môn học: <span className="fw-bold" style={{ color: "#dc2626" }}>{nameCourse}</span>
-                        </p>
-                    </div>
-    
-                    <div
-                        className="card border-0"
-                        style={{
-                            borderRadius: "18px",
-                            boxShadow: "0 6px 24px rgba(0,0,0,0.08)",
-                            background: "white"
-                        }}
-                    >
-                        <div className="card-body p-4">
-    
-                            {templateSections.length === 0 ? (
-                                <p className="text-muted text-center fs-5 py-5">
-                                    Không có dữ liệu trong template này.
-                                </p>
-                            ) : (
-                                <div className="template-preview">
-    
-                                    {templateSections.map((section, index) => {
-                                        const level = section.section_code.split(".").length - 1;
-    
-                                        const marginLeft =
-                                            level === 0 ? "0px" :
-                                                level === 1 ? "20px" :
-                                                    "40px";
-    
-                                        return (
-                                            <div
-                                                key={index}
+                        Môn học: <span className="fw-bold" style={{ color: "#dc2626" }}>{nameCourse}</span>
+                    </p>
+                </div>
+
+                {/* MAIN CARD */}
+                <div
+                    className="card border-0"
+                    style={{
+                        borderRadius: "18px",
+                        boxShadow: "0 6px 24px rgba(0,0,0,0.08)",
+                        background: "white"
+                    }}
+                >
+                    <div className="card-body p-4">
+
+                        {templateSections.length === 0 ? (
+                            <p className="text-muted text-center fs-5 py-5">
+                                Không có dữ liệu trong template này.
+                            </p>
+                        ) : (
+                            <div className="template-preview">
+
+                                {/* LIST SECTIONS */}
+                                {templateSections.map((section, index) => {
+                                    const level = section.section_code.split(".").length - 1;
+
+                                    const marginLeft =
+                                        level === 0 ? "0px" :
+                                            level === 1 ? "20px" :
+                                                "40px";
+
+                                    return (
+                                        <div
+                                            key={index}
+                                            style={{
+                                                marginBottom: "28px",
+                                                marginLeft: marginLeft,
+                                                borderLeft: "4px solid #3b82f6",
+                                                paddingLeft: "14px"
+                                            }}
+                                        >
+                                            <h5
                                                 style={{
-                                                    marginBottom: "28px",
-                                                    marginLeft: marginLeft,
-                                                    borderLeft: "4px solid #3b82f6",
-                                                    paddingLeft: "14px"
+                                                    color: "#1f2937",
+                                                    fontWeight: 600,
+                                                    marginBottom: "14px"
                                                 }}
                                             >
-                                                <h5
-                                                    style={{
-                                                        color: "#1f2937",
-                                                        fontWeight: 600,
-                                                        marginBottom: "14px"
-                                                    }}
-                                                >
-                                                    {section.section_code}. {section.section_name}
-                                                </h5>
-    
-                                                <div
-                                                    className="template-section-content"
-                                                    style={{
-                                                        background: "#fafbff",
-                                                        padding: "16px",
-                                                        borderRadius: "12px",
-                                                        border: "1px solid #e5e7eb"
-                                                    }}
-                                                >
-                                                    {renderSectionContent(section)}
-                                                </div>
+                                                {section.section_code}. {section.section_name}
+                                            </h5>
+
+                                            <div
+                                                className="template-section-content"
+                                                style={{
+                                                    background: "#fafbff",
+                                                    padding: "16px",
+                                                    borderRadius: "12px",
+                                                    border: "1px solid #e5e7eb"
+                                                }}
+                                            >
+                                                {renderSectionContent(section)}
                                             </div>
-                                        );
-                                    })}
-    
-                                </div>
-                            )}
-                        </div>
+                                        </div>
+                                    );
+                                })}
+
+                            </div>
+                        )}
                     </div>
-    
-                    <div
-                        className="d-flex justify-content-center gap-3 flex-wrap mt-4 p-3"
+                </div>
+
+                <div
+                    className="d-flex justify-content-center gap-3 flex-wrap mt-4 p-3"
+                    style={{
+                        position: "sticky",
+                        bottom: "0",
+                        background: "rgba(255,255,255,0.95)",
+                        backdropFilter: "blur(6px)",
+                        borderRadius: "14px",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+                    }}
+                >
+                    <button
+                        className="btn btn-lg px-4"
+                        onClick={exportWordHTML}
                         style={{
-                            position: "sticky",
-                            bottom: "0",
-                            background: "rgba(255,255,255,0.95)",
-                            backdropFilter: "blur(6px)",
+                            background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
+                            color: "white",
+                            fontWeight: 600,
                             borderRadius: "14px",
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+                            boxShadow: "0 4px 14px rgba(37,99,235,0.4)"
                         }}
                     >
-                        <button
-                            className="btn btn-lg px-4"
-                            onClick={exportWordHTML}
-                            style={{
-                                background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
-                                color: "white",
-                                fontWeight: 600,
-                                borderRadius: "14px",
-                                boxShadow: "0 4px 14px rgba(37,99,235,0.4)"
-                            }}
-                        >
-                            📝 Xuất Word
-                        </button>
-                    </div>
-    
+                        📝 Xuất Word
+                    </button>
+                    {check_view === "true" ? (
+                        <>
+                            <button
+                                className="btn btn-lg px-4"
+                                onClick={handleOpenModalRefundSyllabus}
+                                style={{
+                                    background: "linear-gradient(135deg,rgb(223, 34, 34),rgb(255, 11, 11))",
+                                    color: "white",
+                                    fontWeight: 600,
+                                    borderRadius: "14px",
+                                    boxShadow: "0 4px 14px rgba(255, 11, 11, 0.4)"
+                                }}
+                            >
+                                📝 Hoàn trả đề cương bổ sung
+                            </button>
+                            <button
+                                className="btn btn-lg px-4"
+                                onClick={handleApproveSyllabus}
+                                style={{
+                                    background: "linear-gradient(135deg,rgb(22, 152, 22),rgb(25, 170, 25))",
+                                    color: "white",
+                                    fontWeight: 600,
+                                    borderRadius: "14px",
+                                    boxShadow: "0 4px 14px rgba(25, 170, 25, 0.4)"
+                                }}
+                            >
+                                📝 Duyệt đề cương
+                            </button>
+                        </>
+
+                    ) : null}
                 </div>
+
             </div>
-        );
+            <Modal
+                isOpen={showModalRefundSyllabus}
+                onClose={() => setShowModalRefundSyllabus(false)}
+                title="Hoàn trả đề cương bổ sung"
+                onSave={handleSaveRefundSyllabus}
+            >
+                <div>
+                    <label className="form-label ceo-label">Ghi rõ nội dung hoàn trả chỉnh sửa lại đề cương</label>
+                    <Editor
+                        initialValue={`<p><br/></p>`}
+                        init={{
+                            height: 400,
+                            menubar: "file edit view insert format tools table help",
+                            plugins: [
+                                "advlist",
+                                "autolink",
+                                "lists",
+                                "link",
+                                "image",
+                                "charmap",
+                                "preview",
+                                "anchor",
+                                "searchreplace",
+                                "visualblocks",
+                                "code",
+                                "fullscreen",
+                                "insertdatetime",
+                                "table",
+                                "help",
+                                "wordcount",
+                            ],
+
+                            toolbar:
+                                "undo redo | styles fontfamily fontsize | " +
+                                "bold italic underline forecolor backcolor | " +
+                                "alignleft aligncenter alignright alignjustify | " +
+                                "bullist numlist outdent indent | " +
+                                "table tabledelete | tableprops tablecellprops tablerowprops | " +
+                                "link image | " +
+                                "preview code fullscreen",
+                            extended_valid_elements:
+                                "select[id|name|class|style],option[value|selected],table[style|class|border|cellpadding|cellspacing],tr,td[colspan|rowspan|style]",
+
+                            valid_children:
+                                "+table[tr],+tr[td],+td[select],+body[select]",
+                            forced_root_block: "",
+                            table_advtab: true,
+                            table_default_attributes: { border: "1" },
+                            table_default_styles: { width: "100%", borderCollapse: "collapse" },
+                            font_family_formats:
+                                "Arial=arial,helvetica,sans-serif;" +
+                                "Times New Roman='Times New Roman',times,serif;" +
+                                "Calibri=calibri,sans-serif;" +
+                                "Tahoma=tahoma,sans-serif;" +
+                                "Verdana=verdana,sans-serif;",
+                            fontsize_formats: "10px 11px 12px 13px 14px 16px 18px 20px 24px 28px 32px",
+                            paste_data_images: true,
+                            skin: false,
+                            content_css: false,
+                            skin_ui_css: `
+                  .tox-promotion,
+                  .tox-statusbar__branding,
+                  .tox-statusbar__right-container,
+                  .tox-statusbar__help-text {
+                    display: none !important;
+                  }
+                `,
+                        }}
+                        onChange={(e: any) => setReturned_content(e.target.getContent())}
+                    />
+                </div>
+            </Modal>
+        </div>
+    );
+
 }
