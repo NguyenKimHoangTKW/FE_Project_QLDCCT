@@ -7,27 +7,38 @@ export const WriteCourseAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         })
-    .then((res) => res.data),
+            .then((res) => res.data),
     GetListTeacherbyWriteCourse: (data: { id_course: number }) =>
         axios.post(`${URL_API_DVDC}/write-course/danh-sach-giang-vien-viet-de-cuong-trong-mon-hoc`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         })
-    .then((res) => res.data),
+            .then((res) => res.data),
 
     CreateTemplateWriteCourse: (data: { id_teacherbysubject: number }) =>
         axios.post(`${URL_API_DVDC}/write-course/tao-moi-mau-de-cuong-cho-mon-hoc`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         })
-    .then((res) => res.data),
-    InheritSyllabusTemplate: (data: { id_syllabus1: number, id_syllabus2: number ,id_course: number}) =>
+            .then((res) => res.data),
+    InheritSyllabusTemplate: (data: { id_syllabus1: number, id_syllabus2: number, id_course: number }) =>
         axios.post(`${URL_API_DVDC}/write-course/inherit-template-syllabus`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
     RefundSyllabus: (data: { id_syllabus: number }) =>
         axios.post(`${URL_API_DVDC}/write-course/preview-content-refund-syllabus`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
+    DeleteSyllabus: (data: { id_syllabus: number }) =>
+        axios.post(`${URL_API_DVDC}/write-course/delete-syllabus-1`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
+
+    RollbackSyllabus: (data: { id_syllabus: number }) =>
+        axios.post(`${URL_API_DVDC}/write-course/rollback-syllabus`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),

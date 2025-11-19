@@ -138,22 +138,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
       loadAll();
     }
   }, [checkOpen.status === false && checkOpen.is_open === true]);
-  useEffect(() => {
-    if (checkOpen.status === true && checkOpen.is_open === true) return;
 
-    if (
-      mappingRows.length > 0 &&
-      loadPreviewLevelContribution.length > 0 &&
-      loadListPLOCourse.length > 0
-    ) {
-      LoadSavedMappingCLOPI();
-    }
-  }, [
-    mappingRows,
-    loadPreviewLevelContribution,
-    loadListPLOCourse,
-    checkOpen.status === false && checkOpen.is_open === true
-  ]);
 
 
   const RenderTableCourseObjectives = (section: any) => {

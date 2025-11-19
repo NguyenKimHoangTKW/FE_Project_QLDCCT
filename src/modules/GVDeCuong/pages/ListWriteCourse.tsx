@@ -1,8 +1,9 @@
 import { WriteCourseAPI } from "../../../api/GVDeCuong/WriteCourse";
-import { SweetAlert } from "../../../components/ui/SweetAlert";
+import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import { useEffect, useState } from "react";
 import { unixTimestampToDate } from "../../../URL_Config";
 import Modal from "../../../components/ui/Modal";
+import Swal from "sweetalert2";
 function ListWriteCourseDVDC() {
     const [listCourse, setListCourse] = useState<any[]>([]);
     const [showModal, setShowModal] = useState(false);
@@ -81,6 +82,18 @@ function ListWriteCourseDVDC() {
         setShowButton(false);
         setInheritSyllabusTemplate({ id_syllabus1: null, id_syllabus2: null });
     }
+    const handleDeleteSyllabus = async (id_syllabus: number) => {
+        const confirmDel = await SweetAlertDel("Bằng việc đồng ý, bạn sẽ xóa mẫu đề cương này và không thể khôi phục lại, bạn muốn tiếp tục?");
+        if (confirmDel) {
+            const res = await WriteCourseAPI.DeleteSyllabus({ id_syllabus: Number(id_syllabus) });
+            if (res.success) {
+                SweetAlert("success", res.message);
+                getListTeacherbyWriteCourse(Number(formData.id_course));
+            } else {
+                SweetAlert("error", res.message);
+            }
+        }
+    }
     const handleInheritSyllabusTemplate = (id_syllabus: number) => {
         if (listTeacher.data?.length <= 1) {
             SweetAlert("error", "Bạn không thể kế thừa mẫu đề cương vì chỉ có 1 giảng viên");
@@ -88,6 +101,29 @@ function ListWriteCourseDVDC() {
         }
         setShowButton(true);
         setInheritSyllabusTemplate({ id_syllabus1: id_syllabus, id_syllabus2: null });
+    }
+
+    const handleRollbackSyllabus = async (id_syllabus: number) => {
+
+        const confirm = await Swal.fire({
+            title: "Xác nhận thu hồi đề cương?",
+            text: "Sau khi thu hồi, đề cương sẽ được thu hồi và bạn có thể chỉnh sửa lại, bạn muốn tiếp tục?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Có, thu hồi ngay",
+            cancelButtonText: "Hủy"
+        });
+
+        if (!confirm.isConfirmed) return;
+        const res = await WriteCourseAPI.RollbackSyllabus({ id_syllabus: Number(id_syllabus) });
+        if (res.success) {
+            SweetAlert("success", res.message);
+            getListTeacherbyWriteCourse(Number(formData.id_course));
+        } else {
+            SweetAlert("error", res.message);
+        }
     }
     const SaveInheritSyllabusTemplate = async (id_syllabus: number) => {
         const res = await WriteCourseAPI.InheritSyllabusTemplate({ id_syllabus1: Number(inheritSyllabusTemplate.id_syllabus1), id_syllabus2: Number(id_syllabus), id_course: Number(formData.id_course) });
@@ -105,6 +141,7 @@ function ListWriteCourseDVDC() {
 
     }
     const getListTeacherbyWriteCourse = async (id_course: number) => {
+        setFormData((prev) => ({ ...prev, id_course: id_course }));
         const res = await WriteCourseAPI.GetListTeacherbyWriteCourse({ id_course });
         if (res.success) {
             setListTeacher({
@@ -348,6 +385,14 @@ function ListWriteCourseDVDC() {
                                                                         <i className="fas fa-file-import me-2"></i>
                                                                         Kế thừa mẫu
                                                                     </button>
+                                                                    <button
+                                                                        className="btn btn-sm btn-outline-danger d-flex align-items-center"
+                                                                        title="Kế thừa Mẫu đề cương"
+                                                                        onClick={() => handleDeleteSyllabus(teacher.id_syllabus)}
+                                                                    >
+                                                                        <i className="fas fa-file-import me-2"></i>
+                                                                        Xóa mẫu
+                                                                    </button>
                                                                 </>
                                                             )}
 
@@ -365,10 +410,10 @@ function ListWriteCourseDVDC() {
                                                                     <button
                                                                         className="btn btn-sm btn-warning d-flex align-items-center"
                                                                         title="Chỉnh sửa đề cương"
-                                                                        onClick={() => handleViewDetailTemplateWriteCourse(teacher.id_syllabus)}
+                                                                        onClick={() => handleRollbackSyllabus(teacher.id_syllabus)}
                                                                     >
                                                                         <i className="fas fa-edit me-2"></i>
-                                                                        Chỉnh sửa
+                                                                        Thu hồi đề cương 
                                                                     </button>
                                                                 </>
                                                             )}

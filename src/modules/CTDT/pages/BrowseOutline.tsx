@@ -40,20 +40,6 @@ export default function     () {
         { label: "Trạng thái đề cương", key: "id_status" },
         { label: "*", key: "*" },
     ];
-    const filteredData = allData.filter((item) => {
-        return item.code_course?.toString().includes(searchText.toLowerCase()) ||
-            item.name_course?.toString().includes(searchText.toLowerCase()) ||
-            item.semester?.toString().includes(searchText.toLowerCase()) ||
-            item.key_year?.toString().includes(searchText.toLowerCase()) ||
-            item.program?.toString().includes(searchText.toLowerCase()) ||
-            item.code_civil?.toString().includes(searchText.toLowerCase()) ||
-            item.name_civil?.toString().includes(searchText.toLowerCase()) ||
-            item.email_civil?.toString().includes(searchText.toLowerCase()) ||
-            item.time_cre?.toString().includes(searchText.toLowerCase()) ||
-            item.time_up?.toString().includes(searchText.toLowerCase()) ||
-            item.version?.toString().includes(searchText.toLowerCase()) ||
-            item.id_status?.toString().includes(searchText.toLowerCase());
-    });
     const handleInputChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: Number(value) }));
@@ -92,6 +78,18 @@ export default function     () {
             });
         }
     };
+    const filteredData = allData.filter((item) => {
+        const keyword = searchText.toLowerCase().trim();
+        return item.code_course?.toLowerCase().includes(keyword) ||
+            item.name_course?.toLowerCase().includes(keyword) ||
+            item.semester?.toLowerCase().includes(keyword) ||
+            item.key_year?.toLowerCase().includes(keyword) ||
+            item.program?.toLowerCase().includes(keyword) ||
+            item.code_civil?.toLowerCase().includes(keyword) ||
+            item.name_civil?.toLowerCase().includes(keyword) ||
+            item.email_civil?.toLowerCase().includes(keyword) ||
+            item.version?.toLowerCase().includes(keyword);
+    });
     const filterByStatus = (status: number) => {
         setFormData(prev => ({ ...prev, id_status: status }));
         ShowData({ id_status: status });
