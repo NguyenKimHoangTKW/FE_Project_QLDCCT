@@ -16,6 +16,7 @@ export default function CivilServantsInterfaceDonVi() {
     const [selectedPrograms, setSelectedPrograms] = useState<number[]>([]);
     const [selectAll, setSelectAll] = useState(false);
     const [permissionOpen, setPermissionOpen] = useState(false);
+    const [searchText, setSearchText] = useState("");
     interface FormData {
         id_civilSer: number | null;
         code_civilSer: string;
@@ -113,7 +114,19 @@ export default function CivilServantsInterfaceDonVi() {
             return updated;
         });
     };
-
+    const filteredData = allData.filter((item) => {
+        const keyword = searchText.toLowerCase().trim();
+    
+        return (
+          item.code_civilSer?.toLowerCase().includes(keyword) ||
+          item.fullname_civilSer?.toLowerCase().includes(keyword) ||
+          item.email?.toLowerCase().includes(keyword) ||
+          item.birthday?.toLowerCase().includes(keyword) ||
+          item.name_program?.toLowerCase().includes(keyword) ||
+          unixTimestampToDate(item.time_cre)?.toLowerCase().includes(keyword) ||
+          unixTimestampToDate(item.time_up)?.toLowerCase().includes(keyword)
+        );
+      });
 
     const LoadListCTDTByDonVi = async () => {
         const res = await CivilServantsDonViAPI.GetListCTDTByDonVi();
@@ -252,7 +265,7 @@ export default function CivilServantsInterfaceDonVi() {
                 <div className="card-body">
                     <div className="page-header no-gutters">
                         <h2 className="text-uppercase">
-                            Quản lý Danh sách Mục tiêu học phần
+                            Quản lý Danh sách Cán bộ viên chức thuộc Đơn vị
                         </h2>
                         <hr />
                         <fieldset className="border rounded-3 p-3">
@@ -267,14 +280,24 @@ export default function CivilServantsInterfaceDonVi() {
                                         ))}
                                     </select>
                                 </div>
+                                <div className="col-md-4">
+                                    <label className="ceo-label">Tìm kiếm</label>
+                                    <input
+                                        type="text"
+                                        className="form-control ceo-input"
+                                        placeholder="🔍 Nhập từ khóa bất kỳ để tìm..."
+                                        value={searchText}
+                                        onChange={(e) => setSearchText(e.target.value)}
+                                    />
+                                </div>
                             </div>
 
                             <div className="row">
                                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-                                    <button className="btn btn-success" onClick={handleAddNewCivilServant} >
+                                    <button className="btn btn-ceo-green" onClick={handleAddNewCivilServant} >
                                         <i className="fas fa-plus-circle mr-1" /> Thêm mới
                                     </button>
-                                    <button className="btn btn-primary" onClick={() => ShowData()} >
+                                    <button className="btn btn-ceo-blue" onClick={() => ShowData()} >
                                         <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
                                     </button>
                                 </div>
@@ -291,8 +314,8 @@ export default function CivilServantsInterfaceDonVi() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {allData.length > 0 ? (
-                                    allData.map((item, index) => (
+                                {filteredData.length > 0 ? (
+                                    filteredData.map((item, index) => (
                                         <tr key={item.id_civilSer}>
                                             <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
                                             <td className="formatSo">{item.code_civilSer}</td>

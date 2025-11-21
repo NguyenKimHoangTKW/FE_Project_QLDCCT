@@ -42,4 +42,15 @@ export const WriteCourseAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
+    RequestEditSyllabus: (data: { id_syllabus: number, edit_content: string }) =>
+        axios.post(`${URL_API_DVDC}/write-course/request-edit-syllabus`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
+
+    CancelRequestEditSyllabus: (data: { id_syllabus: number }) =>
+        axios.post(`${URL_API_DVDC}/write-course/cancer-edit-syllabus`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
 }

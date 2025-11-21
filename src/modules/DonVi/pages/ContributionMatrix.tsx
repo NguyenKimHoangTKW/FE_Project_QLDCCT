@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { ContributionMatrixAPI } from "../../../api/DonVi/ContributionMatrix";
 import { SweetAlert } from "../../../components/ui/SweetAlert";
-
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 export default function ContributionMatrixInterfaceDonVi() {
     const [listCtdt, setListCtdt] = useState<any[]>([]);
     const [listKeyYear, setListKeyYear] = useState<any[]>([]);
@@ -9,6 +10,7 @@ export default function ContributionMatrixInterfaceDonVi() {
     const [listCourse, setListCourse] = useState<any[]>([]);
     const [listMatrixContribution, setListMatrixContribution] = useState<any[]>([]);
     const [listLevelContribution, setListLevelContribution] = useState<any[]>([]);
+    const [searchText, setSearchText] = useState("");
     const GetListCourse = async () => {
         const res = await ContributionMatrixAPI.GetListCourse({ id_key_year_semester: Number(formData.id_key_year_semester), id_program: Number(formData.id_program) });
         if (res.success) {
@@ -61,6 +63,28 @@ export default function ContributionMatrixInterfaceDonVi() {
         await GetListMatrixContribution();
         SweetAlert("success", "Lọc dữ liệu thành công");
     }
+    const filteredCourseList = listMatrixContribution.filter((courseItem: any) => {
+        if (!searchText.trim()) return true;
+
+        const keyword = searchText.toLowerCase();
+
+        return (
+            courseItem.code_course?.toLowerCase().includes(keyword) ||
+            courseItem.name_course?.toLowerCase().includes(keyword) ||
+            courseItem.credits?.toString().includes(keyword) ||
+            courseItem.totalTheory?.toString().includes(keyword) ||
+            courseItem.totalPractice?.toString().includes(keyword)
+        );
+    });
+    const grouped = Object.entries(
+        filteredCourseList.reduce((acc: any, c: any) => {
+            const key = c.name_se || "Không xác định";
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(c);
+            return acc;
+        }, {})
+    );
+
     const handleSaveMatrix = async () => {
         if (!headerPiOrder.length) {
             SweetAlert("error", "Thiếu cấu hình PLO/PI để lưu.");
@@ -88,6 +112,109 @@ export default function ContributionMatrixInterfaceDonVi() {
             SweetAlert("error", res.message || "Lưu thất bại");
         }
     };
+    const handleExportExcel = () => {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet("ContributionMatrix");
+
+        // ====== 1. HEADER GỐC (5 CỘT ĐẦU) ======
+        const headerRow1: string[] = [
+            "Mã môn học",
+            "Tên môn học",
+            "Số tín chỉ",
+            "Số tiết lý thuyết",
+            "Số tiết thực hành",
+        ];
+
+        const headerRow2: string[] = ["", "", "", "", ""]; // để merge 5 cột đầu
+
+        // ====== 2. HEADER PLO/PI ======
+        listPLoPi.forEach((plo: any) => {
+            const piList = plo?.pi ?? [];
+            const span = piList.length || plo.count_pi || 1;
+
+            // Dòng 1: ghi PLO + thêm ô trống cho merge
+            headerRow1.push(plo.code_plo);
+            for (let i = 1; i < span; i++) headerRow1.push("");
+
+            // Dòng 2: ghi các mã PI
+            piList.forEach((pi: any) => {
+                headerRow2.push(pi.code);
+            });
+        });
+
+        // Thêm 2 dòng vào Excel
+        const row1 = worksheet.addRow(headerRow1);
+        const row2 = worksheet.addRow(headerRow2);
+
+        // ====== 3. MERGE HEADER ======
+
+        // ₋ Gộp dọc 5 cột đầu tiên
+        for (let col = 1; col <= 5; col++) {
+            worksheet.mergeCells(row1.number, col, row2.number, col);
+        }
+
+        // ₋ Gộp ngang các PLO theo số lượng PI
+        let startCol = 6;
+        listPLoPi.forEach((plo: any) => {
+            const piList = plo?.pi ?? [];
+            const span = piList.length || plo.count_pi || 1;
+            const endCol = startCol + span - 1;
+
+            worksheet.mergeCells(row1.number, startCol, row1.number, endCol);
+
+            startCol = endCol + 1;
+        });
+
+        // ====== 4. ĐỔ DATA THEO GROUP ======
+        grouped.forEach(([semesterName, courses]: any) => {
+            // Thêm dòng tiêu đề học kỳ
+            const semRow = worksheet.addRow([semesterName]);
+            semRow.font = { bold: true };
+            worksheet.mergeCells(
+                semRow.number,
+                1,
+                semRow.number,
+                headerRow2.length
+            );
+
+            // Dòng chi tiết môn học
+            courses.forEach((course: any) => {
+                const row = [
+                    course.code_course,
+                    course.name_course,
+                    course.credits,
+                    course.totalTheory,
+                    course.totalPractice,
+                ];
+
+                // Thêm dữ liệu PI
+                headerPiOrder.forEach((h) => {
+                    const existing = (course.pi || []).find(
+                        (p: any) => Number(p.id_PI) === h.id_PI
+                    );
+                    row.push(existing?.level_code ?? existing?.id_level ?? 0);
+                });
+
+                worksheet.addRow(row);
+            });
+        });
+
+        // ====== 5. AUTO WIDTH ======
+        worksheet.columns.forEach((col) => {
+            let maxLength = 12;
+            col.eachCell?.((cell) => {
+                const cellValue = cell.value ? cell.value.toString() : "";
+                maxLength = Math.max(maxLength, cellValue.length + 2);
+            });
+            col.width = maxLength;
+        });
+
+        // ====== 6. EXPORT FILE ======
+        workbook.xlsx.writeBuffer().then((buffer) => {
+            saveAs(new Blob([buffer]), `Export_Matrix.xlsx`);
+        });
+    };
+
 
     const headerPiOrder: { id_PI: number; code: string }[] = (listPLoPi || [])
         .flatMap((plo: any) => (plo?.pi ?? []).map((pi: any) => ({
@@ -213,18 +340,13 @@ export default function ContributionMatrixInterfaceDonVi() {
                                             Chưa có dữ liệu môn học cho chương trình này
                                         </th>
                                     </tr>
-                                    
+
                                 )}
                             </thead>
                             <tbody>
-                                {Object.entries(
-                                    listMatrixContribution.reduce((acc: any, c: any) => {
-                                        const key = c.name_se || "Không xác định";
-                                        if (!acc[key]) acc[key] = [];
-                                        acc[key].push(c);
-                                        return acc;
-                                    }, {})
-                                ).map(([semesterName, courses]: any, idx: number) => {
+                                {grouped.map(([semesterName, courses]: any, idx: number) => {
+                                    if (courses.length === 0) return null;
+
                                     const totalCols =
                                         5 +
                                         listPLoPi.reduce(
@@ -262,7 +384,6 @@ export default function ContributionMatrixInterfaceDonVi() {
                                                                         prev.map((c: any) => {
                                                                             if (c.id_course !== courseItem.id_course) return c;
 
-                                                                            // Nếu đã có PI này trong course -> update; chưa có -> push mới
                                                                             const hasPi = (c.pi || []).some((p: any) => Number(p.id_PI) === h.id_PI);
                                                                             const newPiArr = hasPi
                                                                                 ? c.pi.map((p: any) =>
@@ -295,6 +416,42 @@ export default function ContributionMatrixInterfaceDonVi() {
                         </table>
                     </div>
                 </div>
+            </div>
+            <div
+                className="d-flex justify-content-center gap-3 flex-wrap mt-4 p-3"
+                style={{
+                    position: "sticky",
+                    bottom: "0",
+                    background: "rgba(255,255,255,0.95)",
+                    backdropFilter: "blur(6px)",
+                    borderRadius: "14px",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+                }}
+            >
+                <div className="col-md-4">
+                    <label className="ceo-label">Tìm kiếm</label>
+                    <input
+                        type="text"
+                        className="form-control ceo-input"
+                        placeholder="🔍 Nhập từ khóa bất kỳ để tìm..."
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                    />
+                </div>
+
+                <button
+                    className="btn btn-lg px-4"
+                    onClick={handleExportExcel}
+                    style={{
+                        background: "linear-gradient(135deg,rgba(70, 218, 126, 0.98), rgba(24, 202, 1, 0.98))",
+                        color: "white",
+                        fontWeight: 600,
+                        borderRadius: "14px",
+                        boxShadow: "0 4px 14px rgba(70, 218, 126, 0.98)"
+                    }}
+                >
+                    📝  Xuất dữ liệu ra file Excel
+                </button>
             </div>
         </div>
     )

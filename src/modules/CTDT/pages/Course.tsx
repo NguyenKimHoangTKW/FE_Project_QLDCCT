@@ -38,6 +38,8 @@ function CourseInterfaceCtdt() {
   const [selectedIdCourse, setSelectedIdCourse] = useState<number | null>(null);
   const [openViewSyllabus, setOpenViewSyllabus] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [showLogData, setShowLogData] = useState(false);
+  const [logData, setLogData] = useState<any[]>([]);
   const [listSyllabusByCourseFinal, setListSyllabusByCourseFinal] = useState<{
     message?: string;
     success?: boolean;
@@ -509,6 +511,11 @@ function CourseInterfaceCtdt() {
       });
     }
   }
+  const LoadLogCourse = async (id_course: number) => {
+    const res = await CourseCTDTAPI.LoadLogSyllabus({ id_course: Number(id_course) });
+    setLogData(res);
+    setShowLogData(true);
+  }
   useEffect(() => {
     if (!didFetch.current) {
       GetListCTDTByDonVi();
@@ -620,7 +627,7 @@ function CourseInterfaceCtdt() {
                   <input
                     type="text"
                     className="form-control ceo-input"
-                    placeholder="🔍 Nhập mã / tên học phần..."
+                    placeholder="🔍 Nhập từ khóa bất kỳ để tìm..."
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
                   />
@@ -1137,12 +1144,27 @@ function CourseInterfaceCtdt() {
               <p>Quản lý danh sách giảng viên được phân nhiệm vụ soạn đề cương.</p>
             </div>
           </div>
-
+          {/* Xem lịch sử thao tác */}
+          <div
+            className="action-card edit"
+            onClick={() => {
+              LoadLogCourse(Number(selectedIdCourse));
+              setOpenFunction(false);
+            }}
+          >
+            <div className="icon-area">
+              <i className="fas fa-history"></i>
+            </div>
+            <div className="text-area">
+              <h5>Xem lịch sử thao tác</h5>
+              <p>Xem lịch sử thao tác của học phần</p>
+            </div>
+          </div>
           {/* Xóa */}
           <div
-            className="action-card delete"
+            className="action-card edit"
             onClick={() => {
-              handleDelete(Number(selectedIdCourse));
+              LoadLogCourse(Number(selectedIdCourse));
               setOpenFunction(false);
             }}
           >
@@ -1155,6 +1177,40 @@ function CourseInterfaceCtdt() {
             </div>
           </div>
 
+        </div>
+      </Modal>
+      <Modal
+        isOpen={showLogData}
+        onClose={() => setShowLogData(false)}
+        title="Lịch sử thao tác"
+      >
+        <div className="table-responsive">
+          <table className="table table-bordered">
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Nội dung thao tác</th>
+                <th>Thời gian thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {logData.length > 0 ? ( 
+                logData.map((item, index) => (
+                  <tr key={index}>
+                    <td className="formatSo">{index + 1}</td>
+                    <td>{item.content_value}</td>
+                    <td className="formatSo">{unixTimestampToDate(item.log_time)}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={3} className="text-center text-danger">
+                    Không có dữ liệu
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </Modal>
     </div>

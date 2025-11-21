@@ -14,6 +14,7 @@ function KeySemesterInterfaceCtdt() {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [allData, setAllData] = useState<any[]>([]);
+    const [searchText, setSearchText] = useState("");
     interface KeySemester {
         id_key_year_semester: number;
         name_key_year_semester: string;
@@ -73,6 +74,16 @@ function KeySemesterInterfaceCtdt() {
             setTotalRecords(0);
         }
     }
+    const filteredData = allData.filter((item) => {
+        const keyword = searchText.toLowerCase().trim();
+
+        return (
+            item.code_key_year_semester?.toLowerCase().includes(keyword) ||
+            item.name_key_year_semester?.toLowerCase().includes(keyword) ||
+            unixTimestampToDate(item.time_cre)?.toLowerCase().includes(keyword) ||
+            unixTimestampToDate(item.time_up)?.toLowerCase().includes(keyword)
+        );
+    });
     useEffect(() => {
         if (formData.id_faculty == null) return;
         ShowData();
@@ -153,8 +164,8 @@ function KeySemesterInterfaceCtdt() {
                             <legend className="float-none w-auto px-3">Chức năng</legend>
                             <div className="row mb-3">
                                 <div className="col-md-6">
-                                    <label className="form-label">Lọc theo Đơn vị được phân công</label>
-                                    <select className="form-control" name="id_faculty" value={formData.id_faculty ?? ""} >
+                                    <label className="form-label ceo-label">Lọc theo Đơn vị được phân công</label>
+                                    <select className="form-control ceo-input" name="id_faculty" value={formData.id_faculty ?? ""} >
                                         {listFaculty.map((items, idx) => (
                                             <option key={idx} value={items.value}>
                                                 {items.text}
@@ -162,14 +173,24 @@ function KeySemesterInterfaceCtdt() {
                                         ))}
                                     </select>
                                 </div>
+                                <div className="col-md-4">
+                                    <label className="ceo-label">Tìm kiếm</label>
+                                    <input
+                                        type="text"
+                                        className="form-control ceo-input"
+                                        placeholder="🔍 Nhập từ khóa bất kỳ để tìm..."
+                                        value={searchText}
+                                        onChange={(e) => setSearchText(e.target.value)}
+                                    />
+                                </div>
                             </div>
-
+                            <hr />
                             <div className="row">
                                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-                                    <button className="btn btn-success" onClick={handleAddNewKeySemester}>
+                                    <button className="btn btn-ceo-green" onClick={handleAddNewKeySemester}>
                                         <i className="fas fa-plus-circle mr-1" /> Thêm mới
                                     </button>
-                                    <button className="btn btn-primary">
+                                    <button className="btn btn-ceo-blue" onClick={() => ShowData()}>
                                         <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
                                     </button>
                                 </div>
@@ -186,8 +207,8 @@ function KeySemesterInterfaceCtdt() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {allData.length > 0 ? (
-                                    allData.map((item, index) => (
+                                {filteredData.length > 0 ? (
+                                    filteredData.map((item, index) => (
                                         <tr key={item.id_year_semester}>
                                             <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
                                             <td className="formatSo">{item.code_key_year_semester}</td>

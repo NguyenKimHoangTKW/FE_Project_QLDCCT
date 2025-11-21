@@ -78,5 +78,9 @@ export const CourseCTDTAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
-    
+    LoadLogSyllabus: (data: { id_course: number }) =>
+        axios.post(`${URL_API_CTDT}/course/log-hoat-dong-de-cuong`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
 }

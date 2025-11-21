@@ -25,6 +25,7 @@ function CourseInterfaceDonVi() {
   const [listKeyYearSemester, setListKeyYearSemester] = useState<any[]>([]);
   const [listSemester, setListSemester] = useState<any[]>([]);
   const [listKeyYearSemesterFilter, setListKeyYearSemesterFilter] = useState<any[]>([]);
+  const [searchText, setSearchText] = useState("");
   const [listSemesterFilter, setListSemesterFilter] = useState<any[]>([]);
   interface FormData {
     id_course: number | null;
@@ -163,6 +164,19 @@ function CourseInterfaceDonVi() {
       setLoading(false);
     }
   }
+  const filteredData = allData.filter((item) => {
+    const keyword = searchText.toLowerCase().trim();
+
+    return (
+      item.code_course?.toLowerCase().includes(keyword) ||
+      item.name_course?.toLowerCase().includes(keyword) ||
+      item.name_program?.toLowerCase().includes(keyword) ||
+      item.name_semester?.toLowerCase().includes(keyword) ||
+      item.name_key_year_semester?.toLowerCase().includes(keyword) ||
+      unixTimestampToDate(item.time_cre)?.toLowerCase().includes(keyword) ||
+      unixTimestampToDate(item.time_up)?.toLowerCase().includes(keyword)
+    );
+  });
   const handleSave = async () => {
     setLoading(true);
     try {
@@ -229,7 +243,7 @@ function CourseInterfaceDonVi() {
         return;
       }
       setLoading(true);
-      const res = await CourseDonViAPI.UploadExcelCourse(selectedFile);
+      const res = await CourseDonViAPI.UploadExcelCourse(selectedFile, Number(optionFilter.id_ctdt));
 
       setLoading(false);
       if (res.success) {
@@ -287,6 +301,45 @@ function CourseInterfaceDonVi() {
       }
     }
   }
+  const handleExportExcel = async () => {
+    setLoading(true);
+
+    try {
+      const res = await CourseDonViAPI.ExportExcelCourse({
+        id_gr_course: Number(optionFilter.id_gr_course || 0),
+        id_key_year_semester: Number(optionFilter.id_key_year_semester || 0),
+        id_semester: Number(optionFilter.id_semester || 0),
+        id_program: Number(optionFilter.id_ctdt || 0),
+        id_isCourse: Number(optionFilter.id_isCourse || 0),
+      });
+
+      const blob = new Blob([res.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Exports.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+      SweetAlert("success", "Xuất file Excel thành công!");
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleDownloadTemplate = () => {
+    const link = document.createElement("a");
+    link.href = "/file-import/ImportCourse.xlsx";
+    link.download = "TemplateImport.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
   useEffect(() => {
     if (!didFetch.current) {
       GetDataListOptionCourse();
@@ -313,8 +366,8 @@ function CourseInterfaceDonVi() {
               <legend className="float-none w-auto px-3">Chức năng</legend>
               <div className="row mb-3">
                 <div className="col-md-6">
-                  <label className="form-label">Lọc theo CTĐT</label>
-                  <select className="form-control" name="id_ctdt_filter" value={optionFilter.id_ctdt || 0} onChange={handleInputChange}>
+                  <label className="form-label ceo-label">Lọc theo CTĐT</label>
+                  <select className="form-control ceo-input" name="id_ctdt_filter" value={optionFilter.id_ctdt || 0} onChange={handleInputChange}>
                     {listCTDT.map((items, idx) => (
                       <option key={idx} value={items.id_program}>
                         {items.name_program}
@@ -323,8 +376,8 @@ function CourseInterfaceDonVi() {
                   </select>
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">Lọc theo kiểm tra học phần bắt buộc</label>
-                  <select className="form-control" name="id_isCourse_filter" value={optionFilter.id_isCourse || 0} onChange={handleInputChange}>
+                  <label className="form-label ceo-label">Lọc theo kiểm tra học phần bắt buộc</label>
+                  <select className="form-control ceo-input" name="id_isCourse_filter" value={optionFilter.id_isCourse || 0} onChange={handleInputChange}>
                     <option value="0">Tất cả</option>
                     {listKiemTraHocPhanBatBuocFilter.map((items, idx) => (
                       <option key={idx} value={items.value}>
@@ -334,8 +387,8 @@ function CourseInterfaceDonVi() {
                   </select>
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">Lọc theo nhóm học phần</label>
-                  <select className="form-control" name="id_gr_course_filter" value={optionFilter.id_gr_course || 0} onChange={handleInputChange}>
+                  <label className="form-label ceo-label">Lọc theo nhóm học phần</label>
+                  <select className="form-control ceo-input" name="id_gr_course_filter" value={optionFilter.id_gr_course || 0} onChange={handleInputChange}>
                     <option value="0">Tất cả</option>
                     {lisNhomHocPhanFilter.map((items, idx) => (
                       <option key={idx} value={items.value}>
@@ -345,8 +398,8 @@ function CourseInterfaceDonVi() {
                   </select>
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">Lọc theo khóa học</label>
-                  <select className="form-control" name="id_key_year_semester_filter" value={optionFilter.id_key_year_semester || 0} onChange={handleInputChange}>
+                  <label className="form-label ceo-label">Lọc theo khóa học</label>
+                  <select className="form-control ceo-input" name="id_key_year_semester_filter" value={optionFilter.id_key_year_semester || 0} onChange={handleInputChange}>
                     <option value="0">Tất cả</option>
                     {listKeyYearSemesterFilter.map((items, idx) => (
                       <option key={idx} value={items.value}>
@@ -356,8 +409,8 @@ function CourseInterfaceDonVi() {
                   </select>
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">Lọc theo học kỳ</label>
-                  <select className="form-control" name="id_semester_filter" value={optionFilter.id_semester || 0} onChange={handleInputChange}>
+                  <label className="form-label ceo-label">Lọc theo học kỳ</label>
+                  <select className="form-control ceo-input" name="id_semester_filter" value={optionFilter.id_semester || 0} onChange={handleInputChange}>
                     <option value="0">Tất cả</option>
                     {listSemesterFilter.map((items, idx) => (
                       <option key={idx} value={items.value}>
@@ -366,22 +419,35 @@ function CourseInterfaceDonVi() {
                     ))}
                   </select>
                 </div>
+                <div className="col-md-4">
+                  <label className="ceo-label">Tìm kiếm</label>
+                  <input
+                    type="text"
+                    className="form-control ceo-input"
+                    placeholder="🔍 Nhập mã / tên học phần..."
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                  />
+                </div>
               </div>
 
               <div className="row">
                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-                  <button className="btn btn-success" onClick={AddNewCourse}>
+                  <button className="btn btn-ceo-butterfly" onClick={AddNewCourse}>
                     <i className="fas fa-plus-circle mr-1" /> Thêm mới
                   </button>
                   <button
-                    className="btn btn-success"
+                    className="btn btn-ceo-green"
                     id="exportExcel"
                     data-toggle="modal"
                     data-target="#importExcelModal"
                   >
-                    <i className="fas fa-file-excel mr-1" /> Import từ Excel
+                    <i className="fas fa-file-excel mr-1" /> Import danh sách học phần file từ Excel
                   </button>
-                  <button className="btn btn-primary" onClick={() => ShowData()}>
+                  <button className="btn btn-ceo-green" onClick={handleExportExcel}>
+                    <i className="fas fa-file-excel mr-1" /> Xuất dữ liệu ra file Excel
+                  </button>
+                  <button className="btn btn-ceo-blue" onClick={() => ShowData()}>
                     <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
                   </button>
                 </div>
@@ -399,7 +465,7 @@ function CourseInterfaceDonVi() {
             <div className="modal-dialog">
               <div className="modal-content">
                 <div className="modal-header">
-                  <h5 className="modal-title">Import Khoa từ Excel</h5>
+                  <h5 className="modal-title">Import danh sách học phần từ Excel</h5>
                   <button type="button" className="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                   </button>
@@ -415,8 +481,9 @@ function CourseInterfaceDonVi() {
                   </form>
                 </div>
                 <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary" data-dismiss="modal">Đóng</button>
-                  <button type="button" className="btn btn-primary" onClick={handleSubmit}>Import</button>
+                  <button type="button" className="btn btn-ceo-red" data-dismiss="modal">Đóng</button>
+                  <button type="button" className="btn btn-ceo-green" onClick={handleDownloadTemplate}>Tải file mẫu</button>
+                  <button type="button" className="btn btn-ceo-blue" onClick={handleSubmit}>Import</button>
                 </div>
               </div>
             </div>
@@ -431,8 +498,8 @@ function CourseInterfaceDonVi() {
               </tr>
             </thead>
             <tbody>
-              {allData.length > 0 ? (
-                allData.map((item, index) => (
+              {filteredData.length > 0 ? (
+                filteredData.map((item, index) => (
                   <tr key={item.id_course}>
                     <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
                     <td>{item.name_key_year_semester}</td>

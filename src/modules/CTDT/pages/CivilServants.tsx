@@ -186,7 +186,7 @@ export default function CivilServantsInterfaceDonVi() {
                 <div className="card-body">
                     <div className="page-header no-gutters">
                         <h2 className="text-uppercase">
-                            Quản lý Danh sách Mục tiêu học phần
+                            Quản lý Giảng viên thuộc chương trình đào tạo
                         </h2>
                         <hr />
                         <fieldset className="ceo-panel">

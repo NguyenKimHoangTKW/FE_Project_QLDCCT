@@ -7,10 +7,11 @@ import { ListDonViPermissionAPI } from "../../../api/DonVi/ListDonViPermissionAP
 
 function SemesterInterfaceCtdt() {
     const [allData, setAllData] = useState<any[]>([]);
-     const [page, setPage] = useState(1);
+    const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const didFetch = useRef(false);
     const [listFaculty, setListFaculty] = useState<any[]>([]);
+    const [searchText, setSearchText] = useState("");
     const [totalRecords, setTotalRecords] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
     const [showModal, setShowModal] = useState(false);
@@ -66,7 +67,16 @@ function SemesterInterfaceCtdt() {
             setTotalRecords(0);
         }
     };
+    const filteredData = allData.filter((item) => {
+        const keyword = searchText.toLowerCase().trim();
 
+        return (
+            item.code_semester?.toLowerCase().includes(keyword) ||
+            item.name_semester?.toLowerCase().includes(keyword) ||
+            unixTimestampToDate(item.tim_cre)?.toLowerCase().includes(keyword) ||
+            unixTimestampToDate(item.time_up)?.toLowerCase().includes(keyword)
+        );
+    });
     const GetListFaculty = async () => {
         const res = await ListDonViPermissionAPI.GetListDonViPermission();
         setFormData((prev) => ({
@@ -155,7 +165,6 @@ function SemesterInterfaceCtdt() {
             }
         }
     }
-    const dataToShow = allData;
     return (
         <div className="main-content">
             <div className="card">
@@ -169,8 +178,8 @@ function SemesterInterfaceCtdt() {
                             <legend className="float-none w-auto px-3">Chức năng</legend>
                             <div className="row mb-3">
                                 <div className="col-md-6">
-                                    <label className="form-label">Lọc theo Đơn vị được phân công</label>
-                                    <select className="form-control" name="id_faculty" value={formData.id_faculty ?? ""} onChange={handleInputChange}>
+                                    <label className="form-label ceo-label">Lọc theo Đơn vị được phân công</label>
+                                    <select className="form-control ceo-input" name="id_faculty" value={formData.id_faculty ?? ""} onChange={handleInputChange}>
                                         {listFaculty.map((items, idx) => (
                                             <option key={idx} value={items.value}>
                                                 {items.text}
@@ -178,15 +187,25 @@ function SemesterInterfaceCtdt() {
                                         ))}
                                     </select>
                                 </div>
+                                <div className="col-md-4">
+                                    <label className="ceo-label">Tìm kiếm</label>
+                                    <input
+                                        type="text"
+                                        className="form-control ceo-input"
+                                        placeholder="🔍 Nhập từ khóa bất kỳ để tìm..."
+                                        value={searchText}
+                                        onChange={(e) => setSearchText(e.target.value)}
+                                    />
+                                </div>
                             </div>
 
                             <div className="row">
                                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-                                    <button className="btn btn-success" onClick={HandleAddNewSemester}>
+                                    <button className="btn btn-ceo-butterfly" onClick={HandleAddNewSemester}>
                                         <i className="fas fa-plus-circle mr-1" /> Thêm mới
                                     </button>
-                                    <button className="btn btn-primary">
-                                        <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
+                                    <button className="btn btn-ceo-blue" onClick={() => GetListSemester()}>
+                                        <i className="fas fa-filter mr-1" /> Lọc dữ liệu
                                     </button>
                                 </div>
                             </div>
@@ -202,8 +221,8 @@ function SemesterInterfaceCtdt() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {dataToShow.length > 0 ? (
-                                    dataToShow.map((item, index) => (
+                                {filteredData.length > 0 ? (
+                                    filteredData.map((item, index) => (
                                         <tr key={item.id_semester}>
                                             <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
                                             <td className="formatSo">{item.code_semester}</td>
