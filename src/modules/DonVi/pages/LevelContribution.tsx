@@ -3,9 +3,11 @@ import { LevelContributionAPI } from "../../../api/DonVi/LevelContribution";
 import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import Modal from "../../../components/ui/Modal";
 import { unixTimestampToDate } from "../../../URL_Config";
+import Loading from "../../../components/ui/Loading";
 export default function LevelContributionInterfaceDonVi() {
     const [listLevelContribution, setListLevelContribution] = useState<any[]>([]);
     const [modalOpen, setModalOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [modalMode, setModalMode] = useState<"create" | "edit">("create");
     interface FormData {
         id: number | null;
@@ -30,10 +32,17 @@ export default function LevelContributionInterfaceDonVi() {
         { label: "*", key: "*" },
     ];
     const loadDataLevelContribution = async () => {
-        const res = await LevelContributionAPI.GetListLevelContribution();
-        if (res.success) {
-            setListLevelContribution(res.data);
+        setLoading(true);
+        try {
+            const res = await LevelContributionAPI.GetListLevelContribution();
+            if (res.success) {
+                setListLevelContribution(res.data);
+            }
         }
+        finally {
+            setLoading(false);
+        }
+
     }
     const handleAddLevelContribution = () => {
         setModalOpen(true);
@@ -56,52 +65,72 @@ export default function LevelContributionInterfaceDonVi() {
     }
     const handleSaveLevelContribution = async () => {
         if (modalMode === "create") {
-            const res = await LevelContributionAPI.CreateLevelContribution({
-                code: formData.code,
-                description: formData.description,
-            });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                loadDataLevelContribution();
+            setLoading(true);
+            try {
+                const res = await LevelContributionAPI.CreateLevelContribution({
+                    code: formData.code,
+                    description: formData.description,
+                });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    loadDataLevelContribution();
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
             }
-            else {
-                SweetAlert("error", res.message);
+            finally {
+                setLoading(false);
             }
         }
         else {
-            const res = await LevelContributionAPI.UpdateLevelContribution({
-                id: Number(formData.id || 0),
-                code: formData.code,
-                description: formData.description,
-            });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                loadDataLevelContribution();
+            setLoading(true);
+            try {
+                const res = await LevelContributionAPI.UpdateLevelContribution({
+                    id: Number(formData.id || 0),
+                    code: formData.code,
+                    description: formData.description,
+                });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    loadDataLevelContribution();
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
             }
-            else {
-                SweetAlert("error", res.message);
+            finally {
+                setLoading(false);
             }
+
         }
     }
     const handleDeleteLevelContribution = async (id: number) => {
         const confirm = await SweetAlertDel("Bằng việc đồng ý, bạn sẽ xóa mục tiêu đề này và các dữ liệu liên quan khác, bạn muốn xóa?");
         if (confirm) {
-            const res = await LevelContributionAPI.DeleteLevelContribution({ id });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                loadDataLevelContribution();
+            setLoading(true);
+            try {
+                const res = await LevelContributionAPI.DeleteLevelContribution({ id });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    loadDataLevelContribution();
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
             }
-            else {
-                SweetAlert("error", res.message);
+            finally {
+                setLoading(false);
             }
         }
-    
+
     }
     useEffect(() => {
         loadDataLevelContribution();
     }, []);
     return (
         <div className="main-content">
+            <Loading isOpen={loading} />
             <div className="card">
                 <div className="card-body">
                     <div className="page-header no-gutters">

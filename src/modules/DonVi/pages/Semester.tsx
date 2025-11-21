@@ -4,7 +4,8 @@ import { SemesterAPIDonVi } from "../../../api/DonVi/SemesterAPI";
 import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import { unixTimestampToDate } from "../../../URL_Config";
 import { ListDonViPermissionAPI } from "../../../api/DonVi/ListDonViPermissionAPI";
-
+import Loading from "../../../components/ui/Loading";
+import Swal from "sweetalert2";
 function SemesterInterfaceCtdt() {
     const [allData, setAllData] = useState<any[]>([]);
     const [page, setPage] = useState(1);
@@ -16,6 +17,8 @@ function SemesterInterfaceCtdt() {
     const [totalPages, setTotalPages] = useState(1);
     const [showModal, setShowModal] = useState(false);
     const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+    const [loading, setLoading] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     interface Semester {
         id_semester: number | null;
         name_semester: string;
@@ -46,26 +49,33 @@ function SemesterInterfaceCtdt() {
     ];
 
     const GetListSemester = async () => {
-        const res = await SemesterAPIDonVi.GetListSemester({
-            id_faculty: Number(formData.id_faculty),
-            Page: page,
-            PageSize: pageSize,
-        });
+        setLoading(true);
+        try {
+            const res = await SemesterAPIDonVi.GetListSemester({
+                id_faculty: Number(formData.id_faculty),
+                Page: page,
+                PageSize: pageSize,
+            });
 
-        if (res.success) {
-            setAllData(res.data);
-            setPage(Number(res.currentPage) || 1);
-            setTotalPages(Number(res.totalPages) || 1);
-            setTotalRecords(Number(res.totalRecords) || 0);
-            setPageSize(Number(res.pageSize) || 10);
-        } else {
-            SweetAlert("error", res.message);
-            setAllData([]);
-            setPage(1);
-            setPageSize(10);
-            setTotalPages(1);
-            setTotalRecords(0);
+            if (res.success) {
+                setAllData(res.data);
+                setPage(Number(res.currentPage) || 1);
+                setTotalPages(Number(res.totalPages) || 1);
+                setTotalRecords(Number(res.totalRecords) || 0);
+                setPageSize(Number(res.pageSize) || 10);
+            } else {
+                SweetAlert("error", res.message);
+                setAllData([]);
+                setPage(1);
+                setPageSize(10);
+                setTotalPages(1);
+                setTotalRecords(0);
+            }
         }
+        finally {
+            setLoading(false);
+        }
+
     };
     const filteredData = allData.filter((item) => {
         const keyword = searchText.toLowerCase().trim();
@@ -124,49 +134,136 @@ function SemesterInterfaceCtdt() {
     const handleDelete = async (id: number) => {
         const confirm = await SweetAlertDel("Bằng việc đồng ý, bạn sẽ xóa Học kỳ này và các dữ liệu liên quan, bạn muốn xóa?");
         if (confirm) {
-            const res = await SemesterAPIDonVi.DeleteSemester({ id_semester: id });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                GetListSemester();
+            setLoading(true);
+            try {
+                const res = await SemesterAPIDonVi.DeleteSemester({ id_semester: id });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    GetListSemester();
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
             }
-            else {
-                SweetAlert("error", res.message);
+            finally {
+                setLoading(false);
             }
+
         }
     }
     const handleSave = async () => {
         if (modalMode === "create") {
-            const res = await SemesterAPIDonVi.AddNewSemester({
-                name_semester: formData.name_semester,
-                code_semester: formData.code_semester,
-                id_faculty: Number(formData.id_faculty),
-            });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                setShowModal(false);
-                GetListSemester();
-            } else {
-                SweetAlert("error", res.message);
+            setLoading(true);
+            try {
+                const res = await SemesterAPIDonVi.AddNewSemester({
+                    name_semester: formData.name_semester,
+                    code_semester: formData.code_semester,
+                    id_faculty: Number(formData.id_faculty),
+                });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    setShowModal(false);
+                    GetListSemester();
+                } else {
+                    SweetAlert("error", res.message);
+                }
             }
+            finally {
+                setLoading(false);
+            }
+
         }
         else {
-            const res = await SemesterAPIDonVi.UpdateSemester({
-                id_semester: Number(formData.id_semester),
-                name_semester: formData.name_semester,
-                code_semester: formData.code_semester,
-            });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                setShowModal(false);
-                GetListSemester();
+            setLoading(true);
+            try {
+                const res = await SemesterAPIDonVi.UpdateSemester({
+                    id_semester: Number(formData.id_semester),
+                    name_semester: formData.name_semester,
+                    code_semester: formData.code_semester,
+                });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    setShowModal(false);
+                    GetListSemester();
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
             }
-            else {
-                SweetAlert("error", res.message);
+            finally {
+                setLoading(false);
             }
+
         }
     }
+    const handleExportExcel = async () => {
+        setLoading(true);
+
+        try {
+            const res = await SemesterAPIDonVi.ExportExcel({
+                id_faculty: Number(formData.id_faculty)
+            });
+
+            const blob = new Blob([res.data], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            });
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `Exports.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            window.URL.revokeObjectURL(url);
+            SweetAlert("success", "Xuất file Excel thành công!");
+        } finally {
+            setLoading(false);
+        }
+    };
+    const handleSubmit = async (e: React.FormEvent) => {
+        setLoading(true);
+        try {
+            e.preventDefault();
+            if (!selectedFile) {
+                Swal.fire("Thông báo", "Vui lòng chọn file Excel!", "warning");
+                return;
+            }
+            setLoading(true);
+            const res = await SemesterAPIDonVi.UploadExcel(selectedFile, Number(formData.id_faculty));
+
+            setLoading(false);
+            if (res.success) {
+                SweetAlert("success", res.message);
+                GetListSemester();
+                setLoading(false);
+            } else {
+                SweetAlert("error", res.message);
+                setLoading(false);
+            }
+        }
+        finally {
+            setLoading(false);
+        }
+    };
+    const handleDownloadTemplate = () => {
+        setLoading(true);
+        try {
+            const link = document.createElement("a");
+            link.href = "/file-import/ImportSemester.xlsx";
+            link.download = "TemplateImport.xlsx";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        finally {
+            setLoading(false);
+        }
+    };
     return (
         <div className="main-content">
+            <Loading isOpen={loading} />
             <div className="card">
                 <div className="card-body">
                     <div className="page-header no-gutters">
@@ -204,13 +301,59 @@ function SemesterInterfaceCtdt() {
                                     <button className="btn btn-ceo-butterfly" onClick={HandleAddNewSemester}>
                                         <i className="fas fa-plus-circle mr-1" /> Thêm mới
                                     </button>
+                                    <button className="btn btn-ceo-green" onClick={handleExportExcel} >
+                                        <i className="fas fa-file-excel mr-1" /> Xuất dữ liệu ra file Excel
+                                    </button>
+                                    <button
+                                        className="btn btn-ceo-green"
+                                        id="exportExcel"
+                                        data-toggle="modal"
+                                        data-target="#importExcelModal"
+                                    >
+                                        <i className="fas fa-file-excel mr-1" /> Import danh sách học kỳ file từ Excel
+                                    </button>
                                     <button className="btn btn-ceo-blue" onClick={() => GetListSemester()}>
                                         <i className="fas fa-filter mr-1" /> Lọc dữ liệu
                                     </button>
                                 </div>
                             </div>
                         </fieldset>
+                        <div
+                            className="modal fade"
+                            id="importExcelModal"
+                            tabIndex={-1}
+                            aria-labelledby="importExcelModalLabel"
+                            aria-hidden="true"
+                        >
+                            <div className="modal-dialog">
+                                <div className="modal-content">
+                                    <div className="modal-header">
+                                        <h5 className="modal-title">Import danh sách học kỳ từ Excel</h5>
+                                        <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div className="modal-body">
+                                        <form id="importExcelForm" autoComplete="off">
+                                            <div className="form-group row">
+                                                <label className="col-sm-2 col-form-label">File Excel</label>
+                                                <div className="col-sm-10">
+                                                    <input type="file" className="form-control" name="file" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedFile(e.target.files?.[0] || null)} />
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <hr />
+                                    <div className="modal-footer">
+                                        <button type="button" className="btn btn-ceo-green" onClick={handleDownloadTemplate}>Tải file mẫu</button>
+                                        <button type="button" className="btn btn-ceo-blue" onClick={handleSubmit}>Import</button>
+                                        <button type="button" className="btn btn-ceo-red" data-dismiss="modal">Đóng</button>
+                                    </div   >
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
                     <div className="table-responsive">
                         <table className="table table-bordered">
                             <thead>

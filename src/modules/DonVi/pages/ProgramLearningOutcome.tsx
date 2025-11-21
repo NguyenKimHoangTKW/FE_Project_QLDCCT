@@ -17,6 +17,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
     const [modalMode, setModalMode] = useState<"create" | "edit">("create");
     const [selectProgram, setSelectProgram] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [searchText, setSearchText] = useState("");
     const headers = [
         { label: "STT", key: "" },
         { label: "Tên chuẩn đầu ra chương trình đào tạo", key: "code" },
@@ -86,12 +87,18 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
     const handleDeleteProgramLearningOutcome = async (id: number) => {
         const confirm = await SweetAlertDel("Bằng việc đồng ý, bạn sẽ xóa Chuẩn đầu ra chương trình đào tạo này và các dữ liệu liên quan, bạn muốn xóa?");
         if (confirm) {
-            const res = await ProgramLearningOutcomeAPI.DeleteProgramLearningOutcome({ Id_Plo: id });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                LoadData();
-            } else {
-                SweetAlert("error", res.message);
+            setLoading(true);
+            try {
+                const res = await ProgramLearningOutcomeAPI.DeleteProgramLearningOutcome({ Id_Plo: id });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    LoadData();
+                } else {
+                    SweetAlert("error", res.message);
+                }
+            }
+            finally {
+                setLoading(false);
             }
         }
 
@@ -130,25 +137,41 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
     }
     const LoadData = async () => {
         setLoading(true);
-        const res = await ProgramLearningOutcomeAPI.GetListProgramLearningOutcome({ Id_Program: Number(formData.Id_Program), Page: page, PageSize: pageSize });
-        if (res.success) {
-            setAllData(res.data);
-            setPage(Number(res.currentPage) || 1);
-            setTotalPages(Number(res.totalPages) || 1);
-            setTotalRecords(Number(res.totalRecords) || 0);
-            setPageSize(Number(res.pageSize) || 10);
+        try {
+            const res = await ProgramLearningOutcomeAPI.GetListProgramLearningOutcome({ Id_Program: Number(formData.Id_Program), Page: page, PageSize: pageSize });
+            if (res.success) {
+                setAllData(res.data);
+                setPage(Number(res.currentPage) || 1);
+                setTotalPages(Number(res.totalPages) || 1);
+                setTotalRecords(Number(res.totalRecords) || 0);
+                setPageSize(Number(res.pageSize) || 10);
+                setLoading(false);
+            }
+            else {
+                SweetAlert("error", res.message);
+                setAllData([]);
+                setPage(1);
+                setPageSize(10);
+                setTotalPages(1);
+                setTotalRecords(0);
+                setLoading(false);
+            }
+        }
+        finally {
             setLoading(false);
         }
-        else {
-            SweetAlert("error", res.message);
-            setAllData([]);
-            setPage(1);
-            setPageSize(10);
-            setTotalPages(1);
-            setTotalRecords(0);
-            setLoading(false);
-        }
+
     }
+    const filteredData = allData.filter((item) => {
+        const keyword = searchText.toLowerCase().trim();
+
+        return (
+            item.code?.toLowerCase().includes(keyword) ||
+            item.description?.toLowerCase().includes(keyword) ||
+            unixTimestampToDate(item.time_cre)?.toLowerCase().includes(keyword) ||
+            unixTimestampToDate(item.time_up)?.toLowerCase().includes(keyword)
+        );
+    });
     const handleResetProgramLearningOutcomeFormData = () => {
         setModalOpen(false);
         setModalMode("create");
@@ -197,27 +220,34 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
         { label: "*", key: "*" },
     ];
     const handleViewPerformanceIndicators = async (id_Plo: number, code: string) => {
-        setPerformanceIndicatorsFormData((prev) => ({ ...prev, id_Plo: id_Plo, code: code }));
-        setFormData((prev) => ({ ...prev, code: code }));
-        setModalOpen(false);
-        setModalMode("create");
-        setPerformanceIndicatorsModalOpen(true);
-        const res = await ProgramLearningOutcomeAPI.LoadListPerformanceIndicators({ id_Plo: id_Plo });
-        if (res.success) {
-            setPerformanceIndicatorsData(res.data);
-            setPerformanceIndicatorsTotalRecords(res.totalRecords);
-            setPerformanceIndicatorsTotalPages(res.totalPages);
-            setPerformanceIndicatorsPage(Number(res.currentPage) || 1);
-            setPerformanceIndicatorsPageSize(Number(res.pageSize) || 10);
+        setLoading(true);
+        try {
+            setPerformanceIndicatorsFormData((prev) => ({ ...prev, id_Plo: id_Plo, code: code }));
+            setFormData((prev) => ({ ...prev, code: code }));
+            setModalOpen(false);
+            setModalMode("create");
+            setPerformanceIndicatorsModalOpen(true);
+            const res = await ProgramLearningOutcomeAPI.LoadListPerformanceIndicators({ id_Plo: id_Plo });
+            if (res.success) {
+                setPerformanceIndicatorsData(res.data);
+                setPerformanceIndicatorsTotalRecords(res.totalRecords);
+                setPerformanceIndicatorsTotalPages(res.totalPages);
+                setPerformanceIndicatorsPage(Number(res.currentPage) || 1);
+                setPerformanceIndicatorsPageSize(Number(res.pageSize) || 10);
+            }
+            else {
+                SweetAlert("error", res.message);
+                setPerformanceIndicatorsData([]);
+                setPerformanceIndicatorsTotalRecords(0);
+                setPerformanceIndicatorsTotalPages(1);
+                setPerformanceIndicatorsPage(1);
+                setPerformanceIndicatorsPageSize(10);
+            }
         }
-        else {
-            SweetAlert("error", res.message);
-            setPerformanceIndicatorsData([]);
-            setPerformanceIndicatorsTotalRecords(0);
-            setPerformanceIndicatorsTotalPages(1);
-            setPerformanceIndicatorsPage(1);
-            setPerformanceIndicatorsPageSize(10);
+        finally {
+            setLoading(false);
         }
+
     }
     const handleInputChangePerformanceIndicators = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -227,18 +257,24 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
         }
     }
     const handleAddNewPerformanceIndicators = async () => {
-        const res = await ProgramLearningOutcomeAPI.AddPerformanceIndicators({
-            id_Plo: Number(performanceIndicatorsFormData.id_Plo),
-            code_pi: performanceIndicatorsFormData.code_pi,
-            description_pi: performanceIndicatorsFormData.description_pi,
-            order_index_pi: Number(performanceIndicatorsFormData.order_index_pi)
-        });
-        if (res.success) {
-            SweetAlert("success", res.message);
-            handleViewPerformanceIndicators(Number(performanceIndicatorsFormData.id_Plo), performanceIndicatorsFormData.code_pi);
+        setLoading(true);
+        try {
+            const res = await ProgramLearningOutcomeAPI.AddPerformanceIndicators({
+                id_Plo: Number(performanceIndicatorsFormData.id_Plo),
+                code_pi: performanceIndicatorsFormData.code_pi,
+                description_pi: performanceIndicatorsFormData.description_pi,
+                order_index_pi: Number(performanceIndicatorsFormData.order_index_pi)
+            });
+            if (res.success) {
+                SweetAlert("success", res.message);
+                handleViewPerformanceIndicators(Number(performanceIndicatorsFormData.id_Plo), performanceIndicatorsFormData.code_pi);
+            }
+            else {
+                SweetAlert("error", res.message);
+            }
         }
-        else {
-            SweetAlert("error", res.message);
+        finally {
+            setLoading(false);
         }
     }
     const handleEditPerformanceIndicators = async (id_PI: number) => {
@@ -253,25 +289,37 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
         }
     }
     const handleUpdatePerformanceIndicators = async () => {
-        const res = await ProgramLearningOutcomeAPI.UpdatePerformanceIndicators({ id_PI: Number(performanceIndicatorsFormData.id_PI), code_pi: performanceIndicatorsFormData.code_pi, description_pi: performanceIndicatorsFormData.description_pi, order_index_pi: Number(performanceIndicatorsFormData.order_index_pi) });
-        if (res.success) {
-            SweetAlert("success", res.message);
-            handleViewPerformanceIndicators(Number(performanceIndicatorsFormData.id_Plo), performanceIndicatorsFormData.code_pi);
-        }
-        else {
-            SweetAlert("error", res.message);
-        }
-    }
-    const handleDeletePerformanceIndicators = async (id_PI: number) => {
-        const confirm = await SweetAlertDel("Bằng việc đồng ý, bạn sẽ xóa Chỉ tiêu hiệu quả học tập này, bạn muốn xóa?");
-        if (confirm) {
-            const res = await ProgramLearningOutcomeAPI.DeletePerformanceIndicators({ id_PI: id_PI });
+        setLoading(true);
+        try {
+            const res = await ProgramLearningOutcomeAPI.UpdatePerformanceIndicators({ id_PI: Number(performanceIndicatorsFormData.id_PI), code_pi: performanceIndicatorsFormData.code_pi, description_pi: performanceIndicatorsFormData.description_pi, order_index_pi: Number(performanceIndicatorsFormData.order_index_pi) });
             if (res.success) {
                 SweetAlert("success", res.message);
                 handleViewPerformanceIndicators(Number(performanceIndicatorsFormData.id_Plo), performanceIndicatorsFormData.code_pi);
             }
             else {
                 SweetAlert("error", res.message);
+            }
+        }
+        finally {
+            setLoading(false);
+        }
+    }
+    const handleDeletePerformanceIndicators = async (id_PI: number) => {
+        const confirm = await SweetAlertDel("Bằng việc đồng ý, bạn sẽ xóa Chỉ tiêu hiệu quả học tập này, bạn muốn xóa?");
+        if (confirm) {
+            setLoading(true);
+            try {
+                const res = await ProgramLearningOutcomeAPI.DeletePerformanceIndicators({ id_PI: id_PI });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    handleViewPerformanceIndicators(Number(performanceIndicatorsFormData.id_Plo), performanceIndicatorsFormData.code_pi);
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
+            }
+            finally {
+                setLoading(false);
             }
         }
     }
@@ -307,27 +355,42 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
                         <hr />
                         <fieldset className="border rounded-3 p-3">
                             <legend className="float-none w-auto px-3">Chức năng</legend>
-                            <div className="row mb-3">
-                                <div className="col-12">
+                            <div className="row mb-3 align-items-end">
+                                <div className="col-md-8 mb-3 mb-md-0">
+                                    <label className="ceo-label">Chương trình đào tạo</label>
                                     <Select
                                         options={selectProgram}
                                         value={selectProgram.find((item) => item.value === formData.Id_Program)}
-                                        onChange={(option: any) => setFormData((prev) => ({
-                                            ...prev,
-                                            Id_Program: option ? option.value : null,
-                                        }))}
+                                        onChange={(option: any) =>
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                Id_Program: option ? option.value : null,
+                                            }))
+                                        }
                                         placeholder="Chọn chương trình đào tạo"
                                         isClearable
                                     />
                                 </div>
+
+                                <div className="col-md-4">
+                                    <label className="ceo-label">Tìm kiếm</label>
+                                    <input
+                                        type="text"
+                                        className="form-control ceo-input"
+                                        placeholder="🔍 Nhập từ khóa bất kỳ để tìm..."
+                                        value={searchText}
+                                        onChange={(e) => setSearchText(e.target.value)}
+                                    />
+                                </div>
                             </div>
+
 
                             <div className="row">
                                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-                                    <button className="btn btn-success" onClick={handleAddNewProgramLearningOutcome} >
+                                    <button className="btn btn-ceo-butterfly" onClick={handleAddNewProgramLearningOutcome} >
                                         <i className="fas fa-plus-circle mr-1" /> Thêm mới
                                     </button>
-                                    <button className="btn btn-primary" onClick={LoadData} disabled={loading} >
+                                    <button className="btn btn-ceo-blue" onClick={LoadData} disabled={loading} >
                                         <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
                                     </button>
                                 </div>
@@ -348,8 +411,8 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
                                     <td colSpan={headers.length} className="text-center text-danger">
                                         Vui lòng chọn chương trình đào tạo để xem danh sách chuẩn đầu ra chương trình đào tạo
                                     </td>
-                                </tr> : allData.length > 0 ? (
-                                    allData.map((item, index) => (
+                                </tr> : filteredData.length > 0 ? (
+                                    filteredData.map((item, index) => (
                                         <tr key={item.id_Plo}>
                                             <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
                                             <td className="formatSo">{item.code}</td>

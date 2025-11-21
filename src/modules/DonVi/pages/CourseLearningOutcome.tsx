@@ -3,7 +3,8 @@ import Modal from "../../../components/ui/Modal";
 import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import { CourseLearningOutcomeAPI } from "../../../api/DonVi/CourseLearningOutcomeAPI";
 import { unixTimestampToDate } from "../../../URL_Config";
-
+import Swal from "sweetalert2";
+import Loading from "../../../components/ui/Loading";
 export default function CourseLearningOutcomeInterfaceDonVi() {
     const [modalOpen, setModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState<"create" | "edit">("create");
@@ -12,6 +13,8 @@ export default function CourseLearningOutcomeInterfaceDonVi() {
     const [totalPages, setTotalPages] = useState(1);
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
+    const [loading, setLoading] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     interface FormData {
         id: number | null;
         name_CLO: string;
@@ -42,24 +45,30 @@ export default function CourseLearningOutcomeInterfaceDonVi() {
         { label: "*", key: "*" },
     ];
     const ShowData = async () => {
-        const res = await CourseLearningOutcomeAPI.GetListCourseLearningOutcome({
-            Page: page,
-            PageSize: pageSize,
-        });
-        if (res.success) {
-            setAllData(res.data);
-            setPage(Number(res.currentPage) || 1);
-            setTotalPages(Number(res.totalPages) || 1);
-            setTotalRecords(Number(res.totalRecords) || 0);
-            setPageSize(Number(res.pageSize) || 10);
+        setLoading(true);
+        try {
+            const res = await CourseLearningOutcomeAPI.GetListCourseLearningOutcome({
+                Page: page,
+                PageSize: pageSize,
+            });
+            if (res.success) {
+                setAllData(res.data);
+                setPage(Number(res.currentPage) || 1);
+                setTotalPages(Number(res.totalPages) || 1);
+                setTotalRecords(Number(res.totalRecords) || 0);
+                setPageSize(Number(res.pageSize) || 10);
+            }
+            else {
+                SweetAlert("error", res.message);
+                setAllData([]);
+                setPage(1);
+                setPageSize(10);
+                setTotalPages(1);
+                setTotalRecords(0);
+            }
         }
-        else {
-            SweetAlert("error", res.message);
-            setAllData([]);
-            setPage(1);
-            setPageSize(10);
-            setTotalPages(1);
-            setTotalRecords(0);
+        finally {
+            setLoading(false);
         }
     }
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -74,15 +83,21 @@ export default function CourseLearningOutcomeInterfaceDonVi() {
     const handleDeleteCourseLearningOutcome = async (id_CLO: number) => {
         const confirm = await SweetAlertDel("Bằng việc đồng ý, bạn sẽ xóa Chỉnh sửa học phần này và các dữ liệu liên quan, bạn muốn xóa?");
         if (confirm) {
-            const res = await CourseLearningOutcomeAPI.DeleteCourseLearningOutcome({
-                id: Number(id_CLO),
-            });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                ShowData();
+            setLoading(true);
+            try {
+                const res = await CourseLearningOutcomeAPI.DeleteCourseLearningOutcome({
+                    id: Number(id_CLO),
+                });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    ShowData();
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
             }
-            else {
-                SweetAlert("error", res.message);
+            finally {
+                setLoading(false);
             }
         }
     }
@@ -101,47 +116,123 @@ export default function CourseLearningOutcomeInterfaceDonVi() {
     }
     const handleSave = async () => {
         if (modalMode === "create") {
-            const res = await CourseLearningOutcomeAPI.AddCourseLearningOutcome({
-                name_CLO: formData.name_CLO,
-                describe_CLO: formData.describe_CLO,
-                bloom_level: formData.bloom_level,
-            });
-            if (res.success) {
-                SweetAlert("success", res.message);
+            setLoading(true);
+            try {
+                const res = await CourseLearningOutcomeAPI.AddCourseLearningOutcome({
+                    name_CLO: formData.name_CLO,
+                    describe_CLO: formData.describe_CLO,
+                    bloom_level: formData.bloom_level,
+                });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    ShowData();
+                    resetFormData();
+                    setModalOpen(false);
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
+            }
+            finally {
+                setLoading(false);
+            }
+
+        }
+        else {
+            setLoading(true);
+            try {
+                const res = await CourseLearningOutcomeAPI.UpdateCourseLearningOutcome({
+                    id: Number(formData.id ?? 0),
+                    name_CLO: formData.name_CLO,
+                    describe_CLO: formData.describe_CLO,
+                    bloom_level: formData.bloom_level,
+                });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
+                setModalOpen(false);
                 ShowData();
                 resetFormData();
                 setModalOpen(false);
+                ShowData();
+                resetFormData();
             }
-            else {
-                SweetAlert("error", res.message);
+            finally {
+                setLoading(false);
             }
-        }
-        else {
-            const res = await CourseLearningOutcomeAPI.UpdateCourseLearningOutcome({
-                id: Number(formData.id ?? 0),
-                name_CLO: formData.name_CLO,
-                describe_CLO: formData.describe_CLO,
-                bloom_level: formData.bloom_level,
-            });
-            if (res.success) {
-                SweetAlert("success", res.message);
-            }
-            else {
-                SweetAlert("error", res.message);
-            }
-            setModalOpen(false);
-            ShowData();
-            resetFormData();
-            setModalOpen(false);
-            ShowData();
-            resetFormData();
         }
     }
+    const handleSubmit = async (e: React.FormEvent) => {
+        setLoading(true);
+        try {
+            e.preventDefault();
+            if (!selectedFile) {
+                Swal.fire("Thông báo", "Vui lòng chọn file Excel!", "warning");
+                return;
+            }
+            setLoading(true);
+            const res = await CourseLearningOutcomeAPI.UploadExcel(selectedFile);
+
+            setLoading(false);
+            if (res.success) {
+                SweetAlert("success", res.message);
+                ShowData();
+                setLoading(false);
+            } else {
+                SweetAlert("error", res.message);
+                setLoading(false);
+            }
+        }
+        finally {
+            setLoading(false);
+        }
+    };
+    const handleExportExcel = async () => {
+        setLoading(true);
+
+        try {
+            const res = await CourseLearningOutcomeAPI.ExportExcel();
+            const blob = new Blob([res.data], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            });
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `Exports.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            window.URL.revokeObjectURL(url);
+            SweetAlert("success", "Xuất file Excel thành công!");
+        } finally {
+            setLoading(false);
+        }
+    };
+    const handleDownloadTemplate = () => {
+        setLoading(true);
+        try {
+            const link = document.createElement("a");
+            link.href = "/file-import/ImportCourseLearningOutcome.xlsx";
+            link.download = "TemplateImport.xlsx";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        finally {
+            setLoading(false);
+        }
+    };
     useEffect(() => {
         ShowData();
     }, []);
     return (
         <div className="main-content">
+            <Loading isOpen={loading} />
             <div className="card">
                 <div className="card-body">
                     <div className="page-header no-gutters">
@@ -157,15 +248,59 @@ export default function CourseLearningOutcomeInterfaceDonVi() {
 
                             <div className="row">
                                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-                                    <button className="btn btn-success" onClick={handleAddNewCourseLearningOutcome} >
+                                    <button className="btn btn-ceo-butterfly" onClick={handleAddNewCourseLearningOutcome} >
                                         <i className="fas fa-plus-circle mr-1" /> Thêm mới
                                     </button>
-                                    <button className="btn btn-primary">
-                                        <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
+                                    <button
+                                        className="btn btn-ceo-green"
+                                        id="exportExcel"
+                                        data-toggle="modal"
+                                        data-target="#importExcelModal"
+                                    >
+                                        <i className="fas fa-file-excel mr-1" /> Import danh sách từ file Excel
+                                    </button>
+                                    <button className="btn btn-ceo-green" onClick={handleExportExcel}>
+                                        <i className="fas fa-file-excel mr-1" /> Xuất dữ liệu ra file Excel
                                     </button>
                                 </div>
                             </div>
                         </fieldset>
+                        {/*Modal Import*/}
+                        <div
+                            className="modal fade"
+                            id="importExcelModal"
+                            tabIndex={-1}
+                            aria-labelledby="importExcelModalLabel"
+                            aria-hidden="true"
+                        >
+                            <div className="modal-dialog">
+                                <div className="modal-content">
+                                    <div className="modal-header">
+                                        <h5 className="modal-title">Import danh sách chuẩn đầu ra học phần từ Excel</h5>
+                                        <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div className="modal-body">
+                                        <form id="importExcelForm" autoComplete="off">
+                                            <div className="form-group row">
+                                                <label className="col-sm-2 col-form-label">File Excel</label>
+                                                <div className="col-sm-10">
+                                                    <input type="file" className="form-control" name="file" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedFile(e.target.files?.[0] || null)} />
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <hr />
+                                    <div className="modal-footer">
+                                        <button type="button" className="btn btn-ceo-green" onClick={handleDownloadTemplate}>Tải file mẫu</button>
+                                        <button type="button" className="btn btn-ceo-blue" onClick={handleSubmit}>Import</button>
+                                        <button type="button" className="btn btn-ceo-red" data-dismiss="modal">Đóng</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {/*Modal Import*/}
                     </div>
                     <div className="table-responsive">
                         <table className="table table-bordered">

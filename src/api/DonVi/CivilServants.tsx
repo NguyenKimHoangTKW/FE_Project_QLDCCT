@@ -67,4 +67,25 @@ export const CivilServantsDonViAPI = {
                 withCredentials: true,
             })
             .then((res) => res.data),
+    UploadExcelCourse: async (file: File, idProgram: number) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("id_program", idProgram.toString());
+        return await axios.post(`${URL_API_DONVI}/civil-servants/upload-excel-danh-sach-giang-vien`, formData, {
+            headers: { "Content-Type": "multipart/form-data" }, 
+            withCredentials: true,
+        })
+            .then((res) => res.data);
+    },
+    ExportExcel: (data: {
+        id_program: number,
+    }) =>
+        axios.post(
+            `${URL_API_DONVI}/civil-servants/export-danh-sach-giang-vien-thuoc-don-vi`,
+            data,
+            {
+                responseType: "blob",
+                withCredentials: true,
+            }
+        ),
 }

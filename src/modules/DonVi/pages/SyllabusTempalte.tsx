@@ -3,6 +3,7 @@ import { SyllabusTemplateAPI } from "../../../api/DonVi/SyllabusTemplateAPI";
 import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import { unixTimestampToDate } from "../../../URL_Config";
 import Modal from "../../../components/ui/Modal";
+import Loading from "../../../components/ui/Loading";
 
 function SyllabusTempalteInterfaceDonVi() {
     const [page, setPage] = useState(1);
@@ -12,6 +13,7 @@ function SyllabusTempalteInterfaceDonVi() {
     const [allData, setAllData] = useState<any[]>([]);
     const [modalOpen, setModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+    const [loading, setLoading] = useState(false);
 
     interface SyllabusTemplate {
         id_template: number | null;
@@ -44,24 +46,30 @@ function SyllabusTempalteInterfaceDonVi() {
         { label: "*", key: "*" }
     ];
     const ShowData = async () => {
-        const res = await SyllabusTemplateAPI.GetListSyllabusTemplate({
-            page: page,
-            pageSize: pageSize,
-        });
-        if (res.success) {
-            setAllData(res.data);
-            setPage(Number(res.currentPage) || 1);
-            setTotalPages(Number(res.totalPages) || 1);
-            setTotalRecords(Number(res.totalRecords) || 0);
-            setPageSize(Number(res.pageSize) || 10);
+        setLoading(true);
+        try {
+            const res = await SyllabusTemplateAPI.GetListSyllabusTemplate({
+                page: page,
+                pageSize: pageSize,
+            });
+            if (res.success) {
+                setAllData(res.data);
+                setPage(Number(res.currentPage) || 1);
+                setTotalPages(Number(res.totalPages) || 1);
+                setTotalRecords(Number(res.totalRecords) || 0);
+                setPageSize(Number(res.pageSize) || 10);
+            }
+            else {
+                SweetAlert("error", res.message);
+                setAllData([]);
+                setPage(1);
+                setPageSize(10);
+                setTotalPages(1);
+                setTotalRecords(0);
+            }
         }
-        else {
-            SweetAlert("error", res.message);
-            setAllData([]);
-            setPage(1);
-            setPageSize(10);
-            setTotalPages(1);
-            setTotalRecords(0);
+        finally {
+            setLoading(false);
         }
     }
     const handleAddNewSyllabusTemplate = () => {
@@ -86,44 +94,63 @@ function SyllabusTempalteInterfaceDonVi() {
     const handleDeleteSyllabusTemplate = async (id: number) => {
         const confirm = await SweetAlertDel("Bằng việc đồng ý, bạn sẽ xóa Mẫu đề cương này và các dữ liệu liên quan khác, bạn muốn xóa?");
         if (confirm) {
-            const res = await SyllabusTemplateAPI.DeleteSyllabusTemplate({ id_template: id });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                ShowData();
+            setLoading(true);
+            try {
+                const res = await SyllabusTemplateAPI.DeleteSyllabusTemplate({ id_template: id });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    ShowData();
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
             }
-            else {
-                SweetAlert("error", res.message);
+            finally {
+                setLoading(false);
             }
         }
     }
     const handleSave = async () => {
         if (modalMode === "create") {
-            const res = await SyllabusTemplateAPI.AddSyllabusTemplate({
-                template_name: formData.template_name,
-                is_default: Number(formData.is_default),
-            });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                setModalOpen(false);
-                ShowData();
+            setLoading(true);
+            try {
+                const res = await SyllabusTemplateAPI.AddSyllabusTemplate({
+                    template_name: formData.template_name,
+                    is_default: Number(formData.is_default),
+                });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    setModalOpen(false);
+                    ShowData();
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
             }
-            else {
-                SweetAlert("error", res.message);
+            finally {
+                setLoading(false);
             }
+
         }
         else {
-            const res = await SyllabusTemplateAPI.UpdateSyllabusTemplate({
-                id_template: Number(formData.id_template),
-                template_name: formData.template_name,
-                is_default: Number(formData.is_default),
-            });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                setModalOpen(false);
-                ShowData();
+            setLoading(true);
+            try {
+                const res = await SyllabusTemplateAPI.UpdateSyllabusTemplate({
+                    id_template: Number(formData.id_template),
+                    template_name: formData.template_name,
+                    is_default: Number(formData.is_default),
+                });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    setModalOpen(false);
+                    ShowData();
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
             }
-            else {
-                SweetAlert("error", res.message);
+            finally {
+                setLoading(false);
             }
         }
     }
@@ -132,6 +159,7 @@ function SyllabusTempalteInterfaceDonVi() {
     }, []);
     return (
         <div className="main-content">
+            <Loading isOpen={loading} />
             <div className="card">
                 <div className="card-body">
                     <div className="page-header no-gutters">

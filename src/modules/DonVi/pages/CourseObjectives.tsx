@@ -3,6 +3,8 @@ import { CourseObjectivesAPI } from "../../../api/DonVi/CourseObjectivesAPI";
 import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import { unixTimestampToDate } from "../../../URL_Config";
 import Modal from "../../../components/ui/Modal";
+import Loading from "../../../components/ui/Loading";
+import Swal from "sweetalert2";
 
 function CourseObjectivesInterfaceDonVi() {
     const [totalRecords, setTotalRecords] = useState(0);
@@ -10,7 +12,6 @@ function CourseObjectivesInterfaceDonVi() {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [allData, setAllData] = useState<any[]>([]);
-    const [selected, setSelected] = useState<any>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
@@ -53,45 +54,59 @@ function CourseObjectivesInterfaceDonVi() {
         setModalMode("create");
         resetFormData();
 
-        setFormData((prev) => ({ ...prev, 
+        setFormData((prev) => ({
+            ...prev,
             typeOfCapacity: "Kiến thức",
-         }));
+        }));
     }
     const handleDeleteCourseObjectives = async (id_CO: number) => {
         const confirm = await SweetAlertDel("Bằng việc đồng ý, bạn sẽ xóa Mục tiêu học phần này và các dữ liệu liên quan, bạn muốn xóa?");
         if (confirm) {
-            const res = await CourseObjectivesAPI.DeleteCourseObjectives({
-                id: Number(id_CO),
-            });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                ShowData();
+            setLoading(true);
+            try {
+                const res = await CourseObjectivesAPI.DeleteCourseObjectives({
+                    id: Number(id_CO),
+                });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    ShowData();
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
             }
-            else {
-                SweetAlert("error", res.message);
+            finally {
+                setLoading(false);
             }
         }
     }
     const ShowData = async () => {
-        const res = await CourseObjectivesAPI.GetListCourseObjectives({
-            Page: page,
-            PageSize: pageSize,
-        });
-        if (res.success) {
-            setAllData(res.data);
-            setPage(Number(res.currentPage) || 1);
-            setTotalPages(Number(res.totalPages) || 1);
-            setTotalRecords(Number(res.totalRecords) || 0);
-            setPageSize(Number(res.pageSize) || 10);
+        setLoading(true);
+        try {
+            const res = await CourseObjectivesAPI.GetListCourseObjectives({
+                Page: page,
+                PageSize: pageSize,
+            });
+            if (res.success) {
+                setAllData(res.data);
+                setPage(Number(res.currentPage) || 1);
+                setTotalPages(Number(res.totalPages) || 1);
+                setTotalRecords(Number(res.totalRecords) || 0);
+                setPageSize(Number(res.pageSize) || 10);
+            }
+            else {
+                SweetAlert("error", res.message);
+                setAllData([]);
+                setPage(1);
+                setPageSize(10);
+                setTotalPages(1);
+                setTotalRecords(0);
+            }
         }
-        else {
-            SweetAlert("error", res.message);
-            setAllData([]);
-            setPage(1);
-            setPageSize(10);
-            setTotalPages(1);
-            setTotalRecords(0);
+        finally {
+            setLoading(false);
         }
+
     }
     const handleEditCourseObjectives = async (id_CO: number) => {
         const res = await CourseObjectivesAPI.InfoCourseObjectives({
@@ -108,42 +123,118 @@ function CourseObjectivesInterfaceDonVi() {
     }
     const handleSave = async () => {
         if (modalMode === "create") {
-            const res = await CourseObjectivesAPI.AddCourseObjectives({
-                name_CO: formData.name_CO,
-                describe_CO: formData.describe_CO,
-                typeOfCapacity: formData.typeOfCapacity,
-            });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                setModalOpen(false);
-                ShowData();
+            setLoading(true);
+            try {
+                const res = await CourseObjectivesAPI.AddCourseObjectives({
+                    name_CO: formData.name_CO,
+                    describe_CO: formData.describe_CO,
+                    typeOfCapacity: formData.typeOfCapacity,
+                });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    setModalOpen(false);
+                    ShowData();
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
             }
-            else {
-                SweetAlert("error", res.message);
+            finally {
+                setLoading(false);
             }
         }
         else {
-            const res = await CourseObjectivesAPI.UpdateCourseObjectives({
-                id: Number(formData.id ?? 0),
-                name_CO: formData.name_CO,
-                describe_CO: formData.describe_CO,
-                typeOfCapacity: formData.typeOfCapacity,
-            });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                setModalOpen(false);
-                ShowData();
+            setLoading(true);
+            try {
+                const res = await CourseObjectivesAPI.UpdateCourseObjectives({
+                    id: Number(formData.id ?? 0),
+                    name_CO: formData.name_CO,
+                    describe_CO: formData.describe_CO,
+                    typeOfCapacity: formData.typeOfCapacity,
+                });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    setModalOpen(false);
+                    ShowData();
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
             }
-            else {
-                SweetAlert("error", res.message);
+            finally {
+                setLoading(false);
             }
         }
     }
+    const handleSubmit = async (e: React.FormEvent) => {
+        setLoading(true);
+        try {
+            e.preventDefault();
+            if (!selectedFile) {
+                Swal.fire("Thông báo", "Vui lòng chọn file Excel!", "warning");
+                return;
+            }
+            setLoading(true);
+            const res = await CourseObjectivesAPI.UploadExcel(selectedFile);
+
+            setLoading(false);
+            if (res.success) {
+                SweetAlert("success", res.message);
+                ShowData();
+                setLoading(false);
+            } else {
+                SweetAlert("error", res.message);
+                setLoading(false);
+            }
+        }
+        finally {
+            setLoading(false);
+        }
+    };
+    const handleExportExcel = async () => {
+        setLoading(true);
+
+        try {
+            const res = await CourseObjectivesAPI.ExportExcel();
+            const blob = new Blob([res.data], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            });
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `Exports.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            window.URL.revokeObjectURL(url);
+            SweetAlert("success", "Xuất file Excel thành công!");
+        } finally {
+            setLoading(false);
+        }
+    };
+    const handleDownloadTemplate = () => {
+        setLoading(true);
+        try {
+            const link = document.createElement("a");
+            link.href = "/file-import/ImportCourseObjectives.xlsx";
+            link.download = "TemplateImport.xlsx";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        finally {
+            setLoading(false);
+        }
+
+    };
     useEffect(() => {
         ShowData();
     }, []);
     return (
         <div className="main-content">
+            <Loading isOpen={loading} />
             <div className="card">
                 <div className="card-body">
                     <div className="page-header no-gutters">
@@ -159,15 +250,62 @@ function CourseObjectivesInterfaceDonVi() {
 
                             <div className="row">
                                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-                                    <button className="btn btn-success" onClick={handleAddNewCourseObjectives} >
+                                    <button className="btn btn-ceo-butterfly" onClick={handleAddNewCourseObjectives} >
                                         <i className="fas fa-plus-circle mr-1" /> Thêm mới
                                     </button>
-                                    <button className="btn btn-primary">
+                                    <button
+                                        className="btn btn-ceo-green"
+                                        id="exportExcel"
+                                        data-toggle="modal"
+                                        data-target="#importExcelModal"
+                                    >
+                                        <i className="fas fa-file-excel mr-1" /> Import danh sách học phần file từ Excel
+                                    </button>
+                                    <button className="btn btn-ceo-green" onClick={handleExportExcel}>
+                                        <i className="fas fa-file-excel mr-1" /> Xuất dữ liệu ra file Excel
+                                    </button>
+                                    <button className="btn btn-ceo-green">
                                         <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
                                     </button>
                                 </div>
                             </div>
                         </fieldset>
+                        {/*Modal Import*/}
+                        <div
+                            className="modal fade"
+                            id="importExcelModal"
+                            tabIndex={-1}
+                            aria-labelledby="importExcelModalLabel"
+                            aria-hidden="true"
+                        >
+                            <div className="modal-dialog">
+                                <div className="modal-content">
+                                    <div className="modal-header">
+                                        <h5 className="modal-title">Import danh sách mục tiêu học phần từ Excel</h5>
+                                        <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div className="modal-body">
+                                        <form id="importExcelForm" autoComplete="off">
+                                            <div className="form-group row">
+                                                <label className="col-sm-2 col-form-label">File Excel</label>
+                                                <div className="col-sm-10">
+                                                    <input type="file" className="form-control" name="file" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedFile(e.target.files?.[0] || null)} />
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <hr />
+                                    <div className="modal-footer">
+                                        <button type="button" className="btn btn-ceo-green" onClick={handleDownloadTemplate}>Tải file mẫu</button>
+                                        <button type="button" className="btn btn-ceo-blue" onClick={handleSubmit}>Import</button>
+                                        <button type="button" className="btn btn-ceo-red" data-dismiss="modal">Đóng</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {/*Modal Import*/}
                     </div>
                     <div className="table-responsive">
                         <table className="table table-bordered">

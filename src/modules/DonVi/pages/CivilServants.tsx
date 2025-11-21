@@ -3,6 +3,8 @@ import { CivilServantsDonViAPI } from "../../../api/DonVi/CivilServants";
 import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import { unixTimestampToDate } from "../../../URL_Config";
 import Modal from "../../../components/ui/Modal";
+import Loading from "../../../components/ui/Loading";
+import Swal from "sweetalert2";
 export default function CivilServantsInterfaceDonVi() {
     const [listCTDT, setListCTDT] = useState<any[]>([]);
     const [allData, setAllData] = useState<any[]>([]);
@@ -17,6 +19,8 @@ export default function CivilServantsInterfaceDonVi() {
     const [selectAll, setSelectAll] = useState(false);
     const [permissionOpen, setPermissionOpen] = useState(false);
     const [searchText, setSearchText] = useState("");
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [loading, setLoading] = useState(false);
     interface FormData {
         id_civilSer: number | null;
         code_civilSer: string;
@@ -116,17 +120,17 @@ export default function CivilServantsInterfaceDonVi() {
     };
     const filteredData = allData.filter((item) => {
         const keyword = searchText.toLowerCase().trim();
-    
+
         return (
-          item.code_civilSer?.toLowerCase().includes(keyword) ||
-          item.fullname_civilSer?.toLowerCase().includes(keyword) ||
-          item.email?.toLowerCase().includes(keyword) ||
-          item.birthday?.toLowerCase().includes(keyword) ||
-          item.name_program?.toLowerCase().includes(keyword) ||
-          unixTimestampToDate(item.time_cre)?.toLowerCase().includes(keyword) ||
-          unixTimestampToDate(item.time_up)?.toLowerCase().includes(keyword)
+            item.code_civilSer?.toLowerCase().includes(keyword) ||
+            item.fullname_civilSer?.toLowerCase().includes(keyword) ||
+            item.email?.toLowerCase().includes(keyword) ||
+            item.birthday?.toLowerCase().includes(keyword) ||
+            item.name_program?.toLowerCase().includes(keyword) ||
+            unixTimestampToDate(item.time_cre)?.toLowerCase().includes(keyword) ||
+            unixTimestampToDate(item.time_up)?.toLowerCase().includes(keyword)
         );
-      });
+    });
 
     const LoadListCTDTByDonVi = async () => {
         const res = await CivilServantsDonViAPI.GetListCTDTByDonVi();
@@ -166,38 +170,50 @@ export default function CivilServantsInterfaceDonVi() {
         { label: "*", key: "*" },
     ];
     const ShowData = async () => {
-        const res = await CivilServantsDonViAPI.GetListCivilServants({ id_program: Number(optionFilter.id_program || 0), Page: page, PageSize: pageSize });
-        if (res.success) {
-            setAllData(res.data);
-            setTotalRecords(Number(res.totalRecords) || 0);
-            setTotalPages(Number(res.totalPages) || 1);
-            setPageSize(Number(res.pageSize) || 10);
-        } else {
-            SweetAlert("error", res.message);
-            setAllData([]);
-            setTotalRecords(0);
-            setTotalPages(1);
-            setPageSize(10);
+        setLoading(true);
+        try {
+            const res = await CivilServantsDonViAPI.GetListCivilServants({ id_program: Number(optionFilter.id_program || 0), Page: page, PageSize: pageSize });
+            if (res.success) {
+                setAllData(res.data);
+                setTotalRecords(Number(res.totalRecords) || 0);
+                setTotalPages(Number(res.totalPages) || 1);
+                setPageSize(Number(res.pageSize) || 10);
+            } else {
+                SweetAlert("error", res.message);
+                setAllData([]);
+                setTotalRecords(0);
+                setTotalPages(1);
+                setPageSize(10);
+            }
+        }
+        finally {
+            setLoading(false);
         }
     }
     const handleEditCivilServant = async (id_civilSer: number) => {
-        const res = await CivilServantsDonViAPI.InfoCivilServant({ id_civilSer: id_civilSer });
-        if (res.success) {
-            setFormData((prev) => ({
-                ...prev,
-                id_civilSer: res.data.id_civilSer,
-                code_civilSer: res.data.code_civilSer,
-                fullname_civilSer: res.data.fullname_civilSer,
-                email: res.data.email,
-                birthday: res.data.birthday,
-                id_program: Number(res.data.id_program)
-            }));
-            setModalOpen(true);
-            setModalMode("edit");
-            setFormData(res.data);
+        setLoading(true);
+        try {
+            const res = await CivilServantsDonViAPI.InfoCivilServant({ id_civilSer: id_civilSer });
+            if (res.success) {
+                setFormData((prev) => ({
+                    ...prev,
+                    id_civilSer: res.data.id_civilSer,
+                    code_civilSer: res.data.code_civilSer,
+                    fullname_civilSer: res.data.fullname_civilSer,
+                    email: res.data.email,
+                    birthday: res.data.birthday,
+                    id_program: Number(res.data.id_program)
+                }));
+                setModalOpen(true);
+                setModalMode("edit");
+                setFormData(res.data);
+            }
+            else {
+                SweetAlert("error", res.message);
+            }
         }
-        else {
-            SweetAlert("error", res.message);
+        finally {
+            setLoading(false);
         }
     }
     const handleAddNewCivilServant = () => {
@@ -207,52 +223,134 @@ export default function CivilServantsInterfaceDonVi() {
     const handleDeleteCivilServant = async (id_civilSer: number) => {
         const confirmDel = await SweetAlertDel("Bằng việc đồng ý, bạn sẽ xóao toàn bộ dữ liệu của CBVC này và những dữ liệu liên quan, bạn muốn tiếp tục?");
         if (confirmDel) {
-            const res = await CivilServantsDonViAPI.DeleteCivilServant({ id_civilSer: id_civilSer });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                ShowData();
+            setLoading(true);
+            try {
+                const res = await CivilServantsDonViAPI.DeleteCivilServant({ id_civilSer: id_civilSer });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    ShowData();
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
             }
-            else {
-                SweetAlert("error", res.message);
+            finally {
+                setLoading(false);
             }
         }
     }
     const handleSave = async () => {
         if (modalMode === "create") {
-            const res = await CivilServantsDonViAPI.CreateNewCivilServant({
-                code_civilSer: formData.code_civilSer,
-                fullname_civilSer: formData.fullname_civilSer,
-                email: formData.email,
-                birthday: formData.birthday,
-                id_program: Number(formData.id_program || 0),
-            });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                setModalOpen(false);
-                ShowData();
-            } else {
-                SweetAlert("error", res.message);
+            setLoading(true);
+            try {
+                const res = await CivilServantsDonViAPI.CreateNewCivilServant({
+                    code_civilSer: formData.code_civilSer,
+                    fullname_civilSer: formData.fullname_civilSer,
+                    email: formData.email,
+                    birthday: formData.birthday,
+                    id_program: Number(formData.id_program || 0),
+                });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    setModalOpen(false);
+                    ShowData();
+                } else {
+                    SweetAlert("error", res.message);
+                }
+            }
+            finally {
+                setLoading(false);
             }
         }
         else {
-            const res = await CivilServantsDonViAPI.UpdateCivilServant({
-                id_civilSer: Number(formData.id_civilSer),
-                code_civilSer: formData.code_civilSer,
-                fullname_civilSer: formData.fullname_civilSer,
-                email: formData.email,
-                birthday: formData.birthday,
-                id_program: Number(formData.id_program),
-            });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                setModalOpen(false);
-                ShowData();
+            setLoading(true);
+            try {
+                const res = await CivilServantsDonViAPI.UpdateCivilServant({
+                    id_civilSer: Number(formData.id_civilSer),
+                    code_civilSer: formData.code_civilSer,
+                    fullname_civilSer: formData.fullname_civilSer,
+                    email: formData.email,
+                    birthday: formData.birthday,
+                    id_program: Number(formData.id_program),
+                });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    setModalOpen(false);
+                    ShowData();
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
             }
-            else {
-                SweetAlert("error", res.message);
+            finally {
+                setLoading(false);
             }
         }
     }
+    const handleExportExcel = async () => {
+        setLoading(true);
+        try {
+            const res = await CivilServantsDonViAPI.ExportExcel({
+                id_program: Number(optionFilter.id_program),
+            });
+
+            const blob = new Blob([res.data], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            });
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `Exports.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            window.URL.revokeObjectURL(url);
+            SweetAlert("success", "Xuất file Excel thành công!");
+        } finally {
+            setLoading(false);
+        }
+    };
+    const handleSubmit = async (e: React.FormEvent) => {
+        setLoading(true);
+        try {
+            e.preventDefault();
+            if (!selectedFile) {
+                Swal.fire("Thông báo", "Vui lòng chọn file Excel!", "warning");
+                return;
+            }
+            setLoading(true);
+            const res = await CivilServantsDonViAPI.UploadExcelCourse(selectedFile, Number(optionFilter.id_program));
+
+            setLoading(false);
+            if (res.success) {
+                SweetAlert("success", res.message);
+                ShowData();
+                setLoading(false);
+            } else {
+                SweetAlert("error", res.message);
+                setLoading(false);
+            }
+        }
+        finally {
+            setLoading(false);
+        }
+    };
+    const handleDownloadTemplate = () => {
+        setLoading(true);
+        try {
+            const link = document.createElement("a");
+            link.href = "/file-import/ImportCivilServants.xlsx";
+            link.download = "TemplateImport.xlsx";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        finally {
+            setLoading(false);
+        }
+    };
     useEffect(() => {
         ShowData();
     }, [page, pageSize]);
@@ -261,6 +359,7 @@ export default function CivilServantsInterfaceDonVi() {
     }, []);
     return (
         <div className="main-content">
+            <Loading isOpen={loading} />
             <div className="card">
                 <div className="card-body">
                     <div className="page-header no-gutters">
@@ -294,8 +393,19 @@ export default function CivilServantsInterfaceDonVi() {
 
                             <div className="row">
                                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-                                    <button className="btn btn-ceo-green" onClick={handleAddNewCivilServant} >
+                                    <button className="btn btn-ceo-butterfly" onClick={handleAddNewCivilServant} >
                                         <i className="fas fa-plus-circle mr-1" /> Thêm mới
+                                    </button>
+                                    <button
+                                        className="btn btn-ceo-green"
+                                        id="exportExcel"
+                                        data-toggle="modal"
+                                        data-target="#importExcelModal"
+                                    >
+                                        <i className="fas fa-file-excel mr-1" /> Import danh sách học phần file từ Excel
+                                    </button>
+                                    <button className="btn btn-ceo-green" onClick={handleExportExcel} >
+                                        <i className="fas fa-file-excel mr-1" /> Xuất dữ liệu ra file Excel
                                     </button>
                                     <button className="btn btn-ceo-blue" onClick={() => ShowData()} >
                                         <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
@@ -303,6 +413,41 @@ export default function CivilServantsInterfaceDonVi() {
                                 </div>
                             </div>
                         </fieldset>
+                    </div>
+                    {/*Modal Import*/}
+                    <div
+                        className="modal fade"
+                        id="importExcelModal"
+                        tabIndex={-1}
+                        aria-labelledby="importExcelModalLabel"
+                        aria-hidden="true"
+                    >
+                        <div className="modal-dialog">
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <h5 className="modal-title">Import danh sách Giảng viên từ Excel</h5>
+                                    <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div className="modal-body">
+                                    <form id="importExcelForm" autoComplete="off">
+                                        <div className="form-group row">
+                                            <label className="col-sm-2 col-form-label">File Excel</label>
+                                            <div className="col-sm-10">
+                                                <input type="file" className="form-control" name="file" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedFile(e.target.files?.[0] || null)} />
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <hr />
+                                <div className="modal-footer">
+                                    <button type="button" className="btn btn-ceo-green" onClick={handleDownloadTemplate}>Tải file mẫu</button>
+                                    <button type="button" className="btn btn-ceo-blue" onClick={handleSubmit}>Import</button>
+                                    <button type="button" className="btn btn-ceo-red" data-dismiss="modal">Đóng</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div className="table-responsive">
                         <table className="table table-bordered">

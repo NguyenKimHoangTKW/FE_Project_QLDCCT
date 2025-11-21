@@ -4,6 +4,8 @@ import { unixTimestampToDate } from "../../../URL_Config";
 import KeySemesterAPI from "../../../api/DonVi/KeySemesterAPI";
 import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import { ListDonViPermissionAPI } from "../../../api/DonVi/ListDonViPermissionAPI";
+import Loading from "../../../components/ui/Loading";
+import Swal from "sweetalert2";
 function KeySemesterInterfaceCtdt() {
     const [listFaculty, setListFaculty] = useState<any[]>([]);
     const [totalRecords, setTotalRecords] = useState(0);
@@ -15,6 +17,8 @@ function KeySemesterInterfaceCtdt() {
     const [pageSize, setPageSize] = useState(10);
     const [allData, setAllData] = useState<any[]>([]);
     const [searchText, setSearchText] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     interface KeySemester {
         id_key_year_semester: number;
         name_key_year_semester: string;
@@ -27,14 +31,7 @@ function KeySemesterInterfaceCtdt() {
         code_key_year_semester: "",
         id_faculty: 0,
     });
-    const resetFormData = (id_faculty: number) => {
-        setFormData({
-            id_key_year_semester: 0,
-            name_key_year_semester: "",
-            code_key_year_semester: "",
-            id_faculty: id_faculty,
-        });
-    }
+
     const headers = [
         { label: "STT", key: "" },
         { label: "Mã khóa học", key: "code_key_year_semester" },
@@ -54,25 +51,32 @@ function KeySemesterInterfaceCtdt() {
         setFormData((prev) => ({ ...prev, [name]: value }));
     }
     const ShowData = async () => {
-        const res = await KeySemesterAPI.GetListKeySemester({
-            id_faculty: Number(formData.id_faculty),
-            Page: page,
-            PageSize: pageSize,
-        });
-        if (res.success) {
-            setAllData(res.data);
-            setPage(Number(res.currentPage) || 1);
-            setTotalPages(Number(res.totalPages) || 1);
-            setTotalRecords(Number(res.totalRecords) || 0);
-            setPageSize(Number(res.pageSize) || 10);
-        } else {
-            SweetAlert("error", res.message);
-            setAllData([]);
-            setPage(1);
-            setPageSize(10);
-            setTotalPages(1);
-            setTotalRecords(0);
+        setLoading(true);
+        try {
+            const res = await KeySemesterAPI.GetListKeySemester({
+                id_faculty: Number(formData.id_faculty),
+                Page: page,
+                PageSize: pageSize,
+            });
+            if (res.success) {
+                setAllData(res.data);
+                setPage(Number(res.currentPage) || 1);
+                setTotalPages(Number(res.totalPages) || 1);
+                setTotalRecords(Number(res.totalRecords) || 0);
+                setPageSize(Number(res.pageSize) || 10);
+            } else {
+                SweetAlert("error", res.message);
+                setAllData([]);
+                setPage(1);
+                setPageSize(10);
+                setTotalPages(1);
+                setTotalRecords(0);
+            }
         }
+        finally {
+            setLoading(false);
+        }
+
     }
     const filteredData = allData.filter((item) => {
         const keyword = searchText.toLowerCase().trim();
@@ -95,45 +99,78 @@ function KeySemesterInterfaceCtdt() {
     }
     const handleEditKeySemester = async (id: number) => {
         const res = await KeySemesterAPI.InfoKeySemester({ id_key_year_semester: id });
+    
         if (res.success) {
             setShowModal(true);
             setModalMode("edit");
-            setFormData({
-                id_key_year_semester: res.data.id_year_semester,
+    
+            setFormData((prev) => ({
+                ...prev, 
+                id_key_year_semester: res.data.id_key_year_semester,
                 name_key_year_semester: res.data.name_key_year_semester,
                 code_key_year_semester: res.data.code_key_year_semester,
-                id_faculty: res.data.id_faculty,
-            });
-        }
-        else {
+            }));
+        } else {
             SweetAlert("error", res.message);
         }
-    }
+    };
+    
     const handleSave = async () => {
         if (modalMode === "create") {
-            const res = await KeySemesterAPI.AddNewKeySemester({
-                name_key_year_semester: formData.name_key_year_semester,
-                code_key_year_semester: formData.code_key_year_semester,
-                id_faculty: Number(formData.id_faculty),
-            });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                ShowData();
-            } else {
-                SweetAlert("error", res.message);
+            setLoading(true);
+            try {
+                const res = await KeySemesterAPI.AddNewKeySemester({
+                    name_key_year_semester: formData.name_key_year_semester,
+                    code_key_year_semester: formData.code_key_year_semester,
+                    id_faculty: Number(formData.id_faculty),
+                });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    ShowData();
+                } else {
+                    SweetAlert("error", res.message);
+                }
+            }
+            finally {
+                setLoading(false);
+            }
+        }
+        else {
+            setLoading(true);
+            try {
+                const res = await KeySemesterAPI.UpdateKeySemester({
+                    id_key_year_semester: Number(formData.id_key_year_semester),
+                    name_key_year_semester: formData.name_key_year_semester,
+                    code_key_year_semester: formData.code_key_year_semester,
+                });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    ShowData();
+                } else {
+                    SweetAlert("error", res.message);
+                }
+            }
+            finally {
+                setLoading(false);
             }
         }
     }
     const handleDeleteKeySemester = async (id: number) => {
         const confirm = await SweetAlertDel("Bằng việc đồng ý, bạn sẽ xóa Khóa học này và các dữ liệu liên quan, bạn muốn xóa?");
         if (confirm) {
-            const res = await KeySemesterAPI.DeleteKeySemester({ id_key_year_semester: id });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                ShowData();
+            setLoading(true);
+            try {
+                const res = await KeySemesterAPI.DeleteKeySemester({ id_key_year_semester: id });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    ShowData();
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
             }
-            else {
-                SweetAlert("error", res.message);
+            finally {
+                setLoading(false);
             }
         }
     }
@@ -145,6 +182,71 @@ function KeySemesterInterfaceCtdt() {
         }));
         setListFaculty(res);
     }
+    const handleSubmit = async (e: React.FormEvent) => {
+        setLoading(true);
+        try {
+            e.preventDefault();
+            if (!selectedFile) {
+                Swal.fire("Thông báo", "Vui lòng chọn file Excel!", "warning");
+                return;
+            }
+            setLoading(true);
+            const res = await KeySemesterAPI.UploadExcel(selectedFile, Number(formData.id_faculty));
+
+            setLoading(false);
+            if (res.success) {
+                SweetAlert("success", res.message);
+                ShowData();
+                setLoading(false);
+            } else {
+                SweetAlert("error", res.message);
+                setLoading(false);
+            }
+        }
+        finally {
+            setLoading(false);
+        }
+    };
+    const handleExportExcel = async () => {
+        setLoading(true);
+
+        try {
+            const res = await KeySemesterAPI.ExportExcel({
+                id_faculty: Number(formData.id_faculty)
+            });
+
+            const blob = new Blob([res.data], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            });
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `Exports.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            window.URL.revokeObjectURL(url);
+            SweetAlert("success", "Xuất file Excel thành công!");
+        } finally {
+            setLoading(false);
+        }
+    };
+    const handleDownloadTemplate = () => {
+        setLoading(true);
+        try {
+            const link = document.createElement("a");
+            link.href = "/file-import/ImportKeySemester.xlsx";
+            link.download = "TemplateImport.xlsx";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        finally {
+            setLoading(false);
+        }
+    };
     useEffect(() => {
         if (!didFetch.current) {
             GetListFaculty();
@@ -153,6 +255,7 @@ function KeySemesterInterfaceCtdt() {
     }, []);
     return (
         <div className="main-content">
+            <Loading isOpen={loading} />
             <div className="card">
                 <div className="card-body">
                     <div className="page-header no-gutters">
@@ -165,13 +268,24 @@ function KeySemesterInterfaceCtdt() {
                             <div className="row mb-3">
                                 <div className="col-md-6">
                                     <label className="form-label ceo-label">Lọc theo Đơn vị được phân công</label>
-                                    <select className="form-control ceo-input" name="id_faculty" value={formData.id_faculty ?? ""} >
-                                        {listFaculty.map((items, idx) => (
-                                            <option key={idx} value={items.value}>
+                                    <select
+                                        className="form-control ceo-input"
+                                        name="id_faculty"
+                                        value={formData.id_faculty ?? ""}
+                                        onChange={(e) =>
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                id_faculty: Number(e.target.value)
+                                            }))
+                                        }
+                                    >
+                                        {listFaculty.map((items) => (
+                                            <option key={items.value} value={items.value}>
                                                 {items.text}
                                             </option>
                                         ))}
                                     </select>
+
                                 </div>
                                 <div className="col-md-4">
                                     <label className="ceo-label">Tìm kiếm</label>
@@ -187,8 +301,19 @@ function KeySemesterInterfaceCtdt() {
                             <hr />
                             <div className="row">
                                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-                                    <button className="btn btn-ceo-green" onClick={handleAddNewKeySemester}>
+                                    <button className="btn btn-ceo-butterfly" onClick={handleAddNewKeySemester}>
                                         <i className="fas fa-plus-circle mr-1" /> Thêm mới
+                                    </button>
+                                    <button className="btn btn-ceo-green" onClick={handleExportExcel} >
+                                        <i className="fas fa-file-excel mr-1" /> Xuất dữ liệu ra file Excel
+                                    </button>
+                                    <button
+                                        className="btn btn-ceo-green"
+                                        id="exportExcel"
+                                        data-toggle="modal"
+                                        data-target="#importExcelModal"
+                                    >
+                                        <i className="fas fa-file-excel mr-1" /> Import danh sách khóa học file từ Excel
                                     </button>
                                     <button className="btn btn-ceo-blue" onClick={() => ShowData()}>
                                         <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
@@ -196,6 +321,42 @@ function KeySemesterInterfaceCtdt() {
                                 </div>
                             </div>
                         </fieldset>
+                        {/*Modal Import*/}
+                        <div
+                            className="modal fade"
+                            id="importExcelModal"
+                            tabIndex={-1}
+                            aria-labelledby="importExcelModalLabel"
+                            aria-hidden="true"
+                        >
+                            <div className="modal-dialog">
+                                <div className="modal-content">
+                                    <div className="modal-header">
+                                        <h5 className="modal-title">Import danh sách khóa học từ Excel</h5>
+                                        <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div className="modal-body">
+                                        <form id="importExcelForm" autoComplete="off">
+                                            <div className="form-group row">
+                                                <label className="col-sm-2 col-form-label">File Excel</label>
+                                                <div className="col-sm-10">
+                                                    <input type="file" className="form-control" name="file" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedFile(e.target.files?.[0] || null)} />
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <hr />
+                                    <div className="modal-footer">
+                                        <button type="button" className="btn btn-ceo-green" onClick={handleDownloadTemplate}>Tải file mẫu</button>
+                                        <button type="button" className="btn btn-ceo-blue" onClick={handleSubmit}>Import</button>
+                                        <button type="button" className="btn btn-ceo-red" data-dismiss="modal">Đóng</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {/*Modal Import*/}
                     </div>
                     <div className="table-responsive">
                         <table className="table table-bordered">
@@ -209,7 +370,7 @@ function KeySemesterInterfaceCtdt() {
                             <tbody>
                                 {filteredData.length > 0 ? (
                                     filteredData.map((item, index) => (
-                                        <tr key={item.id_year_semester}>
+                                        <tr key={item.id_key_year_semester}>
                                             <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
                                             <td className="formatSo">{item.code_key_year_semester}</td>
                                             <td className="formatSo">{item.name_key_year_semester}</td>
@@ -271,7 +432,6 @@ function KeySemesterInterfaceCtdt() {
                 title={modalMode === "create" ? "Thêm mới Học kỳ" : "Chỉnh sửa Học kỳ"}
                 onClose={() => {
                     setShowModal(false);
-                    resetFormData(formData.id_faculty);
                 }}
                 onSave={handleSave}
             >

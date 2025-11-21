@@ -5,6 +5,7 @@ import { SweetAlert } from "../../../components/ui/SweetAlert";
 import "../../../assets/css/template-preview.css";
 import { PreviewEvaluateAPI } from "../../../api/Shared/PreviewEvaluate";
 import { Editor } from "@tinymce/tinymce-react";
+import Loading from "../../../components/ui/Loading";
 
 export default function PreviewTemplateInterfaceDonVi() {
   const navigate = useNavigate();
@@ -18,20 +19,13 @@ export default function PreviewTemplateInterfaceDonVi() {
   const [id_program, setIdProgram] = useState<number>(0);
   const [loadListPLOCourse, setLoadListPLOCourse] = useState<any[]>([]);
   const LoadData = async () => {
-    try {
-      const res = await CreateTemplateAPI.PreviewTemplate({
-        id_template: Number(id_template),
-      });
-      if (res.success) {
-        const jsonString = res.data?.template_json || "[]";
-        setTemplateSections(JSON.parse(jsonString));
-      } else SweetAlert("error", res.message);
-    } catch (err) {
-      SweetAlert("error", "Lỗi khi tải dữ liệu biểu mẫu");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    const res = await CreateTemplateAPI.PreviewTemplate({
+      id_template: Number(id_template),
+    });
+    if (res.success) {
+      const jsonString = res.data?.template_json || "[]";
+      setTemplateSections(JSON.parse(jsonString));
+    } else SweetAlert("error", res.message);
   };
 
   const handleChangeIdProgram = async (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -66,12 +60,18 @@ export default function PreviewTemplateInterfaceDonVi() {
   };
 
   useEffect(() => {
-    LoadData();
-    LoadSelectedProgram();
-    LoadPreviewCourseObjectives();
-    LoadPreviewCourseLearningOutcome();
-    LoadPreviewProgramLearningOutcome(id_program);
-    LoadListPLOCourse();
+    setLoading(true);
+    try {
+      LoadData();
+      LoadSelectedProgram();
+      LoadPreviewCourseObjectives();
+      LoadPreviewCourseLearningOutcome();
+      LoadPreviewProgramLearningOutcome(id_program);
+      LoadListPLOCourse();
+    }
+    finally {
+      setLoading(false);
+    }
   }, []);
 
   const RenderTableCourseObjectives = (section: any) => {

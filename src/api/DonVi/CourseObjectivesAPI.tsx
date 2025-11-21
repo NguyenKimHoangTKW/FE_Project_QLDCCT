@@ -27,4 +27,23 @@ export const CourseObjectivesAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
+    UploadExcel: async (file: File) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        return await axios.post(`${URL_API_DONVI}/course-objectives/upload-excel-danh-sach-muc-tieu-hoc-phan`, formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+            withCredentials: true,
+        })
+            .then((res) => res.data);
+    },
+    ExportExcel: () =>
+        axios.post(
+            `${URL_API_DONVI}/course-objectives/export-danh-sach-muc-tieu-hoc-phan`,
+            {},                   
+            {
+                responseType: "blob",
+                withCredentials: true,
+            }
+        ),
+
 }

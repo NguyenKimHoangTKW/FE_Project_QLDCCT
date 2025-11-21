@@ -27,4 +27,22 @@ export const CourseLearningOutcomeAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
+    UploadExcel: async (file: File) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        return await axios.post(`${URL_API_DONVI}/course-learning-outcome/upload-excel-danh-sach-chuan-dau-ra-hoc-phan`, formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+            withCredentials: true,
+        })
+            .then((res) => res.data);
+    },
+    ExportExcel: () =>
+        axios.post(
+            `${URL_API_DONVI}/course-learning-outcome/export-danh-sach-chuan-dau-ra-hoc-phan`,
+            {},
+            {
+                responseType: "blob",
+                withCredentials: true,
+            }
+        ),
 }

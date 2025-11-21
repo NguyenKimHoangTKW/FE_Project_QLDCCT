@@ -24,4 +24,25 @@ export const SemesterAPIDonVi = {
         axios.post(`${URL_API_DONVI}/semester/delete-hoc-kys`, data, {
             headers: { "Content-Type": "application/json" },
         }).then((res) => res.data),
+    UploadExcel: async (file: File, idFaculty: number) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("id_faculty", idFaculty.toString());
+        return await axios.post(`${URL_API_DONVI}/semester/upload-excel-danh-sach-hoc-ky`, formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+            withCredentials: true,
+        })
+            .then((res) => res.data);
+    },
+    ExportExcel: (data: {
+        id_faculty: number
+    }) =>
+        axios.post(
+            `${URL_API_DONVI}/semester/export-danh-sach-hoc-ky-thuoc-don-vi`,
+            data,
+            {
+                responseType: "blob",
+                withCredentials: true,
+            }
+        ),
 }

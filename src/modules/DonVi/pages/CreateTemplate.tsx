@@ -4,7 +4,7 @@ import Select from "react-select";
 import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import Modal from "../../../components/ui/Modal";
 import { useNavigate } from "react-router-dom";
-
+import Loading from "../../../components/ui/Loading";
 export default function CreateTemplateInterfaceDonVi() {
     const navigate = useNavigate();
     const [listTemplate, setListTemplate] = useState<any[]>([]);
@@ -14,6 +14,7 @@ export default function CreateTemplateInterfaceDonVi() {
     const [listContentType, setListContentType] = useState<any[]>([]);
     const [listDataBinding, setListDataBinding] = useState<any[]>([]);
     const [listData, setListData] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
     interface FormData {
         id_template_section: number | null;
         id_template: number | null;
@@ -93,75 +94,106 @@ export default function CreateTemplateInterfaceDonVi() {
     }
     const handleUpdateTemplateSection = async () => {
         if (modalMode === "create") {
-            const res = await CreateTemplateAPI.CreateTemplate({
-                id_template: checkTemplate,
-                section_name: formData.section_name,
-                section_code: formData.section_code,
-                allow_input: Number(formData.allow_input),
-                order_index: Number(formData.order_index),
-                id_contentType: Number(formData.id_contentType),
-                id_dataBinding: Number(formData.id_dataBinding),
-            });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                loadDataTemplate();
+            setLoading(true);
+            try {
+                const res = await CreateTemplateAPI.CreateTemplate({
+                    id_template: checkTemplate,
+                    section_name: formData.section_name,
+                    section_code: formData.section_code,
+                    allow_input: Number(formData.allow_input),
+                    order_index: Number(formData.order_index),
+                    id_contentType: Number(formData.id_contentType),
+                    id_dataBinding: Number(formData.id_dataBinding),
+                });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    loadDataTemplate();
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
             }
-            else {
-                SweetAlert("error", res.message);
+            finally {
+                setLoading(false);
             }
+
         }
         else {
-            const res = await CreateTemplateAPI.UpdateTemplateSection({
-                id_template_section: Number(formData.id_template_section),
-                section_name: formData.section_name,
-                section_code: formData.section_code,
-                allow_input: Number(formData.allow_input),
-                order_index: Number(formData.order_index),
-                id_contentType: Number(formData.id_contentType),
-                id_dataBinding: Number(formData.id_dataBinding),
-            });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                loadDataTemplate();
+            setLoading(true);
+            try {
+                const res = await CreateTemplateAPI.UpdateTemplateSection({
+                    id_template_section: Number(formData.id_template_section),
+                    section_name: formData.section_name,
+                    section_code: formData.section_code,
+                    allow_input: Number(formData.allow_input),
+                    order_index: Number(formData.order_index),
+                    id_contentType: Number(formData.id_contentType),
+                    id_dataBinding: Number(formData.id_dataBinding),
+                });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    loadDataTemplate();
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
             }
-            else {
-                SweetAlert("error", res.message);
+            finally {
+                setLoading(false);
             }
         }
     }
     const loadDataTemplate = async () => {
-        const res = await CreateTemplateAPI.GetListData({ id_template: checkTemplate });
-        if (res.success) {
-            setListData(res.data);
-            SweetAlert("success", res.message);
+        setLoading(true);
+        try {
+            const res = await CreateTemplateAPI.GetListData({ id_template: checkTemplate });
+            if (res.success) {
+                setListData(res.data);
+                SweetAlert("success", res.message);
+            }
+            else {
+                SweetAlert("error", res.message);
+            }
         }
-        else {
-            SweetAlert("error", res.message);
+        finally {
+            setLoading(false);
         }
     }
     const handleDeleteTemplateSection = async (id: number) => {
         const confirm = await SweetAlertDel("Bằng việc đồng ý, bạn sẽ xóa mục tiêu đề này và các dữ liệu liên quan khác, bạn muốn xóa?");
         if (confirm) {
-            const res = await CreateTemplateAPI.DeleteTemplateSection({ id_template_section: id });
+            setLoading(true);
+            try {
+                const res = await CreateTemplateAPI.DeleteTemplateSection({ id_template_section: id });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    loadDataTemplate();
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
+            }
+            finally {
+                setLoading(false);
+            }
+        }
+    }
+    const handleSaveTemplate = async () => {
+        setLoading(true);
+        try {
+            const res = await CreateTemplateAPI.SaveTemplateSection({
+                id_template: checkTemplate,
+                template_json: JSON.stringify(listData),
+            });
             if (res.success) {
                 SweetAlert("success", res.message);
-                loadDataTemplate();
             }
             else {
                 SweetAlert("error", res.message);
             }
         }
-    }
-    const handleSaveTemplate = async () => {
-        const res = await CreateTemplateAPI.SaveTemplateSection({
-            id_template: checkTemplate,
-            template_json: JSON.stringify(listData),
-        });
-        if (res.success) {
-            SweetAlert("success", res.message);
-        }
-        else {
-            SweetAlert("error", res.message);
+        finally {
+            setLoading(false);
         }
     }
     useEffect(() => {
@@ -170,6 +202,7 @@ export default function CreateTemplateInterfaceDonVi() {
     }, []);
     return (
         <div className="main-content">
+            <Loading isOpen={loading} />
             <div className="card">
                 <div className="card-body">
                     <div className="page-header no-gutters">

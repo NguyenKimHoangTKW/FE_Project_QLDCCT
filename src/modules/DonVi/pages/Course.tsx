@@ -258,7 +258,6 @@ function CourseInterfaceDonVi() {
     finally {
       setLoading(false);
     }
-
   };
   const handleInfo = async (id: number) => {
     const res = await CourseDonViAPI.InfoCourse({ id_course: id });
@@ -332,14 +331,20 @@ function CourseInterfaceDonVi() {
     }
   };
   const handleDownloadTemplate = () => {
-    const link = document.createElement("a");
-    link.href = "/file-import/ImportCourse.xlsx";
-    link.download = "TemplateImport.xlsx";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    setLoading(true);
+    try {
+      const link = document.createElement("a");
+      link.href = "/file-import/ImportCourse.xlsx";
+      link.download = "TemplateImport.xlsx";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    finally {
+      setLoading(false);
+    }
   };
-  
+
   useEffect(() => {
     if (!didFetch.current) {
       GetDataListOptionCourse();
@@ -424,7 +429,7 @@ function CourseInterfaceDonVi() {
                   <input
                     type="text"
                     className="form-control ceo-input"
-                    placeholder="🔍 Nhập mã / tên học phần..."
+                    placeholder="🔍 Nhập từ khóa bất kỳ để tìm kiếm..."
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
                   />
@@ -480,14 +485,16 @@ function CourseInterfaceDonVi() {
                     </div>
                   </form>
                 </div>
+                <hr />
                 <div className="modal-footer">
-                  <button type="button" className="btn btn-ceo-red" data-dismiss="modal">Đóng</button>
                   <button type="button" className="btn btn-ceo-green" onClick={handleDownloadTemplate}>Tải file mẫu</button>
                   <button type="button" className="btn btn-ceo-blue" onClick={handleSubmit}>Import</button>
+                  <button type="button" className="btn btn-ceo-red" data-dismiss="modal">Đóng</button>
                 </div>
               </div>
             </div>
           </div>
+          {/*Modal Import*/}
           <div className="table-responsive"></div>
           <table className="table table-bordered">
             <thead>
