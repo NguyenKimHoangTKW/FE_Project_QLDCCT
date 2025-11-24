@@ -8,6 +8,8 @@ import "../../../tinymce.config";
 import { Editor } from "@tinymce/tinymce-react";
 import Swal from "sweetalert2";
 import Modal from "../../../components/ui/Modal";
+import { URL_API_DVDC } from "../../../URL_Config";
+import axios from "axios";
 export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   const { id_syllabus } = useParams();
   const [templateSections, setTemplateSections] = useState<any[]>([]);
@@ -28,6 +30,13 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   const [newAllowInput, setNewAllowInput] = useState("Cho phép nhập liệu");
   const [editingSectionIndex, setEditingSectionIndex] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
+  const [aiLoadingSection, setAiLoadingSection] = useState<string | null>(null);
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [aiPrompt, setAIPrompt] = useState("");
+  const [aiResult, setAIResult] = useState("");
+  const [currentSection, setCurrentSection] = useState<any>(null);
+  const [aiLoading, setAILoading] = useState(false);
+
   const [checkOpen, setCheckOpen] = useState<{
     status?: boolean;
     is_open?: boolean;
@@ -960,19 +969,59 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
     );
   };
 
-  const sortSectionCodes = (sections: any[]) => {
-    return sections.sort((a, b) => {
-      const aParts = a.section_code.split(".").map(Number);
-      const bParts = b.section_code.split(".").map(Number);
+  const runAISuggestStream = async () => {
+    try {
+      setAILoading(true);
+      setAIResult("");
 
-      for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
-        const aNum = aParts[i] ?? 0;
-        const bNum = bParts[i] ?? 0;
-        if (aNum !== bNum) return aNum - bNum;
+      const res = await fetch(`${URL_API_DVDC}/write-template-syllabus/suggest-stream`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sectionTitle: currentSection.section_name,
+          courseName: checkOpen.name_course,
+          customPrompt: aiPrompt
+        })
+      });
+
+      if (!res.ok) {
+        setAIResult("⚠ Lỗi gọi AI (status " + res.status + ")");
+        setAILoading(false);
+        return;
       }
-      return 0;
-    });
+
+      // Đọc stream
+      const reader = res.body?.getReader();
+      if (!reader) {
+        setAIResult("⚠ Trình duyệt không hỗ trợ streaming.");
+        setAILoading(false);
+        return;
+      }
+
+      const decoder = new TextDecoder("utf-8");
+      let done = false;
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+          const chunk = decoder.decode(value, { stream: true });
+          // Thêm chunk mới vào kết quả
+          setAIResult(prev => prev + chunk);
+        }
+      }
+
+    } catch (err) {
+      console.error(err);
+      setAIResult("⚠ Không thể kết nối AI. Vui lòng thử lại.");
+    } finally {
+      setAILoading(false);
+    }
   };
+
+
+
+
   if (loading)
     return (
       <div className="p-4 text-center">
@@ -1017,6 +1066,34 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
                   return (
                     <div key={index} className={`template-section ${levelClass}`}>
                       <h6>{section.section_code}. {section.section_name}</h6>
+                      <button
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => {
+                          setCurrentSection(section);
+                          setAIPrompt(
+                            `Bạn là chuyên gia giáo dục đại học, có kinh nghiệm biên soạn đề cương chi tiết học phần.
+
+                              Hãy viết một đoạn văn dài, gồm nhiều đoạn, văn phong học thuật – chuẩn mực – logic, có mở đầu – triển khai – kết luận.
+
+                              YÊU CẦU:
+                              Không bullet
+                              Không đánh số
+                              Không gạch đầu dòng
+                              Không liệt kê
+                              Không văn nói
+                              Không dùng từ ngữ đời thường
+                              Không viết ngắn
+                              Tối thiểu khoảng 800–1000 chữ.
+
+                              Viết cho mục: ${section.section_name}
+                              Thuộc học phần: ${checkOpen.name_course}.`
+                          );
+                          setShowAIModal(true);
+                        }}
+                      >
+                        Gợi ý AI
+                      </button>
+
                       {section.id_template_section === null && (
                         <>
                           <button
@@ -1123,6 +1200,56 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
           </select>
         </div>
       </Modal>
+      <Modal isOpen={showAIModal} onClose={() => setShowAIModal(false)}>
+        <div style={{ minWidth: "600px" }}>
+          <h5 className="mb-3">Gợi ý nội dung bằng AI</h5>
+
+          <label className="fw-bold">Prompt yêu cầu:</label>
+          <textarea
+            className="form-control"
+            rows={4}
+            value={aiPrompt}
+            onChange={e => setAIPrompt(e.target.value)}
+          />
+
+          <button
+            className="btn btn-primary"
+            disabled={aiLoading}
+            onClick={runAISuggestStream}
+          >
+            {aiLoading ? "AI đang viết..." : "Gợi ý AI"}
+          </button>
+
+          <pre className="mt-3" style={{ whiteSpace: "pre-wrap" }}>
+  {aiResult}
+          </pre>
+
+          <hr />
+
+          <label className="fw-bold">Kết quả AI:</label>
+
+          <div className="border p-2" style={{ minHeight: "120px" }}>
+            {aiLoading ? <span className="text-muted">Đang sinh nội dung...</span> : aiResult}
+          </div>
+
+          {aiResult && (
+            <button
+              className="btn btn-success mt-3"
+              onClick={() => {
+                setDraftData(prev => ({
+                  ...prev,
+                  [currentSection.section_code]: aiResult
+                }));
+                setShowAIModal(false);
+              }}
+            >
+              Chèn vào nội dung mục này
+            </button>
+          )}
+
+        </div>
+      </Modal>
+
       {editingSectionIndex !== null && (
         <Modal
           isOpen={editingSectionIndex !== null}

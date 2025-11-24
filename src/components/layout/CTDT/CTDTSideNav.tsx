@@ -1,42 +1,54 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Logout } from "../../ui/Logout";
+
 function CTDTSideNav() {
   return (
     <div className="side-nav">
       <div className="side-nav-inner">
         <ul className="side-nav-menu scrollable">
+
           <li>
-            <Link className="dropdown-toggle" to={"/ctdt/danh-sach-can-bo-vien-chuc"}>
-              <span className="icon-holder">
-                <i className="anticon anticon-logout" />
+            <NavLink
+              to="/ctdt/danh-sach-can-bo-vien-chuc"
+              className={({ isActive }) => isActive ? "active-menu" : ""}
+            >
+              <span className="title">
+                Quản lý danh sách cán bộ viên chức thuộc CTĐT
               </span>
-              <span className="title">Quản lý danh sách cán bộ viên chức thuộc CTĐT</span>
-            </Link>
+            </NavLink>
           </li>
+
           <li>
-            <Link className="dropdown-toggle" to={"/ctdt/danh-sach-mon-hoc"}>
-              <span className="icon-holder">
-                <i className="anticon anticon-logout" />
+            <NavLink
+              to="/ctdt/danh-sach-mon-hoc"
+              className={({ isActive }) => isActive ? "active-menu" : ""}
+            >
+              <span className="title">
+                Quản lý danh sách môn học thuộc CTĐT
               </span>
-              <span className="title">Quản lý danh sách môn học thuộc CTĐT</span>
-            </Link>
+            </NavLink>
           </li>
+
           <li>
-            <Link className="dropdown-toggle" to={"/ctdt/danh-sach-de-cuong-can-duyet"}>
-              <span className="icon-holder">
-                <i className="anticon anticon-logout" />
+            <NavLink
+              to="/ctdt/danh-sach-de-cuong-can-duyet"
+              className={({ isActive }) => isActive ? "active-menu" : ""}
+            >
+              <span className="title">
+                Quản lý danh sách đề cương cần duyệt
               </span>
-              <span className="title">Quản lý danh sách đề cương cần duyệt</span>
-            </Link>
+            </NavLink>
           </li>
+
           <li>
-            <Link className="dropdown-toggle" onClick={Logout}>
-              <span className="icon-holder">
-                <i className="anticon anticon-logout" />
-              </span>
+            <NavLink
+              to="#"
+              onClick={Logout}
+            >
               <span className="title">Đăng xuất</span>
-            </Link>
+            </NavLink>
           </li>
+
         </ul>
       </div>
     </div>

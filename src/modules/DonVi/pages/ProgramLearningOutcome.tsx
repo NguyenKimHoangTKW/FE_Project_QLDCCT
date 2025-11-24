@@ -383,7 +383,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
                                     />
                                 </div>
                             </div>
-
+                            <hr />
 
                             <div className="row">
                                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
@@ -391,7 +391,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
                                         <i className="fas fa-plus-circle mr-1" /> Thêm mới
                                     </button>
                                     <button className="btn btn-ceo-blue" onClick={LoadData} disabled={loading} >
-                                        <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
+                                        <i className="fas fa-filter mr-1" /> Lọc dữ liệu
                                     </button>
                                 </div>
                             </div>
@@ -414,22 +414,22 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
                                 </tr> : filteredData.length > 0 ? (
                                     filteredData.map((item, index) => (
                                         <tr key={item.id_Plo}>
-                                            <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
-                                            <td className="formatSo">{item.code}</td>
-                                            <td>{item.description}</td>
-                                            <td className="formatSo">{item.order_index}</td>
-                                            <td className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
-                                            <td className="formatSo">{unixTimestampToDate(item.time_up)}</td>
-                                            <td className="formatSo">{item.total_pi}</td>
-                                            <td className="text-center align-middle">
+                                            <td data-label="STT" className="formatSo">{(page - 1) * pageSize + index + 1}</td>
+                                            <td data-label="Tên chuẩn đầu ra chương trình đào tạo" className="formatSo">{item.code}</td>
+                                            <td data-label="Nội dung chuẩn đầu ra chương trình đào tạo">{item.description}</td>
+                                            <td data-label="Thứ tự" className="formatSo">{item.order_index}</td>
+                                            <td data-label="Ngày tạo" className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
+                                            <td data-label="Cập nhật lần cuối" className="formatSo">{unixTimestampToDate(item.time_up)}</td>
+                                            <td data-label="Tổng PI" className="formatSo">{item.total_pi}</td>
+                                            <td data-label="*" className="formatSo">
                                                 <div className="d-flex justify-content-center flex-wrap gap-3">
-                                                    <button className="btn btn-sm btn-primary" onClick={() => handleEditProgramLearningOutcome(item.id_Plo)}>
+                                                    <button className="btn btn-sm btn-ceo-butterfly" onClick={() => handleEditProgramLearningOutcome(item.id_Plo)}>
                                                         <i className="anticon anticon-edit me-1" /> Sửa
                                                     </button>
-                                                    <button className="btn btn-sm btn-danger" onClick={() => handleDeleteProgramLearningOutcome(item.id_Plo)}>
+                                                    <button className="btn btn-sm btn-ceo-red" onClick={() => handleDeleteProgramLearningOutcome(item.id_Plo)}>
                                                         <i className="anticon anticon-delete me-1" /> Xóa
                                                     </button>
-                                                    <button className="btn btn-sm btn-info text-white" onClick={() => handleViewPerformanceIndicators(item.id_Plo, item.code)}>
+                                                    <button className="btn btn-sm btn-ceo-green" onClick={() => handleViewPerformanceIndicators(item.id_Plo, item.code)}>
                                                         <i className="anticon anticon-eye me-1" /> Xem chi tiết PI
                                                     </button>
                                                 </div>
@@ -448,24 +448,25 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
                             </tbody>
                         </table>
                     </div>
-                    <div className="d-flex justify-content-between align-items-center mt-3">
-                        <span>
+                    <div className="ceo-pagination mt-3">
+                        <div className="ceo-pagination-info">
                             Tổng số: {totalRecords} bản ghi | Trang {page}/{totalPages}
-                        </span>
-                        <div>
+                        </div>
+
+                        <div className="ceo-pagination-actions">
                             <button
-                                className="btn btn-secondary btn-sm mr-2"
+                                className="btn btn-outline-primary btn-sm"
                                 disabled={page <= 1}
                                 onClick={() => setPage(page - 1)}
                             >
-                                Trang trước
+                                ← Trang trước
                             </button>
                             <button
-                                className="btn btn-secondary btn-sm"
+                                className="btn btn-outline-primary btn-sm"
                                 disabled={page >= totalPages}
                                 onClick={() => setPage(page + 1)}
                             >
-                                Trang sau
+                                Trang sau →
                             </button>
                         </div>
                     </div>
@@ -482,21 +483,21 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
             >
                 <form id="modal-body" autoComplete="off">
                     <div className="form-group row">
-                        <label className="col-sm-2 col-form-label">Tên chuẩn đầu ra chương trình đào tạo</label>
+                        <label className="col-sm-2 col-form-label ceo-label">Tên chuẩn đầu ra chương trình đào tạo</label>
                         <div className="col-sm-10">
-                            <input type="text" className="form-control" name="code" value={formData.code ?? ""} onChange={handleInputChange} />
+                            <input type="text" className="form-control ceo-input" name="code" value={formData.code ?? ""} onChange={handleInputChange} />
                         </div>
                     </div>
                     <div className="form-group row">
                         <label className="col-sm-2 col-form-label">Nội dung chuẩn đầu ra chương trình đào tạo</label>
                         <div className="col-sm-10">
-                            <input type="text" className="form-control" name="Description" value={formData.Description ?? ""} onChange={handleInputChange} />
+                            <input type="text" className="form-control ceo-input" name="Description" value={formData.Description ?? ""} onChange={handleInputChange} />
                         </div>
                     </div>
                     <div className="form-group row">
-                        <label className="col-sm-2 col-form-label">Thứ tự</label>
+                        <label className="ceo-label col-sm-2 col-form-label">Thứ tự</label>
                         <div className="col-sm-10">
-                            <input type="number" className="form-control" name="order_index" value={formData.order_index ?? ""} onChange={handleInputChange} />
+                            <input type="number" className="form-control ceo-input" name="order_index" value={formData.order_index ?? ""} onChange={handleInputChange} />
                         </div>
                     </div>
                 </form>
@@ -508,36 +509,36 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
             >
                 <form id="modal-body" autoComplete="off">
                     <div className="form-group row">
-                        <label className="col-sm-2 col-form-label">Tên chỉ tiêu hiệu quả học tập</label>
+                        <label className="ceo-label col-sm-2 col-form-label">Tên chỉ tiêu hiệu quả học tập</label>
                         <div className="col-sm-10">
-                            <input type="text" className="form-control" name="code_pi" value={performanceIndicatorsFormData.code_pi ?? ""} onChange={handleInputChangePerformanceIndicators} />
+                            <input type="text" className="form-control ceo-input" name="code_pi" value={performanceIndicatorsFormData.code_pi ?? ""} onChange={handleInputChangePerformanceIndicators} />
                         </div>
                     </div>
                     <div className="form-group row">
-                        <label className="col-sm-2 col-form-label">Mô tả chỉ tiêu hiệu quả học tập</label>
+                        <label className="ceo-label col-sm-2 col-form-label">Mô tả chỉ tiêu hiệu quả học tập</label>
                         <div className="col-sm-10">
-                            <input type="text" className="form-control" name="description_pi" value={performanceIndicatorsFormData.description_pi ?? ""} onChange={handleInputChangePerformanceIndicators} />
+                            <input type="text" className="form-control ceo-input" name="description_pi" value={performanceIndicatorsFormData.description_pi ?? ""} onChange={handleInputChangePerformanceIndicators} />
                         </div>
                     </div>
                     <div className="form-group row">
-                        <label className="col-sm-2 col-form-label">Thứ tự</label>
+                        <label className="ceo-label col-sm-2 col-form-label">Thứ tự</label>
                         <div className="col-sm-10">
-                            <input type="number" className="form-control" name="order_index_pi" value={performanceIndicatorsFormData.order_index_pi ?? ""} onChange={handleInputChangePerformanceIndicators} />
+                            <input type="number" className="form-control ceo-input" name="order_index_pi" value={performanceIndicatorsFormData.order_index_pi ?? ""} onChange={handleInputChangePerformanceIndicators} />
                         </div>
                     </div>
                 </form>
                 <div className="d-flex justify-content-end flex-wrap gap-3">
                     {performanceIndicatorsModalMode === "create" && (
-                        <button className="btn btn-success" onClick={handleAddNewPerformanceIndicators}>
+                        <button className="btn btn-ceo-butterfly" onClick={handleAddNewPerformanceIndicators}>
                             <i className="fas fa-plus-circle mr-1" /> Thêm mới
                         </button>
                     )}
                     {performanceIndicatorsModalMode === "edit" && (
-                        <button className="btn btn-primary" onClick={handleUpdatePerformanceIndicators}>
+                        <button className="btn btn-ceo-butterfly" onClick={handleUpdatePerformanceIndicators}>
                             <i className="fas fa-save mr-1" /> Cập nhật
                         </button>
                     )}
-                    <button className="btn btn-warning" onClick={handleResetPerformanceIndicatorsFormData}>
+                    <button className="btn btn-ceo-yell ow" onClick={handleResetPerformanceIndicatorsFormData}>
                         <i className="fas fa-undo mr-1" /> Reset form
                     </button>
                 </div>
@@ -556,13 +557,13 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
                         <tbody>
                             {performanceIndicatorsData.map((item, index) => (
                                 <tr key={item.id_PI}>
-                                    <td className="formatSo">{(performanceIndicatorsPage - 1) * performanceIndicatorsPageSize + index + 1}</td>
-                                    <td className="formatSo">{item.code}</td>
-                                    <td>{item.description}</td>
-                                    <td className="formatSo">{item.order_index}</td>
-                                    <td className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
-                                    <td className="formatSo">{unixTimestampToDate(item.time_up)}</td>
-                                    <td>
+                                    <td data-label="STT" className="formatSo">{(performanceIndicatorsPage - 1) * performanceIndicatorsPageSize + index + 1}</td>
+                                    <td data-label="Tên chỉ tiêu hiệu quả học tập" className="formatSo">{item.code}</td>
+                                    <td data-label="Mô tả chỉ tiêu hiệu quả học tập">{item.description}</td>
+                                    <td data-label="Thứ tự" className="formatSo">{item.order_index}</td>
+                                    <td data-label="Ngày tạo" className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
+                                    <td data-label="Cập nhật lần cuối" className="formatSo">{unixTimestampToDate(item.time_up)}</td>
+                                    <td data-label="*" className="formatSo">
                                         <button
                                             className="btn btn-icon btn-hover btn-sm btn-rounded pull-right"
                                             onClick={() => handleEditPerformanceIndicators(item.id_PI)}

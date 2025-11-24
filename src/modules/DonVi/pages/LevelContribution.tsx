@@ -143,8 +143,8 @@ export default function LevelContributionInterfaceDonVi() {
 
                             <div className="row">
                                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-                                    <button className="btn btn-primary" onClick={handleAddLevelContribution}>
-                                        <i className="fas fa-save mr-1" /> Thêm mới
+                                    <button className="btn btn-ceo-butterfly" onClick={handleAddLevelContribution}>
+                                        <i className="fas fa-plus-circle mr-1" /> Thêm mới
                                     </button>
                                 </div>
                             </div>
@@ -165,18 +165,18 @@ export default function LevelContributionInterfaceDonVi() {
                                         {listLevelContribution.length > 0 ? (
                                             listLevelContribution.map((item, index) => (
                                                 <tr key={item.id}>
-                                                    <td className="formatSo">{index + 1}</td>
-                                                    <td className="formatSo">{item.code}</td>
-                                                    <td>{item.description}</td>
-                                                    <td className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
-                                                    <td className="formatSo">{unixTimestampToDate(item.time_up)}</td>
-                                                    <td className="text-center align-middle">
+                                                    <td data-label="STT" className="formatSo">{index + 1}</td>
+                                                    <td data-label="Mã mục đóng góp" className="formatSo">{item.code}</td>
+                                                    <td data-label="Tên mục đóng góp">{item.description}</td>
+                                                    <td data-label="Ngày tạo" className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
+                                                    <td data-label="Cập nhật lần cuối" className="formatSo">{unixTimestampToDate(item.time_up)}</td>
+                                                    <td data-label="*" className="formatSo">
                                                         <div className="d-flex justify-content-center flex-wrap gap-3">
-                                                            <button className="btn btn-sm btn-primary" onClick={() => handleInfoLevelContribution(item.id)}>
-                                                                <i className="anticon anticon-edit me-1" /> Sửa
+                                                            <button className="btn btn-sm btn-ceo-butterfly" onClick={() => handleInfoLevelContribution(item.id)}>
+                                                                <i className="anticon anticon-edit me-1" /> Chỉnh sửa
                                                             </button>
-                                                            <button className="btn btn-sm btn-danger" onClick={() => handleDeleteLevelContribution(item.id)}>
-                                                                <i className="anticon anticon-delete me-1" /> Xóa
+                                                            <button className="btn btn-sm btn-ceo-red" onClick={() => handleDeleteLevelContribution(item.id)}>
+                                                                <i className="anticon anticon-delete me-1" /> Xóa bỏ
                                                             </button>
                                                         </div>
                                                     </td>

@@ -99,13 +99,13 @@ function KeySemesterInterfaceCtdt() {
     }
     const handleEditKeySemester = async (id: number) => {
         const res = await KeySemesterAPI.InfoKeySemester({ id_key_year_semester: id });
-    
+
         if (res.success) {
             setShowModal(true);
             setModalMode("edit");
-    
+
             setFormData((prev) => ({
-                ...prev, 
+                ...prev,
                 id_key_year_semester: res.data.id_key_year_semester,
                 name_key_year_semester: res.data.name_key_year_semester,
                 code_key_year_semester: res.data.code_key_year_semester,
@@ -114,7 +114,7 @@ function KeySemesterInterfaceCtdt() {
             SweetAlert("error", res.message);
         }
     };
-    
+
     const handleSave = async () => {
         if (modalMode === "create") {
             setLoading(true);
@@ -316,7 +316,7 @@ function KeySemesterInterfaceCtdt() {
                                         <i className="fas fa-file-excel mr-1" /> Import danh sách khóa học file từ Excel
                                     </button>
                                     <button className="btn btn-ceo-blue" onClick={() => ShowData()}>
-                                        <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
+                                        <i className="fas fa-filter mr-1" /> Lọc dữ liệu
                                     </button>
                                 </div>
                             </div>
@@ -371,24 +371,20 @@ function KeySemesterInterfaceCtdt() {
                                 {filteredData.length > 0 ? (
                                     filteredData.map((item, index) => (
                                         <tr key={item.id_key_year_semester}>
-                                            <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
-                                            <td className="formatSo">{item.code_key_year_semester}</td>
-                                            <td className="formatSo">{item.name_key_year_semester}</td>
-                                            <td className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
-                                            <td className="formatSo">{unixTimestampToDate(item.time_up)}</td>
-                                            <td>
-                                                <button
-                                                    className="btn btn-icon btn-hover btn-sm btn-rounded pull-right"
-                                                    onClick={() => handleEditKeySemester(item.id_key_year_semester)}
-                                                >
-                                                    <i className="anticon anticon-edit" />
-                                                </button>
-                                                <button
-                                                    className="btn btn-icon btn-hover btn-sm btn-rounded pull-right"
-                                                    onClick={() => handleDeleteKeySemester(item.id_key_year_semester)}
-                                                >
-                                                    <i className="anticon anticon-delete" />
-                                                </button>
+                                            <td data-label="STT" className="formatSo">{(page - 1) * pageSize + index + 1}</td>
+                                            <td data-label="Mã khóa học" className="formatSo">{item.code_key_year_semester}</td>
+                                            <td data-label="Tên khóa học">{item.name_key_year_semester}</td>
+                                            <td data-label="Ngày tạo" className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
+                                            <td data-label="Cập nhật lần cuối" className="formatSo">{unixTimestampToDate(item.time_up)}</td>
+                                            <td data-label="*" className="formatSo">
+                                                <div className="d-flex justify-content-center flex-wrap gap-3">
+                                                    <button className="btn btn-sm btn-ceo-butterfly" onClick={() => handleEditKeySemester(item.id_key_year_semester)}>
+                                                        <i className="anticon anticon-edit me-1" /> Chỉnh sửa
+                                                    </button>
+                                                    <button className="btn btn-sm btn-ceo-red" onClick={() => handleDeleteKeySemester(item.id_key_year_semester)}>
+                                                        <i className="anticon anticon-delete me-1" /> Xóa bỏ
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -404,24 +400,25 @@ function KeySemesterInterfaceCtdt() {
                             </tbody>
                         </table>
                     </div>
-                    <div className="d-flex justify-content-between align-items-center mt-3">
-                        <span>
+                    <div className="ceo-pagination mt-3">
+                        <div className="ceo-pagination-info">
                             Tổng số: {totalRecords} bản ghi | Trang {page}/{totalPages}
-                        </span>
-                        <div>
+                        </div>
+
+                        <div className="ceo-pagination-actions">
                             <button
-                                className="btn btn-secondary btn-sm mr-2"
+                                className="btn btn-outline-primary btn-sm"
                                 disabled={page <= 1}
                                 onClick={() => setPage(page - 1)}
                             >
-                                Trang trước
+                                ← Trang trước
                             </button>
                             <button
-                                className="btn btn-secondary btn-sm"
+                                className="btn btn-outline-primary btn-sm"
                                 disabled={page >= totalPages}
                                 onClick={() => setPage(page + 1)}
                             >
-                                Trang sau
+                                Trang sau →
                             </button>
                         </div>
                     </div>

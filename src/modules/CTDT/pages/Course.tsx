@@ -638,7 +638,7 @@ function CourseInterfaceCtdt() {
               <div className="row mt-4">
                 <div className="col-12 d-flex flex-wrap gap-3 justify-content-end">
 
-                  <button className="btn btn-ceo-green" onClick={AddNewCourse}>
+                  <button className="btn btn-ceo-butterfly" onClick={AddNewCourse}>
                     <i className="fas fa-plus-circle"></i> Thêm mới
                   </button>
 
@@ -663,7 +663,7 @@ function CourseInterfaceCtdt() {
               </div>
 
               {/* KEY YEAR BUTTONS */}
-              {checkClickFilter && allData.length > 0 && (
+              {checkClickFilter && filteredData.length > 0 && (
                 <>
                   <hr />
                   <div className="row justify-content-center mt-4">

@@ -315,25 +315,21 @@ export default function CourseLearningOutcomeInterfaceDonVi() {
                                 {allData.length > 0 ? (
                                     allData.map((item, index) => (
                                         <tr key={item.id}>
-                                            <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
-                                            <td className="formatSo">{item.name_CLO}</td>
-                                            <td>{item.describe_CLO}</td>
-                                            <td>{item.bloom_level}</td>
-                                            <td className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
-                                            <td className="formatSo">{unixTimestampToDate(item.time_up)}</td>
-                                            <td>
-                                                <button
-                                                    className="btn btn-icon btn-hover btn-sm btn-rounded pull-right"
-                                                    onClick={() => handleEditCourseLearningOutcome(item.id)}
-                                                >
-                                                    <i className="anticon anticon-edit" />
-                                                </button>
-                                                <button
-                                                    className="btn btn-icon btn-hover btn-sm btn-rounded pull-right"
-                                                    onClick={() => handleDeleteCourseLearningOutcome(item.id)}
-                                                >
-                                                    <i className="anticon anticon-delete" />
-                                                </button>
+                                            <td data-label="STT" className="formatSo">{(page - 1) * pageSize + index + 1}</td>
+                                            <td data-label="Tên chuẩn đầu ra học phần" className="formatSo">{item.name_CLO}</td>
+                                            <td data-label="Mô tả chuẩn đầu ra học phần">{item.describe_CLO}</td>
+                                            <td data-label="Mức độ Bloom">{item.bloom_level}</td>
+                                            <td data-label="Ngày tạo" className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
+                                            <td data-label="Cập nhật lần cuối" className="formatSo">{unixTimestampToDate(item.time_up)}</td>
+                                            <td data-label="*" className="formatSo">
+                                                <div className="d-flex justify-content-center flex-wrap gap-3">
+                                                    <button className="btn btn-sm btn-ceo-butterfly" onClick={() => handleEditCourseLearningOutcome(item.id)}>
+                                                        <i className="anticon anticon-edit me-1" /> Chỉnh sửa
+                                                    </button>
+                                                    <button className="btn btn-sm btn-ceo-red" onClick={() => handleDeleteCourseLearningOutcome(item.id)}>
+                                                        <i className="anticon anticon-delete me-1" /> Xóa bỏ
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -349,24 +345,25 @@ export default function CourseLearningOutcomeInterfaceDonVi() {
                             </tbody>
                         </table>
                     </div>
-                    <div className="d-flex justify-content-between align-items-center mt-3">
-                        <span>
+                    <div className="ceo-pagination mt-3">
+                        <div className="ceo-pagination-info">
                             Tổng số: {totalRecords} bản ghi | Trang {page}/{totalPages}
-                        </span>
-                        <div>
+                        </div>
+
+                        <div className="ceo-pagination-actions">
                             <button
-                                className="btn btn-secondary btn-sm mr-2"
+                                className="btn btn-outline-primary btn-sm"
                                 disabled={page <= 1}
                                 onClick={() => setPage(page - 1)}
                             >
-                                Trang trước
+                                ← Trang trước
                             </button>
                             <button
-                                className="btn btn-secondary btn-sm"
+                                className="btn btn-outline-primary btn-sm"
                                 disabled={page >= totalPages}
                                 onClick={() => setPage(page + 1)}
                             >
-                                Trang sau
+                                Trang sau →
                             </button>
                         </div>
                     </div>

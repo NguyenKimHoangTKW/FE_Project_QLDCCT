@@ -435,7 +435,7 @@ function CourseInterfaceDonVi() {
                   />
                 </div>
               </div>
-
+              <hr />
               <div className="row">
                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
                   <button className="btn btn-ceo-butterfly" onClick={AddNewCourse}>
@@ -453,7 +453,7 @@ function CourseInterfaceDonVi() {
                     <i className="fas fa-file-excel mr-1" /> Xuất dữ liệu ra file Excel
                   </button>
                   <button className="btn btn-ceo-blue" onClick={() => ShowData()}>
-                    <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
+                    <i className="fas fa-filter mr-1" /> Lọc dữ liệu
                   </button>
                 </div>
               </div>
@@ -508,32 +508,28 @@ function CourseInterfaceDonVi() {
               {filteredData.length > 0 ? (
                 filteredData.map((item, index) => (
                   <tr key={item.id_course}>
-                    <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
-                    <td>{item.name_key_year_semester}</td>
-                    <td>{item.name_semester}</td>
-                    <td>{item.name_program}</td>
+                    <td data-label="STT" className="formatSo">{(page - 1) * pageSize + index + 1}</td>
+                    <td data-label="Thuộc khóa học">{item.name_key_year_semester}</td>
+                    <td data-label="Thuộc học kỳ">{item.name_semester}</td>
+                    <td data-label="Thuộc CTĐT">{item.name_program}</td>
                     <td className="formatSo">{item.code_course}</td>
-                    <td>{item.name_course}</td>
+                    <td data-label="Tên học phần">{item.name_course}</td>
                     <td>{item.name}</td>
-                    <td>{item.name_gr_course}</td>
-                    <td className="formatSo">{item.totalTheory}</td>
-                    <td className="formatSo">{item.totalPractice}</td>
-                    <td className="formatSo">{item.credits}</td>
-                    <td className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
-                    <td className="formatSo">{unixTimestampToDate(item.time_up)}</td>
-                    <td className="formatSo">
-                      <button
-                        className="btn btn-icon btn-hover btn-sm btn-rounded pull-right"
-                        onClick={() => handleInfo(item.id_course)}
-                      >
-                        <i className="anticon anticon-edit" />
-                      </button>
-                      <button
-                        className="btn btn-icon btn-hover btn-sm btn-rounded pull-right"
-                        onClick={() => handleDelete(item.id_course)}
-                      >
-                        <i className="anticon anticon-delete" />
-                      </button>
+                    <td data-label="Nhóm học phần">{item.name_gr_course}</td>
+                    <td data-label="Số giờ lý thuyết" className="formatSo">{item.totalTheory}</td>
+                    <td data-label="Số giờ thực hành" className="formatSo">{item.totalPractice}</td>
+                    <td data-label="Số tín chỉ" className="formatSo">{item.credits}</td>
+                    <td data-label="Ngày tạo" className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
+                    <td data-label="Cập nhật lần cuối" className="formatSo">{unixTimestampToDate(item.time_up)}</td>
+                    <td data-label="*" className="formatSo">
+                      <div className="d-flex justify-content-center flex-wrap gap-3">
+                        <button className="btn btn-sm btn-ceo-butterfly" onClick={() => handleInfo(item.id_course)}>
+                          <i className="anticon anticon-edit me-1" /> Chỉnh sửa
+                        </button>
+                        <button className="btn btn-sm btn-ceo-red" onClick={() => handleDelete(item.id_course)}>
+                          <i className="anticon anticon-delete me-1" /> Xóa bỏ
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -548,27 +544,29 @@ function CourseInterfaceDonVi() {
               )}
             </tbody>
           </table>
-          <div className="d-flex justify-content-between align-items-center mt-3">
-            <span>
+          <div className="ceo-pagination mt-3">
+            <div className="ceo-pagination-info">
               Tổng số: {totalRecords} bản ghi | Trang {page}/{totalPages}
-            </span>
-            <div>
+            </div>
+
+            <div className="ceo-pagination-actions">
               <button
-                className="btn btn-secondary btn-sm mr-2"
+                className="btn btn-outline-primary btn-sm"
                 disabled={page <= 1}
                 onClick={() => setPage(page - 1)}
               >
-                Trang trước
+                ← Trang trước
               </button>
               <button
-                className="btn btn-secondary btn-sm"
+                className="btn btn-outline-primary btn-sm"
                 disabled={page >= totalPages}
                 onClick={() => setPage(page + 1)}
               >
-                Trang sau
+                Trang sau →
               </button>
             </div>
           </div>
+
         </div>
       </div>
 

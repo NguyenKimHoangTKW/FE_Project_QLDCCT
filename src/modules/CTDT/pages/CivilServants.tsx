@@ -214,11 +214,11 @@ export default function CivilServantsInterfaceDonVi() {
 
                             <div className="row">
                                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-                                    <button className="btn btn-ceo-green" onClick={handleAddNewCivilServant} >
+                                    <button className="btn btn-ceo-butterfly" onClick={handleAddNewCivilServant} >
                                         <i className="fas fa-plus-circle mr-1" /> Thêm mới
                                     </button>
                                     <button className="btn btn-ceo-blue" onClick={() => ShowData()} >
-                                        <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
+                                        <i className="fas fa-filter mr-1" /> Lọc dữ liệu
                                     </button>
                                 </div>
                             </div>

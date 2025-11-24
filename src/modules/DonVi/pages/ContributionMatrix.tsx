@@ -317,11 +317,11 @@ export default function ContributionMatrixInterfaceDonVi() {
                             <hr />
                             <div className="row">
                                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-                                    <button className="btn btn-ceo-green" onClick={handleFilterData}>
-                                        <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
+                                    <button className="btn btn-ceo-butterfly" onClick={handleSaveMatrix}>
+                                        <i className="fas fa-save mr-1" /> Lưu ma trận đóng góp
                                     </button>
-                                    <button className="btn btn-ceo-blue" onClick={handleSaveMatrix}>
-                                        <i className="fas fa-save mr-1" /> Lưu dữ liệu
+                                    <button className="btn btn-ceo-blue" onClick={handleFilterData}>
+                                        <i className="fas fa-filter mr-1" /> Lọc dữ liệu
                                     </button>
                                 </div>
                             </div>
@@ -470,11 +470,11 @@ export default function ContributionMatrixInterfaceDonVi() {
                     className="btn btn-lg px-4"
                     onClick={handleExportExcel}
                     style={{
-                        background: "linear-gradient(135deg,rgba(70, 218, 126, 0.98), rgba(24, 202, 1, 0.98))",
-                        color: "white",
-                        fontWeight: 600,
+                        background: "linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(236, 72, 153, 0.9))",
+                        color: "#fff",
+                        fontWeight: 300,
                         borderRadius: "14px",
-                        boxShadow: "0 4px 14px rgba(70, 218, 126, 0.98)"
+                        boxShadow: "0 4px 14px rgba(168, 85, 247, 0.5)"
                     }}
                 >
                     📝  Xuất dữ liệu ra file Excel

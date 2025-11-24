@@ -390,7 +390,7 @@ export default function CivilServantsInterfaceDonVi() {
                                     />
                                 </div>
                             </div>
-
+                            <hr />
                             <div className="row">
                                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
                                     <button className="btn btn-ceo-butterfly" onClick={handleAddNewCivilServant} >
@@ -408,7 +408,7 @@ export default function CivilServantsInterfaceDonVi() {
                                         <i className="fas fa-file-excel mr-1" /> Xuất dữ liệu ra file Excel
                                     </button>
                                     <button className="btn btn-ceo-blue" onClick={() => ShowData()} >
-                                        <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
+                                        <i className="fas fa-filter mr-1" /> Lọc dữ liệu
                                     </button>
                                 </div>
                             </div>
@@ -462,33 +462,26 @@ export default function CivilServantsInterfaceDonVi() {
                                 {filteredData.length > 0 ? (
                                     filteredData.map((item, index) => (
                                         <tr key={item.id_civilSer}>
-                                            <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
-                                            <td className="formatSo">{item.code_civilSer}</td>
-                                            <td className="formatSo">{item.fullname_civilSer}</td>
-                                            <td className="formatSo">{item.email}</td>
-                                            <td className="formatSo">{item.name_program}</td>
-                                            <td className="formatSo">{item.birthday}</td>
-                                            <td className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
-                                            <td className="formatSo">{unixTimestampToDate(item.time_up)}</td>
-                                            <td>
-                                                <button
-                                                    className="btn btn-icon btn-hover btn-sm btn-rounded pull-right"
-                                                    onClick={() => handleEditCivilServant(item.id_civilSer)}
-                                                >
-                                                    <i className="anticon anticon-edit" />
-                                                </button>
-                                                <button
-                                                    className="btn btn-icon btn-hover btn-sm btn-rounded pull-right"
-                                                    onClick={() => handleDeleteCivilServant(item.id_civilSer)}
-                                                >
-                                                    <i className="anticon anticon-delete" />
-                                                </button>
-                                                <button
-                                                    className="btn btn-icon btn-hover btn-sm btn-rounded pull-right"
-                                                    onClick={() => LoadInfoPermission(item.id_civilSer)}
-                                                >
-                                                    <i className="anticon anticon-save" />
-                                                </button>
+                                            <td data-label="STT" className="formatSo">{(page - 1) * pageSize + index + 1}</td>
+                                            <td data-label="Mã viên chức" className="formatSo">{item.code_civilSer}</td>
+                                            <td data-label="Tên viên chức">{item.fullname_civilSer}</td>
+                                            <td data-label="Email">{item.email}</td>
+                                            <td data-label="Thuộc CTĐT">{item.name_program}</td>
+                                            <td data-label="Ngày sinh" className="formatSo">{item.birthday}</td>
+                                            <td data-label="Ngày tạo" className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
+                                            <td data-label="Cập nhật lần cuối" className="formatSo">{unixTimestampToDate(item.time_up)}</td>
+                                            <td data-label="*" className="formatSo">
+                                                <div className="d-flex justify-content-center flex-wrap gap-3">
+                                                    <button className="btn btn-sm btn-ceo-butterfly" onClick={() => handleEditCivilServant(item.id_civilSer)}>
+                                                        <i className="anticon anticon-edit me-1" /> Chỉnh sửa
+                                                    </button>
+                                                    <button className="btn btn-sm btn-ceo-red" onClick={() => handleDeleteCivilServant(item.id_civilSer)}>
+                                                        <i className="anticon anticon-delete me-1" /> Xóa bỏ
+                                                    </button>
+                                                    <button className="btn btn-sm btn-ceo-green" onClick={() => LoadInfoPermission(item.id_civilSer)}>
+                                                        <i className="anticon anticon-save me-1" /> Phân quyền cấp chương trình đào tạo
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -504,24 +497,25 @@ export default function CivilServantsInterfaceDonVi() {
                             </tbody>
                         </table>
                     </div>
-                    <div className="d-flex justify-content-between align-items-center mt-3">
-                        <span>
+                    <div className="ceo-pagination mt-3">
+                        <div className="ceo-pagination-info">
                             Tổng số: {totalRecords} bản ghi | Trang {page}/{totalPages}
-                        </span>
-                        <div>
+                        </div>
+
+                        <div className="ceo-pagination-actions">
                             <button
-                                className="btn btn-secondary btn-sm mr-2"
+                                className="btn btn-outline-primary btn-sm"
                                 disabled={page <= 1}
                                 onClick={() => setPage(page - 1)}
                             >
-                                Trang trước
+                                ← Trang trước
                             </button>
                             <button
-                                className="btn btn-secondary btn-sm"
+                                className="btn btn-outline-primary btn-sm"
                                 disabled={page >= totalPages}
                                 onClick={() => setPage(page + 1)}
                             >
-                                Trang sau
+                                Trang sau →
                             </button>
                         </div>
                     </div>

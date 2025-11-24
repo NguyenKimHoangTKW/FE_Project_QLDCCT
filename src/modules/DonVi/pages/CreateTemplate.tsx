@@ -226,14 +226,11 @@ export default function CreateTemplateInterfaceDonVi() {
                                     />
                                 </div>
                             </div>
-
+                            <hr />
                             <div className="row">
                                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-                                    <button className="btn btn-primary" onClick={loadDataTemplate}>
-                                        <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
-                                    </button>
-                                    <button className="btn btn-primary" onClick={handleSaveTemplate}>
-                                        <i className="fas fa-save mr-1" /> Lưu dữ liệu
+                                    <button className="btn btn-ceo-blue" onClick={loadDataTemplate}>
+                                        <i className="fas fa-filter mr-1" /> Lọc dữ liệu
                                     </button>
                                 </div>
                             </div>
@@ -258,7 +255,7 @@ export default function CreateTemplateInterfaceDonVi() {
                                             <h5 className="fw-bold text-dark mb-0">
                                                 {item.section_code}. {item.section_name}
                                             </h5>
-                                            <div className="d-flex gap-2">
+                                            <div className="d-flex gap-3">
                                                 <button className="btn btn-outline-primary btn-sm" onClick={() => InfoTemplateSection(item.id_template_section)}>
                                                     <i className="fas fa-edit me-1"></i> Sửa
                                                 </button>
@@ -288,7 +285,7 @@ export default function CreateTemplateInterfaceDonVi() {
                         <div className="text-center border-top pt-3 d-flex justify-content-center gap-3 flex-wrap sticky-toolbar">
                             <button
                                 type="button"
-                                className="btn btn-primary"
+                                className="btn btn-ceo-butterfly"
                                 onClick={handleAddNewTemplateSection}
                             >
                                 <i className="fas fa-plus-circle me-1"></i> Tạo mới tiêu đề
@@ -307,6 +304,13 @@ export default function CreateTemplateInterfaceDonVi() {
                             >
                                 <i className="fas fa-eye me-1"></i> Xem trước mẫu đề cương
                             </button>
+                            <button
+                                type="button"
+                                className="btn btn-ceo-green"
+                                onClick={handleSaveTemplate}
+                            >
+                                <i className="fas fa-save me-1"></i> Xuất bản mẫu đề cương
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -319,36 +323,36 @@ export default function CreateTemplateInterfaceDonVi() {
             >
                 <form id="modal-body" autoComplete="off">
                     <div className="form-group row">
-                        <label className="col-sm-2 col-form-label">Thứ tự hiển thị</label>
+                        <label className="ceo-label col-sm-2 col-form-label">Thứ tự hiển thị</label>
                         <div className="col-sm-10">
-                            <input type="number" className="form-control" name="order_index" value={formData.order_index ?? ""} onChange={handleInputChange} />
+                            <input type="number" className="form-control ceo-input" name="order_index" value={formData.order_index ?? ""} onChange={handleInputChange} />
                         </div>
                     </div>
                     <div className="form-group row">
-                        <label className="col-sm-2 col-form-label">Số thứ tự mục tiêu đề</label>
+                        <label className="ceo-label col-sm-2 col-form-label">Số thứ tự mục tiêu đề</label>
                         <div className="col-sm-10">
-                            <input type="text" className="form-control" name="section_code" value={formData.section_code ?? ""} onChange={handleInputChange} />
+                            <input type="text" className="form-control ceo-input" name="section_code" value={formData.section_code ?? ""} onChange={handleInputChange} />
                         </div>
                     </div>
                     <div className="form-group row">
-                        <label className="col-sm-2 col-form-label">Tên mục tiêu đề</label>
+                        <label className="ceo-label col-sm-2 col-form-label">Tên mục tiêu đề</label>
                         <div className="col-sm-10">
-                            <input type="text" className="form-control" name="section_name" value={formData.section_name ?? ""} onChange={handleInputChange} />
+                            <input type="text" className="form-control ceo-input" name="section_name" value={formData.section_name ?? ""} onChange={handleInputChange} />
                         </div>
                     </div>
                     <div className="form-group row">
-                        <label className="col-sm-2 col-form-label">Yêu cầu</label>
+                        <label className="ceo-label col-sm-2 col-form-label">Yêu cầu</label>
                         <div className="col-sm-10">
-                            <select className="form-control" name="allow_input" value={formData.allow_input ?? ""} onChange={handleInputChange} >
+                            <select className="form-control ceo-input" name="allow_input" value={formData.allow_input ?? ""} onChange={handleInputChange} >
                                 <option value="1">Cho phép nhập liệu</option>
                                 <option value="0">Không cho phép nhập liệu</option>
                             </select>
                         </div>
                     </div>
                     <div className="form-group row">
-                        <label className="col-sm-2 col-form-label">Loại nội dung</label>
+                        <label className="ceo-label col-sm-2 col-form-label">Loại nội dung</label>
                         <div className="col-sm-10">
-                            <select className="form-control" name="id_contentType" value={formData.id_contentType ?? ""} onChange={handleInputChange} >
+                            <select className="form-control ceo-input" name="id_contentType" value={formData.id_contentType ?? ""} onChange={handleInputChange} >
                                 {listContentType.map((item: any) => (
                                     <option key={item.id} value={item.id}>{item.name}</option>
                                 ))}
@@ -356,7 +360,7 @@ export default function CreateTemplateInterfaceDonVi() {
                         </div>
                     </div>
                     <div className="form-group row">
-                        <label className="col-sm-2 col-form-label">Liên kết dữ liệu</label>
+                        <label className="ceo-label col-sm-2 col-form-label">Liên kết dữ liệu</label>
                         <div className="col-sm-10">
                             <select className="form-control" name="id_dataBinding" value={formData.id_dataBinding ?? ""} onChange={handleInputChange} >
                                 <option value="null">Bỏ qua</option>
