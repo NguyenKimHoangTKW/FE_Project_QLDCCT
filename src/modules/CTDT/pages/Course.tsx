@@ -6,6 +6,7 @@ import Loading from "../../../components/ui/Loading";
 import { CourseCTDTAPI } from "../../../api/CTDT/Course";
 import { ListCTDTPermissionAPI } from "../../../api/CTDT/ListCTDTPermissionAPI";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 function CourseInterfaceCtdt() {
   const didFetch = useRef(false);
@@ -28,6 +29,7 @@ function CourseInterfaceCtdt() {
   const [listKeyYearSemesterFilter, setListKeyYearSemesterFilter] = useState<any[]>([]);
   const [listSemesterFilter, setListSemesterFilter] = useState<any[]>([]);
   const [listCourseByKeyYear, setListCourseByKeyYear] = useState<any[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [checkClickKeyYear, setCheckClickKeyYear] = useState(false);
   const [checkClickFilter, setCheckClickFilter] = useState(false);
   const [permissionOpen, setPermissionOpen] = useState(false);
@@ -35,6 +37,7 @@ function CourseInterfaceCtdt() {
   const [setUpTimeOpen, setSetUpTimeOpen] = useState(false);
   const [countdownMap, setCountdownMap] = useState<any>({});
   const [openFunction, setOpenFunction] = useState(false);
+  const [openOptionFilter, setOpenOptionFilter] = useState(false);
   const [selectedIdCourse, setSelectedIdCourse] = useState<number | null>(null);
   const [openViewSyllabus, setOpenViewSyllabus] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -240,8 +243,6 @@ function CourseInterfaceCtdt() {
     { label: "Số tín chỉ", key: "credits" },
     { label: "Ngày tạo", key: "tim_cre" },
     { label: "Cập nhật lần cuối", key: "time_up" },
-    { label: "Thời gian mở học phần đề cương", key: "open_time" },
-    { label: "Thời gian đóng học phần đề cương", key: "close_time" },
     { label: "Thời gian còn lại để đề cương", key: "time_remaining" },
     { label: "Số lượng giảng viên phụ trách đề cương", key: "count_syllabus" },
     { label: "Trạng thái đề cương", key: "is_syllabus" },
@@ -482,6 +483,9 @@ function CourseInterfaceCtdt() {
   const handleOpenSetUpTimeCourse = () => {
     setSetUpTimeOpen(true);
   }
+  const handleOpenOptionFilter = () => {
+    setOpenOptionFilter(true);
+  }
   const handleOpenFunction = (id_course: number) => {
     setSelectedIdCourse(Number(id_course));
     setOpenFunction(true);
@@ -516,6 +520,105 @@ function CourseInterfaceCtdt() {
     setLogData(res);
     setShowLogData(true);
   }
+  const handleSubmit = async (e: React.FormEvent) => {
+    setLoading(true);
+    try {
+      e.preventDefault();
+      if (!selectedFile) {
+        Swal.fire("Thông báo", "Vui lòng chọn file Excel!", "warning");
+        return;
+      }
+      setLoading(true);
+      const res = await CourseCTDTAPI.UploadExcel(selectedFile, Number(optionFilter.id_ctdt));
+
+      setLoading(false);
+      if (res.success) {
+        SweetAlert("success", res.message);
+        ShowData();
+        setLoading(false);
+      } else {
+        SweetAlert("error", res.message);
+        setLoading(false);
+      }
+    }
+    finally {
+      setLoading(false);
+    }
+  };
+  const handleExportExcel = async () => {
+    setLoading(true);
+
+    try {
+      const res = await CourseCTDTAPI.ExportExcel({
+        id_gr_course: Number(optionFilter.id_gr_course || 0),
+        id_key_year_semester: Number(optionFilter.id_key_year_semester || 0),
+        id_semester: Number(optionFilter.id_semester || 0),
+        id_program: Number(optionFilter.id_ctdt || 0),
+        id_isCourse: Number(optionFilter.id_isCourse || 0),
+      });
+
+      const blob = new Blob([res.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Exports.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+      SweetAlert("success", "Xuất file Excel thành công!");
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleExportExcelIsStatus = async () => {
+    setLoading(true);
+
+    try {
+      const res = await CourseCTDTAPI.ExportExcelIsStatus({
+        id_gr_course: Number(optionFilter.id_gr_course || 0),
+        id_key_year_semester: Number(optionFilter.id_key_year_semester || 0),
+        id_semester: Number(optionFilter.id_semester || 0),
+        id_program: Number(optionFilter.id_ctdt || 0),
+        id_isCourse: Number(optionFilter.id_isCourse || 0),
+      });
+
+      const blob = new Blob([res.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Exports.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+      SweetAlert("success", "Xuất file Excel thành công!");
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleDownloadTemplate = () => {
+    setLoading(true);
+    try {
+      const link = document.createElement("a");
+      link.href = "/file-import/ImportCourse.xlsx";
+      link.download = "TemplateImport.xlsx";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
     if (!didFetch.current) {
       GetListCTDTByDonVi();
@@ -642,19 +745,9 @@ function CourseInterfaceCtdt() {
                     <i className="fas fa-plus-circle"></i> Thêm mới
                   </button>
 
-                  <button className="btn btn-ceo-green" onClick={handleOpenSetUpTimeCourse}>
-                    <i className="fas fa-clock"></i> Thiết lập thời gian
+                  <button className="btn btn-ceo-green" onClick={handleOpenOptionFilter}>
+                    <i className="fas fa-clock"></i> Mở bảng chức năng môn học
                   </button>
-
-                  <button
-                    className="btn btn-ceo-green"
-                    id="exportExcel"
-                    data-toggle="modal"
-                    data-target="#importExcelModal"
-                  >
-                    <i className="fas fa-file-excel"></i> Import Excel
-                  </button>
-
                   <button className="btn btn-ceo-blue" onClick={handleClickFilter}>
                     <i className="fas fa-filter"></i> Lọc dữ liệu
                   </button>
@@ -688,7 +781,7 @@ function CourseInterfaceCtdt() {
 
           {checkClickKeyYear === true ? (
             <div className="table-responsive mt-3">
-             <table className="table table-bordered table-rounded">
+              <table className="table table-bordered table-rounded">
                 <thead className="table-light">
                   <tr>
                     <th style={{ width: "8%" }}>Mã môn học</th>
@@ -765,7 +858,7 @@ function CourseInterfaceCtdt() {
           ) : (
             <>
               <div className="table-responsive">
-              <table className="table table-bordered table-rounded">
+                <table className="table table-bordered table-rounded">
                   <thead>
                     <tr>
                       {headers.map((h, idx) => (
@@ -790,8 +883,6 @@ function CourseInterfaceCtdt() {
                           <td className="formatSo">{item.credits}</td>
                           <td className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
                           <td className="formatSo">{unixTimestampToDate(item.time_up)}</td>
-                          <td className="formatSo">{item.time_open == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-primary">{unixTimestampToDate(item.time_open)}</span>}</td>
-                          <td className="formatSo">{item.time_close == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-primary">{unixTimestampToDate(item.time_close)}</span>}</td>
                           <td className="formatSo">
                             {item.time_close == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-success">{formatCountdown(item.time_close * 1000 - Date.now())}</span>}
                           </td>
@@ -843,7 +934,42 @@ function CourseInterfaceCtdt() {
           )}
         </div>
       </div>
-
+      {/*Modal Import*/}
+      <div
+        className="modal fade"
+        id="importExcelModal"
+        tabIndex={-1}
+        aria-labelledby="importExcelModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Import danh sách học phần từ Excel</h5>
+              <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div className="modal-body">
+              <form id="importExcelForm" autoComplete="off">
+                <div className="form-group row">
+                  <label className="col-sm-2 col-form-label">File Excel</label>
+                  <div className="col-sm-10">
+                    <input type="file" className="form-control" name="file" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedFile(e.target.files?.[0] || null)} />
+                  </div>
+                </div>
+              </form>
+            </div>
+            <hr />
+            <div className="modal-footer">
+              <button type="button" className="btn btn-ceo-green" onClick={handleDownloadTemplate}>Tải file mẫu</button>
+              <button type="button" className="btn btn-ceo-blue">Import</button>
+              <button type="button" className="btn btn-ceo-red" data-dismiss="modal">Đóng</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/*Modal Import*/}
       <Modal
         isOpen={showModal}
         title={modalMode === "create" ? "Thêm mới Học phần" : "Chỉnh sửa Học phần"}
@@ -1179,6 +1305,9 @@ function CourseInterfaceCtdt() {
 
         </div>
       </Modal>
+
+
+
       <Modal
         isOpen={showLogData}
         onClose={() => setShowLogData(false)}
@@ -1194,7 +1323,7 @@ function CourseInterfaceCtdt() {
               </tr>
             </thead>
             <tbody>
-              {logData.length > 0 ? ( 
+              {logData.length > 0 ? (
                 logData.map((item, index) => (
                   <tr key={index}>
                     <td className="formatSo">{index + 1}</td>
@@ -1211,6 +1340,81 @@ function CourseInterfaceCtdt() {
               )}
             </tbody>
           </table>
+        </div>
+      </Modal>
+
+
+      <Modal
+        isOpen={openOptionFilter}
+        title={`CHỨC NĂNG HỌC PHẦN`}
+        onClose={() => setOpenOptionFilter(false)}
+      >
+        <div className="action-menu">
+          <div
+            className="action-card permission"
+            id="exportExcel"
+            data-toggle="modal"
+            data-target="#importExcelModal"
+            onClick={() => {
+              setOpenOptionFilter(false);
+            }}
+          >
+            <div className="icon-area permission">
+              <i className="fas fa-file-import"></i>
+            </div>
+            <div className="text-area">
+              <h5>Import dữ liệu môn học từ Excel</h5>
+              <p>Import dữ liệu môn học từ file Excel vào chương trình đào tạo này</p>
+            </div>
+          </div>
+          {/* Chỉnh sửa */}
+          <div
+            className="action-card permission"
+            onClick={() => {
+              handleExportExcel();
+              setOpenOptionFilter(false);
+            }}
+          >
+            <div className="icon-area permission">
+              <i className="fas fa-file-export"></i>
+            </div>
+            <div className="text-area">
+              <h5>Xuất Excel dữ liệu đang hiển thị</h5>
+              <p>Xuất Excel dữ liệu đang hiển thị</p>
+            </div>
+          </div>
+          {/* Xem chi tiết đề cương đã hoàn thiện */}
+          <div
+            className="action-card permission"
+            onClick={() => {
+              handleExportExcelIsStatus();
+              setOpenOptionFilter(false);
+            }}
+          >
+            <div className="icon-area permission">
+              <i className="fas fa-file-export"></i>
+            </div>
+            <div className="text-area">
+              <h5>Xuất Excel môn học chưa tồn tại đề cương</h5>
+              <p>Xuất Excel môn học chưa tồn tại đề cương</p>
+            </div>
+          </div>
+          {/* Phân quyền */}
+          <div
+            className="action-card"
+            onClick={() => {
+              handleOpenSetUpTimeCourse();
+              setOpenOptionFilter(false);
+            }}
+          >
+            <div className="icon-area">
+              <i className="fas fa-clock"></i>
+            </div>
+            <div className="text-area">
+              <h5>Thiết lập thời gian mở học phần đề cương</h5>
+              <p>Thiết lập thời gian mở học phần đề cương</p>
+            </div>
+          </div>
         </div>
       </Modal>
     </div>

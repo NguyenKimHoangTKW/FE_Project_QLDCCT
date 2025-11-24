@@ -83,4 +83,46 @@ export const CourseCTDTAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
+
+
+    UploadExcel: async (file: File, idProgram: number) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("id_program", idProgram.toString());
+        return await axios.post(`${URL_API_CTDT}/course/upload-excel-danh-sach-mon-hoc`, formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+            withCredentials: true,
+        })
+            .then((res) => res.data);
+    },
+    ExportExcel: (data: {
+        id_gr_course: number,
+        id_key_year_semester: number,
+        id_semester: number,
+        id_program: number,
+        id_isCourse: number
+    }) =>
+        axios.post(
+            `${URL_API_CTDT}/course/export-danh-sach-mon-hoc-thuoc-don-vi`,
+            data,
+            {
+                responseType: "blob",
+                withCredentials: true,
+            }
+        ),
+    ExportExcelIsStatus: (data: {
+        id_gr_course: number,
+        id_key_year_semester: number,
+        id_semester: number,
+        id_program: number,
+        id_isCourse: number
+    }) =>
+        axios.post(
+            `${URL_API_CTDT}/course/export-danh-sach-mon-hoc-chua-co-de-cuong`,
+            data,
+            {
+                responseType: "blob",
+                withCredentials: true,
+            }
+        ),
 }

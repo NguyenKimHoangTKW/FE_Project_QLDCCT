@@ -538,7 +538,7 @@ function CourseInterfaceDonVi() {
                   <td
                     colSpan={headers.length}
                     className="text-center text-danger">
-                    Không có dữ liệu
+                    Không có dữ liệu môn học trong chương trình này
                   </td>
                 </tr>
               )}

@@ -73,9 +73,10 @@ export default function CivilServantsInterfaceDonVi() {
         }
     }
     const LoadInfoPermission = async (id_civilSer: number) => {
-        setPermissionOpen(true);
+
         const res = await CivilServantsDonViAPI.LoadInfoPermission({ id_civilSer });
         if (res.success) {
+            setPermissionOpen(true);
             setPermissionData({
                 id_civilSer,
                 id_type_users: Number(res.data.id_type_users),

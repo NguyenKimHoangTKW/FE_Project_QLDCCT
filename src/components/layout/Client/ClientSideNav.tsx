@@ -6,6 +6,7 @@ import Loading from "../../ui/Loading";
 
 function ClientSideNav() {
   const [loading, setLoading] = useState(false);
+  const [showErrorMessage, setShowErrorMessage] = useState("");
   const handleGoogleLogin = async (credentialResponse: any) => {
     setLoading(true);
     try {
@@ -20,8 +21,8 @@ function ClientSideNav() {
 
       if (res.status === 200 && res.data.success) {
         const { user } = res.data;
-        
-        localStorage.setItem("accessToken",  res.data.token);
+
+        localStorage.setItem("accessToken", res.data.token);
 
         switch (user.id_type_users) {
           case 2:
@@ -37,7 +38,7 @@ function ClientSideNav() {
             window.location.href = "/gv-de-cuong";
             break;
           default:
-            window.location.href = "/";
+            setShowErrorMessage("Bạn chưa được phân quyền để truy cập vào hệ thống, vui lòng liên hệ với quản trị viên để biết thêm chi tiết.");
             break;
         }
       } else {
@@ -94,6 +95,15 @@ function ClientSideNav() {
                 onSuccess={handleGoogleLogin}
                 onError={() => alert("Login thất bại!")}
               />
+
+              {showErrorMessage && (
+                <>
+                  <hr />
+                  <div className="alert alert-danger" style={{ marginTop: "10px" }}>
+                    {showErrorMessage}
+                  </div>
+                </>
+              )}
             </div>
           </li>
         </ul>

@@ -1,69 +1,57 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import AdminLayout from "./layouts/AdminLayout";
-import AdminRoutes from "./modules/Admin/routes/AdminRoutes";
-import CTDTRoutes from "./modules/CTDT/routes/CTDTRoutes";
+
 import ClientLayout from "./layouts/ClientLayout";
+import AdminLayout from "./layouts/AdminLayout";
 import CTDTLayout from "./layouts/CTDTLayout";
 import DonViLayout from "./layouts/DonViLayout";
-import DonViRoutes from "./modules/DonVi/routes/DonViRoutes";
 import GVDeCuongLayout from "./layouts/GVDeCuongLayout";
-import ProtectedRoute from "./components/ProtectedRoute";
+
+import AdminRoutes from "./modules/Admin/routes/AdminRoutes";
+import CTDTRoutes from "./modules/CTDT/routes/CTDTRoutes";
+import DonViRoutes from "./modules/DonVi/routes/DonViRoutes";
 import GVDeCuongRoutes from "./modules/GVDeCuong/routes/GVDeCuongRoutes";
+
+import ProtectedRoute from "./components/ProtectedRoute";
+
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* ✅ Trang chủ công khai */}
+
         <Route path="/" element={<ClientLayout />} />
 
-        {/* ✅ Admin */}
-        <Route
-          path="/admin/*"
-          element={
-            <ProtectedRoute allowedRoles={[5]}>
-              <AdminLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="*" element={<AdminRoutes />} />
+
+        <Route element={<ProtectedRoute allowedRoles={[5]} />}>
+          <Route path="/admin/*" element={<AdminLayout />}>
+            <Route path="*" element={<AdminRoutes />} />
+          </Route>
         </Route>
 
-        {/* ✅ CTDT */}
-        <Route
-          path="/ctdt/*"
-          element={
-            <ProtectedRoute allowedRoles={[2]}>
-              <CTDTLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="*" element={<CTDTRoutes />} />
+
+        {/* ===== CTDT ===== */}
+        <Route element={<ProtectedRoute allowedRoles={[2]} />}>
+          <Route path="/ctdt/*" element={<CTDTLayout />}>
+            <Route path="*" element={<CTDTRoutes />} />
+          </Route>
         </Route>
 
-        {/* ✅ Đơn vị */}
-        <Route
-          path="/donvi/*"
-          element={
-            <ProtectedRoute allowedRoles={[3]}>
-              <DonViLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="*" element={<DonViRoutes />} />
+
+        {/* ===== ĐƠN VỊ ===== */}
+        <Route element={<ProtectedRoute allowedRoles={[3]} />}>
+          <Route path="/donvi/*" element={<DonViLayout />}>
+            <Route path="*" element={<DonViRoutes />} />
+          </Route>
         </Route>
 
-        {/* ✅ Giảng viên đề cương */}
-        <Route
-          path="/gv-de-cuong/*"
-          element={
-            <ProtectedRoute allowedRoles={[4]}>
-              <GVDeCuongLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="*" element={<GVDeCuongRoutes />} />
+
+        {/* ===== Giảng viên đề cương ===== */}
+        <Route element={<ProtectedRoute allowedRoles={[4]} />}>
+          <Route path="/gv-de-cuong/*" element={<GVDeCuongLayout />}>
+            <Route path="*" element={<GVDeCuongRoutes />} />
+          </Route>
         </Route>
+
       </Routes>
     </BrowserRouter>
   );

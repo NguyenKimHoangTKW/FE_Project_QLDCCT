@@ -21,12 +21,14 @@ export default function () {
         count_tra_ve_chinh_sua: number | null;
         count_mo_de_cuong_sau_duyet: number | null;
         dang_mo_bo_sung_sau_duyet: number | null;
+        tu_choi_mo_bo_sung_sau_duyet: number | null;
     }>({
         count_cho_duyet: null,
         count_da_duyet: null,
         count_tra_ve_chinh_sua: null,
         count_mo_de_cuong_sau_duyet: null,
         dang_mo_bo_sung_sau_duyet: null,
+        tu_choi_mo_bo_sung_sau_duyet: null,
     });
     interface FilterData {
         id_program: number | null;
@@ -49,7 +51,6 @@ export default function () {
         { label: "Thuộc CTĐT", key: "program" },
         { label: "Mã giảng viên soạn đề cương", key: "code_civil" },
         { label: "Tên giảng viên soạn đề cương", key: "name_civil" },
-        { label: "Email giảng viên soạn đề cương", key: "email_civil" },
         { label: "Ngày tạo đề cương", key: "time_cre" },
         { label: "Ngày nộp đề cương", key: "time_up" },
         { label: "Phiên bản đề cương", key: "version" },
@@ -86,6 +87,7 @@ export default function () {
                 count_tra_ve_chinh_sua: res.count[0].tra_de_cuong,
                 count_mo_de_cuong_sau_duyet: res.count[0].mo_de_cuong_sau_duyet,
                 dang_mo_bo_sung_sau_duyet: res.count[0].dang_mo_bo_sung_sau_duyet,
+                tu_choi_mo_bo_sung_sau_duyet: res.count[0].tu_choi_mo_bo_sung,
             });
         } else {
             SweetAlert("error", res.message);
@@ -96,6 +98,7 @@ export default function () {
                 count_tra_ve_chinh_sua: res.count[0].tra_de_cuong,
                 count_mo_de_cuong_sau_duyet: res.count[0].mo_de_cuong_sau_duyet,
                 dang_mo_bo_sung_sau_duyet: res.count[0].dang_mo_bo_sung_sau_duyet,
+                tu_choi_mo_bo_sung_sau_duyet: res.count[0].tu_choi_mo_bo_sung,
             });
         }
     };
@@ -224,128 +227,162 @@ export default function () {
 
                         {/* Đang chờ duyệt */}
                         <div className="col-md-3">
-                            <div
-                                className="card shadow-sm stat-card"
+                            <div className="card shadow-sm stat-card"
                                 style={{
+                                    background: "#ffffff",
+                                    border: "1px solid #e5e7eb",
                                     borderRadius: "14px",
                                     padding: "6px",
                                     cursor: "pointer",
-                                    border: "1px solid #e2e8f0"
+                                    color: "#0284c7"
                                 }}
                                 onClick={() => filterByStatus(2)}
                             >
-                                <div className="card-body text-center py-4">
-                                    <h5 className="fw-bold text-success mb-2">
+                                <div className="card-body stat-body text-center py-4">
+
+                                    <h5 className="fw-bold mb-2">
                                         <i className="fas fa-hourglass-half me-2"></i>
                                         Đang chờ duyệt
                                     </h5>
-                                    <p className="display-6 fw-bold text-dark mb-0">
-                                        {countSylabus.count_cho_duyet}
-                                    </p>
+
+                                    <p className="display-6 fw-bold mb-0">{countSylabus.count_cho_duyet}</p>
+
                                 </div>
                             </div>
                         </div>
 
                         {/* Trả về chỉnh sửa */}
                         <div className="col-md-3">
-                            <div
-                                className="card shadow-sm stat-card"
+                            <div className="card shadow-sm stat-card"
                                 style={{
+                                    background: "#ffffff",
+                                    border: "1px solid #e5e7eb",
                                     borderRadius: "14px",
                                     padding: "6px",
                                     cursor: "pointer",
-                                    border: "1px solid #e2e8f0"
+                                    color: "#dc2626"
                                 }}
                                 onClick={() => filterByStatus(3)}
                             >
-                                <div className="card-body text-center py-4">
-                                    <h5 className="fw-bold text-danger mb-2">
+                                <div className="card-body stat-body text-center py-4">
+
+                                    <h5 className="fw-bold mb-2">
                                         <i className="fas fa-exclamation-circle me-2"></i>
                                         Trả về chỉnh sửa
                                     </h5>
-                                    <p className="display-6 fw-bold text-dark mb-0">
-                                        {countSylabus.count_tra_ve_chinh_sua}
-                                    </p>
+
+                                    <p className="display-6 fw-bold mb-0">{countSylabus.count_tra_ve_chinh_sua}</p>
+
                                 </div>
                             </div>
                         </div>
 
                         {/* Đã duyệt */}
                         <div className="col-md-3">
-                            <div
-                                className="card shadow-sm stat-card"
+                            <div className="card shadow-sm stat-card"
                                 style={{
+                                    background: "#ffffff",
+                                    border: "1px solid #e5e7eb",
                                     borderRadius: "14px",
                                     padding: "6px",
                                     cursor: "pointer",
-                                    border: "1px solid #e2e8f0"
+                                    color: "#059669"
                                 }}
                                 onClick={() => filterByStatus(4)}
                             >
-                                <div className="card-body text-center py-4">
-                                    <h5 className="fw-bold text-primary mb-2">
+                                <div className="card-body stat-body text-center py-4">
+
+                                    <h5 className="fw-bold mb-2">
                                         <i className="fas fa-check-circle me-2"></i>
                                         Đã duyệt
                                     </h5>
-                                    <p className="display-6 fw-bold text-dark mb-0">
-                                        {countSylabus.count_da_duyet}
-                                    </p>
+
+                                    <p className="display-6 fw-bold mb-0">{countSylabus.count_da_duyet}</p>
+
                                 </div>
                             </div>
                         </div>
 
-                        {/* Yêu cầu mở chỉnh sửa bổ sung */}
+                        {/* yêu cầu mở chỉnh sửa bổ sung */}
                         <div className="col-md-3">
-                            <div
-                                className="card shadow-sm stat-card"
+                            <div className="card shadow-sm stat-card"
                                 style={{
-                                    background: "#fff7e6",
-                                    border: "1px solid #ffe1a8",
-                                    borderRadius: "14px",
-                                    padding: "6px",
-                                    cursor: "pointer"
-                                }}
-                                onClick={() => filterByOpenEditFinal(1)}
-                            >
-                                <div className="card-body text-center py-4">
-                                    <h5 className="fw-bold text-warning mb-2">
-                                        <i className="fas fa-edit me-2"></i>
-                                        Yêu cầu mở chỉnh sửa bổ sung
-                                    </h5>
-                                    <p className="display-6 fw-bold text-dark mb-0">
-                                        {countSylabus.count_mo_de_cuong_sau_duyet}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="col-md-3">
-                            <div
-                                className="card shadow-sm stat-card"
-                                style={{
-                                    background: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
-                                    border: "1px solid #7c3aed",
+                                    background: "#ffffff",
+                                    border: "1px solid #e5e7eb",
                                     borderRadius: "14px",
                                     padding: "6px",
                                     cursor: "pointer",
-                                    color: "#fff"
+                                    color: "#b45309"
                                 }}
-                                onClick={() => filterByOpenEditFinal(7)}
+                                onClick={() => filterByOpenEditFinal(1)}
                             >
-                                <div className="card-body text-center py-4">
-                                    <h5 className="fw-bold mb-2" style={{ color: "#fdf4ff" }}>
+                                <div className="card-body stat-body text-center py-4">
+
+                                    <h5 className="fw-bold mb-2">
+                                        <i className="fas fa-edit me-2"></i>
+                                        Yêu cầu mở chỉnh sửa bổ sung
+                                    </h5>
+
+                                    <p className="display-6 fw-bold mb-0">{countSylabus.count_mo_de_cuong_sau_duyet}</p>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* đang mở chỉnh sửa bổ sung */}
+                        <div className="col-md-3">
+                            <div className="card shadow-sm stat-card"
+                                style={{
+                                    background: "#ffffff",
+                                    border: "1px solid #e5e7eb",
+                                    borderRadius: "14px",
+                                    padding: "6px",
+                                    cursor: "pointer",
+                                    color: "#4f46e5"
+                                }}
+                                onClick={() => filterByStatus(7)}
+                            >
+                                <div className="card-body stat-body text-center py-4">
+
+                                    <h5 className="fw-bold mb-2">
                                         <i className="fas fa-pen-square me-2"></i>
                                         Đang mở chỉnh sửa bổ sung sau duyệt
                                     </h5>
-                                    <p className="display-6 fw-bold mb-0" style={{ color: "#fff" }}>
-                                        {countSylabus.dang_mo_bo_sung_sau_duyet}
-                                    </p>
+
+                                    <p className="display-6 fw-bold mb-0">{countSylabus.dang_mo_bo_sung_sau_duyet}</p>
+
+                                </div>
+                            </div>
+                        </div>
+
+
+                        {/* từ chối mở */}
+                        <div className="col-md-3">
+                            <div className="card shadow-sm stat-card"
+                                style={{
+                                    background: "#ffffff",
+                                    border: "1px solid #e5e7eb",
+                                    borderRadius: "14px",
+                                    padding: "6px",
+                                    cursor: "pointer",
+                                    color: "#7e22ce"
+                                }}
+                                onClick={() => filterByOpenEditFinal(2)}
+                            >
+                                <div className="card-body stat-body text-center py-4">
+
+                                    <h5 className="fw-bold mb-2">
+                                        <i className="fas fa-times-circle me-2"></i>
+                                        Từ chối mở chỉnh sửa bổ sung sau duyệt
+                                    </h5>
+
+                                    <p className="display-6 fw-bold mb-0">{countSylabus.tu_choi_mo_bo_sung_sau_duyet}</p>
+
                                 </div>
                             </div>
                         </div>
 
                     </div>
-
 
                     <p className=" text-danger mt-3">Click vào từng trạng thái để lọc dữ liệu</p>
                     <hr />
@@ -362,19 +399,18 @@ export default function () {
                                 {filteredData.length > 0 ? (
                                     filteredData.map((item, index) => (
                                         <tr key={item.id_syllabus}>
-                                            <td className="formatSo">{index + 1}</td>
-                                            <td className="formatSo">{item.code_course}</td>
-                                            <td className="formatSo">{item.name_course}</td>
-                                            <td className="formatSo">{item.semester}</td>
-                                            <td className="formatSo">{item.key_year}</td>
-                                            <td className="formatSo">{item.program}</td>
-                                            <td className="formatSo">{item.code_civil}</td>
-                                            <td className="formatSo">{item.name_civil}</td>
-                                            <td className="formatSo">{item.email_civil}</td>
-                                            <td className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
-                                            <td className="formatSo">{unixTimestampToDate(item.time_up)}</td>
-                                            <td className="formatSo">{item.version}</td>
-                                            <td className="formatSo">
+                                            <td data-label="STT" className="formatSo">{index + 1}</td>
+                                            <td data-label="Mã môn học" className="formatSo">{item.code_course}</td>
+                                            <td data-label="Tên môn học">{item.name_course}</td>
+                                            <td data-label="Thuộc học kỳ">{item.semester}</td>
+                                            <td data-label="Thuộc khóa học">{item.key_year}</td>
+                                            <td data-label="Thuộc CTĐT" className="formatSo">{item.program}</td>
+                                            <td data-label="Mã giảng viên soạn đề cương" className="formatSo">{item.code_civil}</td>
+                                            <td data-label="Tên giảng viên soạn đề cương">{item.name_civil}</td>
+                                            <td data-label="Ngày tạo đề cương" className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
+                                            <td data-label="Ngày nộp đề cương" className="formatSo">{unixTimestampToDate(item.time_up)}</td>
+                                            <td data-label="Phiên bản đề cương" className="formatSo">{item.version}</td>
+                                            <td data-label="Lịch sử thao tác" className="formatSo">
                                                 <button className="btn btn-sm btn-function-ceo" onClick={() => LoadLogSyllabus(item.id_syllabus)} >
                                                     <i className="fas fa-history"></i> Xem lịch sử thao tác
                                                 </button>
@@ -384,7 +420,31 @@ export default function () {
                                             ) : item.id_status === 3 ? (
                                                 <td className="formatSo"><span className="text-danger">Trả đề cương về chỉnh sửa</span></td>
                                             ) : (
-                                                <td className="formatSo"><span className="text-primary">Đã duyệt</span></td>
+                                                <>
+                                                    <td className="formatSo">
+                                                        <span className="text-primary">Đã duyệt</span>
+                                                        <hr />
+                                                        {item.is_open_edit_final === 2 && (
+                                                            <>
+                                                                <div
+                                                                    className="alert alert-danger py-1 px-2 mb-2"
+                                                                    style={{ fontSize: "13px", borderRadius: "8px" }}
+                                                                >
+                                                                    <i className="fas fa-times-circle me-2"></i>
+                                                                    Đã bị từ chối yêu cầu mở chỉnh sửa bổ sung
+                                                                </div>
+                                                                <button
+                                                                    className="btn btn-sm btn-ceo-blue text-white fw-bold w-100 mb-2"
+                                                                    onClick={() => handlePreviewRequestEditSyllabus(item.id_syllabus)}
+                                                                >
+                                                                    ✉️ Mở lại chỉnh sửa bổ sung
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </td>
+
+                                                </>
+
                                             )}
                                             <td>
                                                 <div className="d-flex flex-column gap-2">
@@ -640,6 +700,25 @@ export default function () {
     border-collapse: collapse !important;
     border: 1px solid #ccc !important;
 }
+.stat-card{
+    transition: all .22s ease;
+}
+
+.stat-card:hover{
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 14px 28px rgba(0,0,0,.15) !important;
+}
+
+.stat-body {
+    min-height:150px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+}
+
+
+
                 `}
             </style>
         </div>

@@ -174,6 +174,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
               ))}
             </tbody>
           </table>
+          <hr />
         </div>
       );
     } else if (bindingType === "CLO") {
@@ -282,6 +283,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
                   )}
                 </tbody>
               </table>
+              <hr />
             </>
           )}
         </div>
