@@ -18,40 +18,27 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-
         <Route path="/" element={<ClientLayout />} />
-
-
         <Route element={<ProtectedRoute allowedRoles={[5]} />}>
           <Route path="/admin/*" element={<AdminLayout />}>
             <Route path="*" element={<AdminRoutes />} />
           </Route>
         </Route>
-
-
-        {/* ===== CTDT ===== */}
         <Route element={<ProtectedRoute allowedRoles={[2]} />}>
           <Route path="/ctdt/*" element={<CTDTLayout />}>
             <Route path="*" element={<CTDTRoutes />} />
           </Route>
         </Route>
-
-
-        {/* ===== ĐƠN VỊ ===== */}
         <Route element={<ProtectedRoute allowedRoles={[3]} />}>
           <Route path="/donvi/*" element={<DonViLayout />}>
             <Route path="*" element={<DonViRoutes />} />
           </Route>
         </Route>
-
-
-        {/* ===== Giảng viên đề cương ===== */}
         <Route element={<ProtectedRoute allowedRoles={[4]} />}>
           <Route path="/gv-de-cuong/*" element={<GVDeCuongLayout />}>
             <Route path="*" element={<GVDeCuongRoutes />} />
           </Route>
         </Route>
-
       </Routes>
     </BrowserRouter>
   );

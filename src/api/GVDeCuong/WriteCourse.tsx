@@ -53,4 +53,16 @@ export const WriteCourseAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
+
+    RequestWriteCourse: (data: { id_syllabus: number }) =>
+        axios.post(`${URL_API_DVDC}/write-course/request-write-course-by-user`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
+
+    ListRequestWriteCourse: (data: { id_syllabus: number }) =>
+        axios.post(`${URL_API_DVDC}/write-course/loads-list-join-write-course`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
 }

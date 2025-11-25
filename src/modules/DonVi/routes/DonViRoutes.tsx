@@ -12,10 +12,11 @@ import CivilServantsInterfaceDonVi from "../pages/CivilServants";
 import LevelContributionInterfaceDonVi from "../pages/LevelContribution";
 import ContributionMatrixInterfaceDonVi from "../pages/ContributionMatrix";
 import TrainingProgramInterfaceDonVi from "../pages/TrainingProgram";
-
+import IndexDVInterface from "../pages/indexDVInterface";
 function DonViRoutes() {
   return (
     <Routes>
+      <Route path="*" element={<IndexDVInterface />} />
       <Route path="danh-sach-mon-hoc-thuoc-donvi" element={<CourseInterfaceDonVi />} />
       <Route path="danh-sach-hoc-ky-thuoc-donvi" element={<SemesterInterfaceDonVi />} />
       <Route path="danh-sach-khoa-hoc-thuoc-donvi" element={<KeySemesterInterfaceDonVi />} />

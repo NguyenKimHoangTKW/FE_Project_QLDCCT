@@ -14,7 +14,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
 
     const previousPath = useRef(location.pathname);
 
-    // luôn lưu path trước đó
     useEffect(() => {
         previousPath.current = location.pathname;
     }, [location.pathname]);
