@@ -69,4 +69,47 @@ export const TemplateWriteCourseAPI = {
             withCredentials: true,
         }).then((res) => res.data),
 
+
+    SaveDraftSection: (payload: { id_syllabus: number; section_code: string; content: string }) =>
+        axios
+            .post(`${URL_API_DVDC}/write-template-syllabus/save-draft-section`, payload, { headers: { "Content-Type": "application/json" }, withCredentials: true })
+            .then(res => res.data),
+
+    LoadDrafts: (payload: { id_syllabus: number }) =>
+        axios
+            .post(`${URL_API_DVDC}/write-template-syllabus/load-drafts`, payload, { headers: { "Content-Type": "application/json" }, withCredentials: true })
+            .then(res => res.data),
+
+    SaveFinalFromDraft: (payload: { id_syllabus: number }) =>
+        axios
+            .post(`${URL_API_DVDC}/write-template-syllabus/save-final-from-draft`, payload, { headers: { "Content-Type": "application/json" }, withCredentials: true })
+            .then(res => res.data),
+
+
+
+
+
+    SaveContentDraft: (data: { id_syllabus: number, draft_json: string }) =>
+        axios.post(`${URL_API_DVDC}/write-template-syllabus/save-content-draft`, data,
+            {
+                headers: { "Content-Type": "application/json" },
+                withCredentials: true
+            })
+            .then(res => res.data),
+    SaveAllContentDraft: (data: { id_syllabus: number, section_json: string}) =>
+        axios.post(`${URL_API_DVDC}/write-template-syllabus/save-sections`, data,
+            {
+                headers: { "Content-Type": "application/json" },
+                withCredentials: true
+            })
+            .then(res => res.data),
+
+    LoadContentDraft: (data: { id_syllabus: number }) =>
+        axios.post(`${URL_API_DVDC}/write-template-syllabus/load-draft-section`, data,
+            {
+                headers: { "Content-Type": "application/json" },
+                withCredentials: true
+            })
+            .then(res => res.data),
+
 }

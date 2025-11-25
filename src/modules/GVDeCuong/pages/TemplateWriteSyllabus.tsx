@@ -1,18 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { SweetAlert } from "../../../components/ui/SweetAlert";
 import "../../../assets/css/template-preview.css";
-
+import * as signalR from "@microsoft/signalr";
 import { TemplateWriteCourseAPI } from "../../../api/GVDeCuong/TemplateWriteCourse";
 import "../../../tinymce.config";
 import { Editor } from "@tinymce/tinymce-react";
 import Swal from "sweetalert2";
 import Modal from "../../../components/ui/Modal";
 import { URL_API_DVDC } from "../../../URL_Config";
-import axios from "axios";
 export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   const { id_syllabus } = useParams();
   const [templateSections, setTemplateSections] = useState<any[]>([]);
+  const [hubConnection, setHubConnection] = useState<signalR.HubConnection | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [loadPreviewCourseObjectives, setLoadPreviewCourseObjectives] = useState<any[]>([]);
   const [loadPreviewCourseLearningOutcome, setLoadPreviewCourseLearningOutcome] = useState<any[]>([]);
@@ -122,11 +122,59 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
     });
   };
 
+  const editorReady = useRef(false);
+  const LoadDraftFromServer = async () => {
+    const res = await TemplateWriteCourseAPI.LoadDrafts({
+      id_syllabus: Number(id_syllabus),
+    });
+
+    if (res.success) {
+      const map: any = {};
+      res.data.forEach((d: any) => {
+        map[d.section_code] = d.content_code || "";
+      });
+
+      setDraftData(map);
+    }
+  };
+  const draftTimeouts = useRef<Record<string, any>>({});
+
+
+  const saveDraftSection = (sectionCode: string, content: string) => {
+
+    setDraftData(prev => ({
+      ...prev,
+      [sectionCode]: content
+    }));
+
+    // debounce
+    if (draftTimeouts.current[sectionCode]) {
+      clearTimeout(draftTimeouts.current[sectionCode]);
+    }
+
+    draftTimeouts.current[sectionCode] = setTimeout(() => {
+
+      TemplateWriteCourseAPI.SaveDraftSection({
+        id_syllabus: Number(id_syllabus),
+        section_code: sectionCode,
+        content: content,
+      });
+
+    }, 700);
+  };
 
   useEffect(() => {
-    LoadData();
-
+    const loadAll = async () => {
+      await LoadData();
+      await LoadDraftFromServer();
+    };
+    loadAll();
   }, []);
+  useEffect(() => {
+    if (!editorReady.current) return;
+    applyDraftToEditors();
+  }, [draftData, templateSections]);
+
 
   useEffect(() => {
     if (checkOpen.status === false && checkOpen.is_open === true) {
@@ -142,11 +190,65 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         await LoadListPLOCourse();
         await LoadPreviewLevelContribution();
         await LoadPreviewMapPLObySyllabus();
+        await LoadSavedMappingCLOPI();
       };
 
       loadAll();
     }
   }, [checkOpen.status === false && checkOpen.is_open === true]);
+
+  useEffect(() => {
+
+    const connect = async () => {
+      const conn = new signalR.HubConnectionBuilder()
+        .withUrl("https://localhost:44314/hubs/syllabus", {
+          withCredentials: true
+        })
+        .withAutomaticReconnect()
+        .build();
+
+      conn.on("SectionDraftUpdated", (
+        recv_syllabus_id,
+        section_code,
+        content
+      ) => {
+
+        if (recv_syllabus_id !== Number(id_syllabus)) return;
+
+        // update state
+        setDraftData(prev => ({
+          ...prev,
+          [section_code]: content,
+        }));
+
+        // sync vào tinyMCE nếu đang _KHÔNG_ edit section đó
+        const editor = window.tinymce.get(section_code);
+
+        if (editor) {
+          const currentContent = editor.getContent();
+
+          if (currentContent !== content) {
+            editor.setContent(content);
+          }
+        }
+      });
+
+
+      await conn.start();
+      await conn.invoke("JoinSyllabusGroup", Number(id_syllabus));
+
+      setHubConnection(conn);
+    };
+
+    connect();
+
+    return () => {
+      if (hubConnection) {
+        hubConnection.invoke("LeaveSyllabusGroup", Number(id_syllabus)).catch(() => { });
+        hubConnection.stop();
+      }
+    };
+  }, [id_syllabus]);
 
 
 
@@ -765,19 +867,14 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
 
     if (!confirm.isConfirmed) return;
 
-    const finalData = templateSections.map(section => ({
-      ...section,
-      id_template_section: Number(section.id_template_section) || 0,
-      value: draftData[section.section_code] || section.value || ""
-    }));
-    const res = await TemplateWriteCourseAPI.SaveFinalSyllabus({
+    const res = await TemplateWriteCourseAPI.SaveFinalFromDraft({
       id_syllabus: Number(id_syllabus),
-      data: finalData
     });
+
     if (res.success) {
       Swal.fire({
         title: "Đã lưu!",
-        text: "Đề cương đã được lưu hoàn chỉnh.",
+        text: res.message || "Đề cương đã được lưu hoàn chỉnh.",
         icon: "success"
       });
       localStorage.removeItem(storageKey);
@@ -785,10 +882,28 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         window.history.back();
       }, 1000);
     } else {
-      SweetAlert("error", res.message);
+      SweetAlert("error", res.message || "Lưu đề cương thất bại!");
     }
   };
 
+
+  const applyDraftToEditors = () => {
+    if (!editorReady.current) return;
+
+    setTimeout(() => {
+      Object.entries(draftData).forEach(([sec, content]) => {
+        const ed = (window as any).tinymce?.get(sec);
+        if (!ed || ed.destroyed) return;
+
+        if (document.activeElement === ed.getBody()) return;
+
+        try {
+          const current = ed.getContent({ format: "raw" });
+          if (current !== content) ed.setContent(content);
+        } catch { }
+      });
+    }, 200);
+  };
 
   const renderSectionContent = (section: any) => {
     const type = section.contentType?.split(" - ")[0] || "";
@@ -803,17 +918,19 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         return (
           <div className="tinymce-wrapper">
             <Editor
+              key={section.section_code}
+              id={section.section_code}
               value={
                 draftData[section.section_code] ??
                 section.value ??
                 getDefaultTemplateContent(bindingCode)
               }
               onEditorChange={(newContent) => {
-                const updatedDraft = {
-                  ...draftData,
-                  [section.section_code]: newContent,
-                };
-                saveDraftToLocal(updatedDraft);
+                saveDraftSection(section.section_code, newContent);
+              }}
+              onInit={() => {
+                editorReady.current = true;
+                setTimeout(() => applyDraftToEditors(), 200);
               }}
               init={{
                 height: 500,
@@ -836,45 +953,21 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
                   "help",
                   "wordcount",
                 ],
-
                 toolbar:
                   "undo redo | styles fontfamily fontsize | " +
                   "bold italic underline forecolor backcolor | " +
                   "alignleft aligncenter alignright alignjustify | " +
                   "bullist numlist outdent indent | " +
                   "table tabledelete | tableprops tablecellprops tablerowprops | " +
-                  "link image | " +
-                  "preview code fullscreen",
-                extended_valid_elements:
-                  "select[id|name|class|style],option[value|selected],table[style|class|border|cellpadding|cellspacing],tr,td[colspan|rowspan|style]",
-
-                valid_children:
-                  "+table[tr],+tr[td],+td[select],+body[select]",
+                  "link image | preview code fullscreen",
                 forced_root_block: "",
-                table_advtab: true,
-                table_default_attributes: { border: "1" },
-                table_default_styles: { width: "100%", borderCollapse: "collapse" },
-                font_family_formats:
-                  "Arial=arial,helvetica,sans-serif;" +
-                  "Times New Roman='Times New Roman',times,serif;" +
-                  "Calibri=calibri,sans-serif;" +
-                  "Tahoma=tahoma,sans-serif;" +
-                  "Verdana=verdana,sans-serif;",
-                fontsize_formats: "10px 11px 12px 13px 14px 16px 18px 20px 24px 28px 32px",
-                paste_data_images: true,
-                skin: false,
-                content_css: false,
-                skin_ui_css: `
-                  .tox-promotion,
-                  .tox-statusbar__branding,
-                  .tox-statusbar__right-container,
-                  .tox-statusbar__help-text {
-                    display: none !important;
-                  }
-                `,
+                setup(editor) {
+                  editor.on("BeforeSetContent", (e) => {
+                    if (editor.hasFocus()) e.preventDefault();
+                  });
+                }
               }}
             />
-
           </div>
         );
 
@@ -882,7 +975,21 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         return <div className="text-muted fst-italic">(Không có cấu hình hiển thị cho loại này)</div>;
     }
   };
+  const sortSectionCodes = (sections: any[]) => {
+    return sections.slice().sort((a, b) => {
+      const pa = a.section_code.split('.').map(Number);
+      const pb = b.section_code.split('.').map(Number);
 
+      const len = Math.max(pa.length, pb.length);
+      for (let i = 0; i < len; i++) {
+        const na = pa[i] ?? 0;
+        const nb = pb[i] ?? 0;
+        if (na < nb) return -1;
+        if (na > nb) return 1;
+      }
+      return 0;
+    });
+  };
 
   const addNewSection = () => {
     if (!newSectionName.trim()) {
@@ -1175,6 +1282,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
           )}
 
         </div>
+
       </div>
       <Modal
         isOpen={showAddSection}
@@ -1223,7 +1331,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
           </button>
 
           <pre className="mt-3" style={{ whiteSpace: "pre-wrap" }}>
-  {aiResult}
+            {aiResult}
           </pre>
 
           <hr />
@@ -1251,6 +1359,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
 
         </div>
       </Modal>
+
 
       {editingSectionIndex !== null && (
         <Modal
