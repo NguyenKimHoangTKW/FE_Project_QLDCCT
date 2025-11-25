@@ -277,6 +277,36 @@ function ListWriteCourseDVDC() {
             setListRequestWriteCourse(res.data);
         } else {
             SweetAlert("error", res.message);
+            setListRequestWriteCourse([]);
+        }
+    }
+    const handleAcceptRequestWriteCourse = async (id_ApproveUserSyllabus: number) => {
+        const res = await WriteCourseAPI.AcceptJoinWriteCourse({ id_ApproveUserSyllabus: Number(id_ApproveUserSyllabus) });
+        if (res.success) {
+            SweetAlert("success", res.message);
+            getListRequestWriteCourse(Number(formData.id_syllabus));
+        } else {
+            SweetAlert("error", res.message);
+        }
+    }
+    const handleRejectRequestWriteCourse = async (id_ApproveUserSyllabus: number) => {
+        const res = await WriteCourseAPI.RejectJoinWriteCourse({ id_ApproveUserSyllabus: Number(id_ApproveUserSyllabus) });
+        if (res.success) {
+            SweetAlert("success", res.message);
+            getListRequestWriteCourse(Number(formData.id_syllabus));
+        } else {
+            SweetAlert("error", res.message);
+        }
+    }
+    const handleRemoveJoinWriteCourse = async (id_ApproveUserSyllabus: number) => {
+        const confirm = await SweetAlertDel("Bạn có chắc muốn loại thành viên này khỏi danh sách yêu cầu viết đề cương?");
+        if (!confirm) return;
+        const res = await WriteCourseAPI.RemoveJoinWriteCourse({ id_ApproveUserSyllabus: Number(id_ApproveUserSyllabus) });
+        if (res.success) {
+            SweetAlert("success", res.message);
+            getListRequestWriteCourse(Number(formData.id_syllabus));
+        } else {
+            SweetAlert("error", res.message);
         }
     }
     useEffect(() => {
@@ -440,25 +470,30 @@ function ListWriteCourseDVDC() {
                                                                             >
                                                                                 ✏️ Tiếp tục viết
                                                                             </button>
-                                                                            <button
-                                                                                className="btn btn-sm btn-ceo-green w-100 mb-2"
-                                                                                onClick={() => handleShowModalRequestWriteCourse(teacher.id_syllabus)}
-                                                                            >
-                                                                                📄 Xem danh sách yêu cầu tham gia viết đề cương
-                                                                            </button>
-                                                                            <button
-                                                                                className="btn btn-sm  btn-ceo-green w-100 mb-2"
-                                                                                onClick={() => handleInheritSyllabusTemplate(teacher.id_syllabus)}
-                                                                            >
-                                                                                📄 Kế thừa mẫu
-                                                                            </button>
+                                                                            {is_write === true ? (
+                                                                                <>
+                                                                                    <button
+                                                                                        className="btn btn-sm btn-ceo-green w-100 mb-2"
+                                                                                        onClick={() => handleShowModalRequestWriteCourse(teacher.id_syllabus)}
+                                                                                    >
+                                                                                        📄 Xem danh sách yêu cầu tham gia viết đề cương
+                                                                                    </button>
+                                                                                    <button
+                                                                                        className="btn btn-sm  btn-ceo-green w-100 mb-2"
+                                                                                        onClick={() => handleInheritSyllabusTemplate(teacher.id_syllabus)}
+                                                                                    >
+                                                                                        📄 Kế thừa mẫu
+                                                                                    </button>
 
-                                                                            <button
-                                                                                className="btn btn-sm btn-ceo-red w-100 mb-2"
-                                                                                onClick={() => handleDeleteSyllabus(teacher.id_syllabus)}
-                                                                            >
-                                                                                🗑️ Xóa mẫu
-                                                                            </button>
+                                                                                    <button
+                                                                                        className="btn btn-sm btn-ceo-red w-100 mb-2"
+                                                                                        onClick={() => handleDeleteSyllabus(teacher.id_syllabus)}
+                                                                                    >
+                                                                                        🗑️ Xóa mẫu
+                                                                                    </button>
+                                                                                </>
+                                                                            ) : null}
+
                                                                         </div>
                                                                     )}
 
@@ -471,12 +506,17 @@ function ListWriteCourseDVDC() {
                                                                                 👁️ Xem bản đã nộp
                                                                             </button>
 
-                                                                            <button
-                                                                                className="btn btn-sm btn-warning w-100 mb-2"
-                                                                                onClick={() => handleRollbackSyllabus(teacher.id_syllabus)}
-                                                                            >
-                                                                                🔄 Thu hồi đề cương
-                                                                            </button>
+                                                                            {is_write === true ? (
+                                                                                <>
+                                                                                    <button
+                                                                                        className="btn btn-sm btn-warning w-100 mb-2"
+                                                                                        onClick={() => handleRollbackSyllabus(teacher.id_syllabus)}
+                                                                                    >
+                                                                                        🔄 Thu hồi đề cương
+                                                                                    </button>
+                                                                                </>
+                                                                            ) : null}
+
                                                                         </div>
                                                                     )}
 
@@ -506,48 +546,50 @@ function ListWriteCourseDVDC() {
                                                                             >
                                                                                 👁️ Xem đề cương
                                                                             </button>
-
-                                                                            {teacher.is_open_edit_final === 0 && (
-                                                                                <button
-                                                                                    className="btn btn-sm btn-info text-white fw-bold w-100 mb-2"
-                                                                                    onClick={() => handleShowModalRequestEditSyllabus(teacher.id_syllabus)}
-                                                                                >
-                                                                                    ✉️ Gửi yêu cầu mở chỉnh sửa
-                                                                                </button>
-                                                                            )}
-
-                                                                            {teacher.is_open_edit_final === 1 && (
+                                                                            {is_write === true ? (
                                                                                 <>
-                                                                                    <div className="alert alert-info py-1 px-2 mb-2" style={{ fontSize: "13px", borderRadius: "8px" }}>
-                                                                                        <i className="fas fa-envelope-open-text me-2"></i>
-                                                                                        Yêu cầu mở chỉnh sửa đã gửi, đang chờ duyệt
-                                                                                    </div>
+                                                                                    {teacher.is_open_edit_final === 0 && (
+                                                                                        <button
+                                                                                            className="btn btn-sm btn-info text-white fw-bold w-100 mb-2"
+                                                                                            onClick={() => handleShowModalRequestEditSyllabus(teacher.id_syllabus)}
+                                                                                        >
+                                                                                            ✉️ Gửi yêu cầu mở chỉnh sửa
+                                                                                        </button>
+                                                                                    )}
 
-                                                                                    <button
-                                                                                        className="btn btn-sm btn-danger text-white fw-bold w-100 mb-2"
-                                                                                        onClick={() => handleCancelRequestEditSyllabus(teacher.id_syllabus)}
-                                                                                    >
-                                                                                        ✉️ Hủy yêu cầu
-                                                                                    </button>
+                                                                                    {teacher.is_open_edit_final === 1 && (
+                                                                                        <>
+                                                                                            <div className="alert alert-info py-1 px-2 mb-2" style={{ fontSize: "13px", borderRadius: "8px" }}>
+                                                                                                <i className="fas fa-envelope-open-text me-2"></i>
+                                                                                                Yêu cầu mở chỉnh sửa đã gửi, đang chờ duyệt
+                                                                                            </div>
+
+                                                                                            <button
+                                                                                                className="btn btn-sm btn-danger text-white fw-bold w-100 mb-2"
+                                                                                                onClick={() => handleCancelRequestEditSyllabus(teacher.id_syllabus)}
+                                                                                            >
+                                                                                                ✉️ Hủy yêu cầu
+                                                                                            </button>
+                                                                                        </>
+                                                                                    )}
+
+                                                                                    {teacher.is_open_edit_final === 2 && (
+                                                                                        <>
+                                                                                            <div className="alert alert-danger py-1 px-2 mb-2" style={{ fontSize: "13px", borderRadius: "8px" }}>
+                                                                                                <i className="fas fa-times-circle me-2"></i>
+                                                                                                Đã bị từ chối yêu cầu mở chỉnh sửa bổ sung
+                                                                                            </div>
+
+                                                                                            <button
+                                                                                                className="btn btn-sm btn-danger text-white fw-bold w-100 mb-2"
+                                                                                                onClick={() => handleShowModalRefundSyllabus(teacher.id_syllabus)}
+                                                                                            >
+                                                                                                ✉️ Xem lý do từ chối
+                                                                                            </button>
+                                                                                        </>
+                                                                                    )}
                                                                                 </>
-                                                                            )}
-
-                                                                            {teacher.is_open_edit_final === 2 && (
-                                                                                <>
-                                                                                    <div className="alert alert-danger py-1 px-2 mb-2" style={{ fontSize: "13px", borderRadius: "8px" }}>
-                                                                                        <i className="fas fa-times-circle me-2"></i>
-                                                                                        Đã bị từ chối yêu cầu mở chỉnh sửa bổ sung
-                                                                                    </div>
-
-                                                                                    <button
-                                                                                        className="btn btn-sm btn-danger text-white fw-bold w-100 mb-2"
-                                                                                        onClick={() => handleShowModalRefundSyllabus(teacher.id_syllabus)}
-                                                                                    >
-                                                                                        ✉️ Xem lý do từ chối
-                                                                                    </button>
-                                                                                </>
-                                                                            )}
-
+                                                                            ) : null}
                                                                             {showButton && (
                                                                                 <button
                                                                                     className="btn btn-sm btn-outline-primary w-100 mb-2"
@@ -633,6 +675,7 @@ function ListWriteCourseDVDC() {
                                     <th>Trạng thái</th>
                                     <th>Thời gian nhận yêu cầu</th>
                                     <th>Thời gian duyệt yêu cầu</th>
+                                    <th>*</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -643,9 +686,47 @@ function ListWriteCourseDVDC() {
                                         <td>{item.name_civil}</td>
                                         <td>{item.email}</td>
                                         <td>{item.name_program}</td>
-                                        <td>{item.is_approve ? "Đã duyệt" : "Chờ duyệt"}</td>
+                                        {item.is_approve === true && item.is_refuse === false ? (
+                                            <td><span className="badge badge-pill badge-success">Đã duyệt</span></td>
+                                        ) : item.is_approve === false && item.is_refuse === false ? (
+                                            <td><span className="badge badge-pill badge-warning">Chờ duyệt</span></td>
+                                        ) : item.is_refuse === true && item.is_approve === false ? (
+                                            <td><span className="badge badge-pill badge-danger">Từ chối</span></td>
+                                        ) : null}
                                         <td className="formatSo">{unixTimestampToDate(item.time_request)}</td>
-                                        <td className="formatSo">{unixTimestampToDate(item.time_accept_request)}</td>
+                                        <td className="formatSo">{item.time_accept_request === null ? "" : unixTimestampToDate(item.time_accept_request)}</td>
+                                        <td data-label="*" className="formatSo">
+                                            <div className="d-flex justify-content-center flex-wrap gap-3">
+                                                {item.is_approve === false && item.is_refuse === false ? (
+                                                    <>
+                                                        <button className="btn btn-success btn-tone m-r-5" onClick={() => handleAcceptRequestWriteCourse(item.id_ApproveUserSyllabus)}>
+                                                            <i className="anticon anticon-edit me-1" /> Duyệt yêu cầu
+                                                        </button>
+                                                        <button className="btn btn-danger btn-tone m-r-5" onClick={() => handleRejectRequestWriteCourse(item.id_ApproveUserSyllabus)}>
+                                                            <i className="anticon anticon-delete me-1" /> Từ chối yêu cầu
+                                                        </button>
+                                                    </>
+                                                ) : item.is_approve === true && item.is_refuse === false ? (
+                                                    <>
+                                                        <button className="btn btn-danger btn-tone m-r-5" onClick={() => handleRemoveJoinWriteCourse(item.id_ApproveUserSyllabus)}>
+                                                            <i className="anticon anticon-delete me-1" /> Loại khỏi danh sách
+                                                        </button>
+                                                    </>
+                                                ) : item.is_approve === false && item.is_refuse === true ? (
+                                                    <>
+                                                        <button className="btn btn-success btn-tone m-r-5" onClick={() => handleAcceptRequestWriteCourse(item.id_ApproveUserSyllabus)}>
+                                                            <i className="anticon anticon-edit me-1" /> Mở duyệt lại
+                                                        </button>
+                                                        <hr />
+                                                        <div className="alert alert-danger py-1 px-2 mb-2" style={{ fontSize: "13px", borderRadius: "8px" }}>
+                                                            <i className="fas fa-times-circle me-2"></i>
+                                                            Đã bị từ chối yêu cầu tham gia viết đề cương
+                                                        </div>
+                                                    </>
+                                                ) : null}
+
+                                            </div>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

@@ -65,4 +65,21 @@ export const WriteCourseAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
+
+    AcceptJoinWriteCourse: (data: { id_ApproveUserSyllabus: number }) =>
+        axios.post(`${URL_API_DVDC}/write-course/accept-join-write-course`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
+
+    RejectJoinWriteCourse: (data: { id_ApproveUserSyllabus: number }) =>
+        axios.post(`${URL_API_DVDC}/write-course/reject-join-write-course`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
+    RemoveJoinWriteCourse: (data: { id_ApproveUserSyllabus: number }) =>
+        axios.post(`${URL_API_DVDC}/write-course/remove-join-write-course`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
 }
