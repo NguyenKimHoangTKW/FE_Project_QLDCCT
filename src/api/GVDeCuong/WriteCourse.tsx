@@ -82,4 +82,10 @@ export const WriteCourseAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
+
+    SearchRequestWriteCourse: (data: { code_civilSer: string, id_syllabus: number }) =>
+        axios.post(`${URL_API_DVDC}/write-course/phan-quyen-gv-vao-phu-viet-de-cuong`, data, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        }).then((res) => res.data),
 }

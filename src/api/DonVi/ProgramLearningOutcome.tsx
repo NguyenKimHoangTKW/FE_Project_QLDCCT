@@ -4,15 +4,15 @@ import { URL_API_DONVI } from "../../URL_Config";
 export const ProgramLearningOutcomeAPI = {
     // Program Learning Outcome
     LoadSelectProgramLearningOutcome: () =>
-        axios.get(`${URL_API_DONVI}/program-learning-outcome/load-ctdt-thuoc-dv`, {
+        axios.get(`${URL_API_DONVI}/program-learning-outcome/load-option-plo`, {
             withCredentials: true,
         }).then((res) => res.data),
-    GetListProgramLearningOutcome: (data: { Id_Program: number, Page: number; PageSize: number }) =>
+    GetListProgramLearningOutcome: (data: { Id_Program: number, id_key_semester: number,Page: number; PageSize: number }) =>
         axios.post(`${URL_API_DONVI}/program-learning-outcome/load-danh-sach-chuan-dau-ra-ctdt`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
-    AddProgramLearningOutcome: (data: { code: string, Description: string, Id_Program: number , order_index: number }) =>
+    AddProgramLearningOutcome: (data: { code: string, Description: string, Id_Program: number , order_index: number, id_key_semester: number }) =>
         axios.post(`${URL_API_DONVI}/program-learning-outcome/them-moi-chuan-dau-ra-ctdt`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,

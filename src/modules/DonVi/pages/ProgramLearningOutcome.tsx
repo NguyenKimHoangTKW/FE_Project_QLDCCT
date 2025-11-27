@@ -3,8 +3,8 @@ import { ProgramLearningOutcomeAPI } from "../../../api/DonVi/ProgramLearningOut
 import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import { unixTimestampToDate } from "../../../URL_Config";
 import Modal from "../../../components/ui/Modal";
-import Select from "react-select";
 import Loading from "../../../components/ui/Loading";
+import CeoSelect2 from "../../../components/ui/CeoSelect2";
 
 export default function ProgramLearningOutcomeInterfaceDonVi() {
     // Program Learning Outcome
@@ -18,6 +18,8 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
     const [selectProgram, setSelectProgram] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchText, setSearchText] = useState("");
+    const [selectedKeyYear, setSelectedKeyYear] = useState<any[]>([]);
+
     const headers = [
         { label: "STT", key: "" },
         { label: "Tên chuẩn đầu ra chương trình đào tạo", key: "code" },
@@ -34,6 +36,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
         Description: string;
         Id_Program: number | null;
         order_index: number | null;
+        Id_Key_Year_Semester: number | null;
     }
     const [formData, setFormData] = useState<FormData>({
         id: null,
@@ -41,12 +44,16 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
         Description: "",
         Id_Program: null,
         order_index: null,
+        Id_Key_Year_Semester: null,
     });
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
         if (name === "Id_Program") {
             setFormData((prev) => ({ ...prev, Id_Program: Number(value) }));
+        }
+        if (name === "Id_Key_Year_Semester") {
+            setFormData((prev) => ({ ...prev, Id_Key_Year_Semester: Number(value) }));
         }
     };
 
@@ -57,11 +64,18 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
     const LoadSelectProgramLearningOutcome = async () => {
         setLoading(true);
         const res = await ProgramLearningOutcomeAPI.LoadSelectProgramLearningOutcome();
-        const formattedData = res.map((item: any) => ({
+        const formattedData = res.ctdt.map((item: any) => ({
             value: item.id_program,
             label: item.name_program,
         }));
         setSelectProgram(formattedData);
+        setFormData((prev) => ({ ...prev, Id_Program: Number(formattedData[0].value) }));
+        const formattedKeyYear = res.keySemester.map((item: any) => ({
+            value: item.id_key_year_semester,
+            label: item.name_key_year_semester,
+        }));
+        setSelectedKeyYear(formattedKeyYear);
+        setFormData((prev) => ({ ...prev, Id_Key_Year_Semester: Number(formattedKeyYear[0].value) }));
         setLoading(false);
     }
     const handleEditProgramLearningOutcome = async (id: number) => {
@@ -74,6 +88,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
                 Description: res.data.description,
                 Id_Program: Number(res.data.id_Program),
                 order_index: Number(res.data.order_index),
+                Id_Key_Year_Semester: Number(res.data.id_Key_Year_Semester),
             });
             setModalOpen(true);
             setModalMode("edit");
@@ -107,7 +122,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
         if (modalMode === "create") {
             setLoading(true);
             const res = await ProgramLearningOutcomeAPI.AddProgramLearningOutcome(
-                { code: formData.code, Description: formData.Description, Id_Program: Number(formData.Id_Program), order_index: Number(formData.order_index) });
+                { code: formData.code, Description: formData.Description, Id_Program: Number(formData.Id_Program), order_index: Number(formData.order_index), id_key_semester: Number(formData.Id_Key_Year_Semester) });
             if (res.success) {
                 SweetAlert("success", res.message);
                 LoadData();
@@ -138,7 +153,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
     const LoadData = async () => {
         setLoading(true);
         try {
-            const res = await ProgramLearningOutcomeAPI.GetListProgramLearningOutcome({ Id_Program: Number(formData.Id_Program), Page: page, PageSize: pageSize });
+            const res = await ProgramLearningOutcomeAPI.GetListProgramLearningOutcome({ Id_Program: Number(formData.Id_Program), id_key_semester: Number(formData.Id_Key_Year_Semester), Page: page, PageSize: pageSize });
             if (res.success) {
                 setAllData(res.data);
                 setPage(Number(res.currentPage) || 1);
@@ -183,10 +198,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
     }, []);
     useEffect(() => {
         LoadData();
-    }, [page]);
-    useEffect(() => {
-        LoadData();
-    }, [pageSize]);
+    }, [page, pageSize]);
     // Performance Indicators
     const [performanceIndicatorsData, setPerformanceIndicatorsData] = useState<any[]>([]);
     const [performanceIndicatorsTotalRecords, setPerformanceIndicatorsTotalRecords] = useState(0);
@@ -357,18 +369,27 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
                             <legend className="float-none w-auto px-3">Chức năng</legend>
                             <div className="row mb-3 align-items-end">
                                 <div className="col-md-8 mb-3 mb-md-0">
-                                    <label className="ceo-label">Chương trình đào tạo</label>
-                                    <Select
-                                        options={selectProgram}
-                                        value={selectProgram.find((item) => item.value === formData.Id_Program)}
-                                        onChange={(option: any) =>
-                                            setFormData((prev) => ({
-                                                ...prev,
-                                                Id_Program: option ? option.value : null,
-                                            }))
-                                        }
-                                        placeholder="Chọn chương trình đào tạo"
-                                        isClearable
+                                    <CeoSelect2
+                                        label="Chương trình đào tạo"
+                                        name="Id_Program"
+                                        value={formData.Id_Program}
+                                        onChange={handleInputChange}
+                                        options={selectProgram.map((item: any) => ({
+                                            value: item.value,
+                                            text: item.label
+                                        }))}
+                                    />
+                                </div>
+                                <div className="col-md-8 mb-3 mb-md-0">
+                                    <CeoSelect2
+                                        label="Khóa học"
+                                        name="Id_Key_Year_Semester"
+                                        value={formData.Id_Key_Year_Semester}
+                                        onChange={handleInputChange}
+                                        options={selectedKeyYear.map((item: any) => ({
+                                            value: item.value,
+                                            text: item.label
+                                        }))}
                                     />
                                 </div>
 
@@ -441,7 +462,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
                                         <td
                                             colSpan={headers.length}
                                             className="text-center text-danger">
-                                            Không có dữ liệu
+                                            Không có dữ liệu chuẩn đầu ra chương trình đào tạo trong chương trình này
                                         </td>
                                     </tr>
                                 )}

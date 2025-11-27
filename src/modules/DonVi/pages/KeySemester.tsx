@@ -6,6 +6,7 @@ import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import { ListDonViPermissionAPI } from "../../../api/DonVi/ListDonViPermissionAPI";
 import Loading from "../../../components/ui/Loading";
 import Swal from "sweetalert2";
+import CeoSelect2 from "../../../components/ui/CeoSelect2";
 function KeySemesterInterfaceCtdt() {
     const [listFaculty, setListFaculty] = useState<any[]>([]);
     const [totalRecords, setTotalRecords] = useState(0);
@@ -267,25 +268,16 @@ function KeySemesterInterfaceCtdt() {
                             <legend className="float-none w-auto px-3">Chức năng</legend>
                             <div className="row mb-3">
                                 <div className="col-md-6">
-                                    <label className="form-label ceo-label">Lọc theo Đơn vị được phân công</label>
-                                    <select
-                                        className="form-control ceo-input"
+                                    <CeoSelect2
+                                        label="Lọc theo Đơn vị được phân công"
                                         name="id_faculty"
-                                        value={formData.id_faculty ?? ""}
-                                        onChange={(e) =>
-                                            setFormData((prev) => ({
-                                                ...prev,
-                                                id_faculty: Number(e.target.value)
-                                            }))
-                                        }
-                                    >
-                                        {listFaculty.map((items) => (
-                                            <option key={items.value} value={items.value}>
-                                                {items.text}
-                                            </option>
-                                        ))}
-                                    </select>
-
+                                        value={formData.id_faculty}
+                                        onChange={handleInputChange}
+                                        options={listFaculty.map(item => ({
+                                            value: item.value,
+                                            text: item.text
+                                        }))}
+                                    />
                                 </div>
                                 <div className="col-md-4">
                                     <label className="ceo-label">Tìm kiếm</label>

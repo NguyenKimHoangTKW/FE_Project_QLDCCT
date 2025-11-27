@@ -7,7 +7,7 @@ export const ContributionMatrixAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
-    LoadPLoPi: (data: { Id_Program: number }) =>
+    LoadPLoPi: (data: { Id_Program: number, id_key_semester: number }) =>
         axios.post(`${URL_API_DONVI}/contribution-matrix/loads-chuan-dau-ra-hoc-phan`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,

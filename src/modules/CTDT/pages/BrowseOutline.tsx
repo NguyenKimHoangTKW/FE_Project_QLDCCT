@@ -5,12 +5,11 @@ import { SweetAlert } from "../../../components/ui/SweetAlert";
 import { unixTimestampToDate } from "../../../URL_Config";
 import Modal from "../../../components/ui/Modal";
 import { Editor } from "@tinymce/tinymce-react";
+import CeoSelect2 from "../../../components/ui/CeoSelect2";
 export default function () {
     const [listCTDT, setListCTDT] = useState<any[]>([]);
     const [searchText, setSearchText] = useState("");
     const [allData, setAllData] = useState<any[]>([]);
-    const [logData, setLogData] = useState<any[]>([]);
-    const [showLogData, setShowLogData] = useState(false);
     const [showPreviewRequestEditSyllabus, setShowPreviewRequestEditSyllabus] = useState(false);
     const [contentRequestEditSyllabus, setContentRequestEditSyllabus] = useState<string>("");
     const [showEditorReturnedContent, setShowEditorReturnedContent] = useState(false);
@@ -54,7 +53,6 @@ export default function () {
         { label: "Ngày tạo đề cương", key: "time_cre" },
         { label: "Ngày nộp đề cương", key: "time_up" },
         { label: "Phiên bản đề cương", key: "version" },
-        { label: "Lịch sử thao tác", key: "log_data" },
         { label: "Trạng thái đề cương", key: "id_status" },
         { label: "*", key: "*" },
     ];
@@ -102,11 +100,6 @@ export default function () {
             });
         }
     };
-    const LoadLogSyllabus = async (id_syllabus: number) => {
-        const res = await BrowseOutlineAPI.LoadLogSyllabus({ id_syllabus: Number(id_syllabus) });
-        setLogData(res);
-        setShowLogData(true);
-    }
     const filteredData = allData.filter((item) => {
         const keyword = searchText.toLowerCase().trim();
         return item.code_course?.toLowerCase().includes(keyword) ||
@@ -191,13 +184,19 @@ export default function () {
                             <legend className="float-none w-auto px-3">Chức năng</legend>
                             <div className="row mb-3">
                                 <div className="col-md-6">
-                                    <label className="form-label">Lọc theo CTĐT</label>
-                                    <select className="form-control  ceo-input" name="id_program" value={formData.id_program ?? ""} onChange={handleInputChange} >
-                                        <option value="0">Tất cả</option>
-                                        {listCTDT.map((item, index) => (
-                                            <option key={index} value={item.value}>{item.text}</option>
-                                        ))}
-                                    </select>
+                                    <CeoSelect2
+                                        label="Lọc theo CTĐT"
+                                        name="id_program"
+                                        value={formData.id_program}
+                                        onChange={handleInputChange}
+                                        options={[
+                                            { value: 0, text: "Tất cả" },
+                                            ...listCTDT.map(x => ({
+                                                value: x.value,
+                                                text: x.text
+                                            }))
+                                        ]}
+                                    />
                                 </div>
                                 <div className="col-md-4">
                                     <label className="ceo-label">Tìm kiếm</label>
@@ -410,42 +409,44 @@ export default function () {
                                             <td data-label="Ngày tạo đề cương" className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
                                             <td data-label="Ngày nộp đề cương" className="formatSo">{unixTimestampToDate(item.time_up)}</td>
                                             <td data-label="Phiên bản đề cương" className="formatSo">{item.version}</td>
-                                            <td data-label="Lịch sử thao tác" className="formatSo">
-                                                <button className="btn btn-sm btn-function-ceo" onClick={() => LoadLogSyllabus(item.id_syllabus)} >
-                                                    <i className="fas fa-history"></i> Xem lịch sử thao tác
-                                                </button>
-                                            </td>
                                             {item.id_status === 2 ? (
-                                                <td className="formatSo"><span className="text-success">Đang chờ duyệt</span></td>
+                                                <td><span className="text-success">Đang chờ duyệt</span></td>
                                             ) : item.id_status === 3 ? (
-                                                <td className="formatSo"><span className="text-danger">Trả đề cương về chỉnh sửa</span></td>
-                                            ) : (
-                                                <>
-                                                    <td className="formatSo">
-                                                        <span className="text-primary">Đã duyệt</span>
-                                                        <hr />
-                                                        {item.is_open_edit_final === 2 && (
-                                                            <>
-                                                                <div
-                                                                    className="alert alert-danger py-1 px-2 mb-2"
-                                                                    style={{ fontSize: "13px", borderRadius: "8px" }}
-                                                                >
-                                                                    <i className="fas fa-times-circle me-2"></i>
-                                                                    Đã bị từ chối yêu cầu mở chỉnh sửa bổ sung
-                                                                </div>
-                                                                <button
-                                                                    className="btn btn-sm btn-ceo-blue text-white fw-bold w-100 mb-2"
-                                                                    onClick={() => handlePreviewRequestEditSyllabus(item.id_syllabus)}
-                                                                >
-                                                                    ✉️ Mở lại chỉnh sửa bổ sung
-                                                                </button>
-                                                            </>
-                                                        )}
-                                                    </td>
+                                                <td ><span className="text-danger">Trả đề cương về chỉnh sửa</span></td>
+                                            ) :
+                                                item.id_status === 7 ? (
+                                                    <td><span className="text-warning">Đang mở chỉnh sửa bổ sung sau duyệt</span></td>
+                                                ) :
+                                                    (
 
-                                                </>
+                                                        <>
 
-                                            )}
+                                                            <td className="formatSo">
+                                                                <span className="text-primary">Đã duyệt</span>
+
+                                                                {item.is_open_edit_final === 2 && (
+                                                                    <>
+                                                                        <hr />
+                                                                        <div
+                                                                            className="alert alert-danger py-1 px-2 mb-2"
+                                                                            style={{ fontSize: "13px", borderRadius: "8px" }}
+                                                                        >
+                                                                            <i className="fas fa-times-circle me-2"></i>
+                                                                            Đã bị từ chối yêu cầu mở chỉnh sửa bổ sung
+                                                                        </div>
+                                                                        <button
+                                                                            className="btn btn-sm btn-ceo-blue text-white fw-bold w-100 mb-2"
+                                                                            onClick={() => handlePreviewRequestEditSyllabus(item.id_syllabus)}
+                                                                        >
+                                                                            ✉️ Mở lại chỉnh sửa bổ sung
+                                                                        </button>
+                                                                    </>
+                                                                )}
+                                                            </td>
+
+                                                        </>
+
+                                                    )}
                                             <td>
                                                 <div className="d-flex flex-column gap-2">
 
@@ -510,40 +511,7 @@ export default function () {
                     </div>
                 </div>
             </div>
-            <Modal
-                isOpen={showLogData}
-                onClose={() => setShowLogData(false)}
-                title="Lịch sử thao tác"
-            >
-                <div className="table-responsive">
-                    <table className="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>STT</th>
-                                <th>Nội dung thao tác</th>
-                                <th>Thời gian thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {logData.length > 0 ? (
-                                logData.map((item, index) => (
-                                    <tr key={index}>
-                                        <td>{index + 1}</td>
-                                        <td>{item.content_value}</td>
-                                        <td>{unixTimestampToDate(item.log_time)}</td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={3} className="text-center text-danger">
-                                        Không có dữ liệu
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </Modal>
+
             <Modal
                 isOpen={showPreviewRequestEditSyllabus}
                 onClose={() => {

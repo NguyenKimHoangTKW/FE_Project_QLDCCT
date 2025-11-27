@@ -29900,4 +29900,64 @@ legend {
     background: #ffeaea;
     color: #d32f2f;
   }
+  /* Tổng thể select2 */
+.select2-container .select2-selection--single {
+    height: 40px !important;
+    border: 1px solid #ced4da !important;      /* giống ceo-input */
+    border-radius: 6px !important;
+    display: flex;
+    align-items: center;
+    padding-left: 10px !important;
+    box-shadow: none !important;
+    background-color: white;
+  }
+  
+  /* Text hiển thị */
+  .select2-container .select2-selection--single .select2-selection__rendered {
+    line-height: 38px !important;
+    font-size: 14px;
+    color: #212529;
+  }
+  
+  /* Icon mở dropdown */
+  .select2-container .select2-selection--single .select2-selection__arrow {
+    top: 6px !important;
+    right: 10px !important;
+  }
+  
+  /* Khi focus */
+  .select2-container--focus .select2-selection--single {
+    border: 1px solid #80bdff !important;
+    outline: 0;
+    box-shadow: 0 0 0 2px rgba(0,123,255,.25) !important;
+  }
+  
+  /* Placeholder giống ceo-input */
+  .select2-selection__placeholder {
+    color: #6c757d !important;
+    line-height: 38px !important;
+  }
+  
+  /* Dropdown */
+  .select2-dropdown {
+    border-radius: 6px !important;
+    border: 1px solid #ced4da !important;
+  }
+  
+  /* Tìm kiếm trong dropdown */
+  .select2-search--dropdown .select2-search__field {
+    border: 1px solid #ced4da !important;
+    border-radius: 6px !important;
+    padding: 6px 10px !important;
+  }
+  
+  .select2-results__option {
+    padding: 8px 12px !important;
+  }
+  
+  /* Hover item */
+  .select2-results__option--highlighted {
+    background-color: #0d6efd !important;
+    color: white !important;
+  }
   

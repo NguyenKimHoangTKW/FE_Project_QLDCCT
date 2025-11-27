@@ -6,6 +6,7 @@ import { unixTimestampToDate } from "../../../URL_Config";
 import { ListDonViPermissionAPI } from "../../../api/DonVi/ListDonViPermissionAPI";
 import Loading from "../../../components/ui/Loading";
 import Swal from "sweetalert2";
+import CeoSelect2 from "../../../components/ui/CeoSelect2";
 function SemesterInterfaceCtdt() {
     const [allData, setAllData] = useState<any[]>([]);
     const [page, setPage] = useState(1);
@@ -275,14 +276,16 @@ function SemesterInterfaceCtdt() {
                             <legend className="float-none w-auto px-3">Chức năng</legend>
                             <div className="row mb-3">
                                 <div className="col-md-6">
-                                    <label className="form-label ceo-label">Lọc theo Đơn vị được phân công</label>
-                                    <select className="form-control ceo-input" name="id_faculty" value={formData.id_faculty ?? ""} onChange={handleInputChange}>
-                                        {listFaculty.map((items, idx) => (
-                                            <option key={idx} value={items.value}>
-                                                {items.text}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <CeoSelect2
+                                        label="Lọc theo Đơn vị được phân công"
+                                        name="id_faculty"
+                                        value={formData.id_faculty}
+                                        onChange={handleInputChange}
+                                        options={listFaculty.map(item => ({
+                                            value: item.value,
+                                            text: item.text
+                                        }))}
+                                    />
                                 </div>
                                 <div className="col-md-4">
                                     <label className="ceo-label">Tìm kiếm</label>

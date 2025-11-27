@@ -5,6 +5,7 @@ import { unixTimestampToDate } from "../../../URL_Config";
 import Modal from "../../../components/ui/Modal";
 import Loading from "../../../components/ui/Loading";
 import Swal from "sweetalert2";
+import CeoSelect2 from "../../../components/ui/CeoSelect2";
 export default function CivilServantsInterfaceDonVi() {
     const [listCTDT, setListCTDT] = useState<any[]>([]);
     const [allData, setAllData] = useState<any[]>([]);
@@ -372,13 +373,19 @@ export default function CivilServantsInterfaceDonVi() {
                             <legend className="float-none w-auto px-3">Chức năng</legend>
                             <div className="row mb-3">
                                 <div className="col-md-6">
-                                    <label className="form-label">Lọc theo CTĐT</label>
-                                    <select className="form-control" name="id_program_filter" value={optionFilter.id_program ?? ""} onChange={handleInputChange} >
-                                        <option value="0">Tất cả</option>
-                                        {listCTDT.map((item, index) => (
-                                            <option key={index} value={item.id_program}>{item.name_program}</option>
-                                        ))}
-                                    </select>
+                                    <CeoSelect2
+                                        label="Lọc theo CTĐT"
+                                        name="id_program_filter"
+                                        value={optionFilter.id_program}
+                                        onChange={handleInputChange}
+                                        options={[
+                                            { value: 0, text: "Tất cả" },
+                                            ...listCTDT.map(item => ({
+                                                value: item.id_program,
+                                                text: item.name_program
+                                            }))
+                                        ]}
+                                    />
                                 </div>
                                 <div className="col-md-4">
                                     <label className="ceo-label">Tìm kiếm</label>

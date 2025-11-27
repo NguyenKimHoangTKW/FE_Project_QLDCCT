@@ -5,7 +5,8 @@ import Modal from "../../../components/ui/Modal";
 import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import Swal from "sweetalert2";
 import Loading from "../../../components/ui/Loading";
-
+import CeoCombobox from "../../../components/ui/Combobox";
+import CeoSelect2 from "../../../components/ui/CeoSelect2";
 function CourseInterfaceDonVi() {
   const didFetch = useRef(false);
   const [listKiemTraHocPhanBatBuoc, setListKiemTraHocPhanBatBuoc] = useState<any[]>([]);
@@ -22,9 +23,14 @@ function CourseInterfaceDonVi() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [listCTDT, setListCTDT] = useState<any[]>([]);
+  const [selectedIdCourse, setSelectedIdCourse] = useState<number | null>(null);
+  const [openFunction, setOpenFunction] = useState(false);
   const [listKeyYearSemester, setListKeyYearSemester] = useState<any[]>([]);
   const [listSemester, setListSemester] = useState<any[]>([]);
+  const [logData, setLogData] = useState<any[]>([]);
+  const [showLogData, setShowLogData] = useState(false);
   const [listKeyYearSemesterFilter, setListKeyYearSemesterFilter] = useState<any[]>([]);
+  const [openOptionFilter, setOpenOptionFilter] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [listSemesterFilter, setListSemesterFilter] = useState<any[]>([]);
   interface FormData {
@@ -131,6 +137,7 @@ function CourseInterfaceDonVi() {
     { label: "Số giờ lý thuyết", key: "totalTheory" },
     { label: "Số giờ thực hành", key: "totalPractice" },
     { label: "Số tín chỉ", key: "credits" },
+    { label: "Trạng thái đề cương", key: "is_syllabus" },
     { label: "Ngày tạo", key: "tim_cre" },
     { label: "Cập nhật lần cuối", key: "time_up" },
     { label: "*", key: "*" },
@@ -300,6 +307,15 @@ function CourseInterfaceDonVi() {
       }
     }
   }
+  const handleOpenFunction = (id_course: number) => {
+    setSelectedIdCourse(Number(id_course));
+    setOpenFunction(true);
+  }
+  const LoadLogCourse = async (id_course: number) => {
+    const res = await CourseDonViAPI.GetListLogCourse({ id_course: Number(id_course) });
+    setLogData(res);
+    setShowLogData(true);
+  }
   const handleExportExcel = async () => {
     setLoading(true);
 
@@ -344,7 +360,39 @@ function CourseInterfaceDonVi() {
       setLoading(false);
     }
   };
+  const handleExportExcelIsStatus = async () => {
+    setLoading(true);
 
+    try {
+      const res = await CourseDonViAPI.ExportExcelIsStatus({
+        id_gr_course: Number(optionFilter.id_gr_course || 0),
+        id_key_year_semester: Number(optionFilter.id_key_year_semester || 0),
+        id_semester: Number(optionFilter.id_semester || 0),
+        id_program: Number(optionFilter.id_ctdt || 0),
+        id_isCourse: Number(optionFilter.id_isCourse || 0),
+      });
+
+      const blob = new Blob([res.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Exports.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+      SweetAlert("success", "Xuất file Excel thành công!");
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleOpenOptionFilter = () => {
+    setOpenOptionFilter(true);
+  }
   useEffect(() => {
     if (!didFetch.current) {
       GetDataListOptionCourse();
@@ -371,58 +419,78 @@ function CourseInterfaceDonVi() {
               <legend className="float-none w-auto px-3">Chức năng</legend>
               <div className="row mb-3">
                 <div className="col-md-6">
-                  <label className="form-label ceo-label">Lọc theo CTĐT</label>
-                  <select className="form-control ceo-input" name="id_ctdt_filter" value={optionFilter.id_ctdt || 0} onChange={handleInputChange}>
-                    {listCTDT.map((items, idx) => (
-                      <option key={idx} value={items.id_program}>
-                        {items.name_program}
-                      </option>
-                    ))}
-                  </select>
+                  <CeoSelect2
+                    label="Lọc theo CTĐT"
+                    name="id_ctdt_filter"
+                    value={optionFilter.id_ctdt}
+                    onChange={handleInputChange}
+                    options={listCTDT.map(item => ({
+                      value: item.id_program,
+                      text: item.name_program
+                    }))}
+                  />
+
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label ceo-label">Lọc theo kiểm tra học phần bắt buộc</label>
-                  <select className="form-control ceo-input" name="id_isCourse_filter" value={optionFilter.id_isCourse || 0} onChange={handleInputChange}>
-                    <option value="0">Tất cả</option>
-                    {listKiemTraHocPhanBatBuocFilter.map((items, idx) => (
-                      <option key={idx} value={items.value}>
-                        {items.text}
-                      </option>
-                    ))}
-                  </select>
+                  <CeoSelect2
+                    label="Lọc theo kiểm tra học phần bắt buộc"
+                    name="id_isCourse_filter"
+                    value={optionFilter.id_isCourse}
+                    onChange={handleInputChange}
+                    options={[
+                      { value: 0, text: "Tất cả" },
+                      ...listKiemTraHocPhanBatBuocFilter.map(x => ({
+                        value: x.value,
+                        text: x.text
+                      }))
+                    ]}
+                  />
+
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label ceo-label">Lọc theo nhóm học phần</label>
-                  <select className="form-control ceo-input" name="id_gr_course_filter" value={optionFilter.id_gr_course || 0} onChange={handleInputChange}>
-                    <option value="0">Tất cả</option>
-                    {lisNhomHocPhanFilter.map((items, idx) => (
-                      <option key={idx} value={items.value}>
-                        {items.text}
-                      </option>
-                    ))}
-                  </select>
+                  <CeoSelect2
+                    label="Lọc theo nhóm học phần"
+                    name="id_gr_course_filter"
+                    value={optionFilter.id_gr_course}
+                    onChange={handleInputChange}
+                    options={[
+                      { value: 0, text: "Tất cả" },
+                      ...lisNhomHocPhanFilter.map(x => ({
+                        value: x.value,
+                        text: x.text
+                      }))
+                    ]}
+                  />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label ceo-label">Lọc theo khóa học</label>
-                  <select className="form-control ceo-input" name="id_key_year_semester_filter" value={optionFilter.id_key_year_semester || 0} onChange={handleInputChange}>
-                    <option value="0">Tất cả</option>
-                    {listKeyYearSemesterFilter.map((items, idx) => (
-                      <option key={idx} value={items.value}>
-                        {items.text}
-                      </option>
-                    ))}
-                  </select>
+                  <CeoSelect2
+                    label="Lọc theo khóa học"
+                    name="id_key_year_semester_filter"
+                    value={optionFilter.id_key_year_semester}
+                    onChange={handleInputChange}
+                    options={[
+                      { value: 0, text: "Tất cả" },
+                      ...listKeyYearSemesterFilter.map(x => ({
+                        value: x.value,
+                        text: x.text
+                      }))
+                    ]}
+                  />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label ceo-label">Lọc theo học kỳ</label>
-                  <select className="form-control ceo-input" name="id_semester_filter" value={optionFilter.id_semester || 0} onChange={handleInputChange}>
-                    <option value="0">Tất cả</option>
-                    {listSemesterFilter.map((items, idx) => (
-                      <option key={idx} value={items.value}>
-                        {items.text}
-                      </option>
-                    ))}
-                  </select>
+                  <CeoSelect2
+                    label="Lọc theo học kỳ"
+                    name="id_semester_filter"
+                    value={optionFilter.id_semester}
+                    onChange={handleInputChange}
+                    options={[
+                      { value: 0, text: "Tất cả" },
+                      ...listSemesterFilter.map(x => ({
+                        value: x.value,
+                        text: x.text
+                      }))
+                    ]}
+                  />
                 </div>
                 <div className="col-md-4">
                   <label className="ceo-label">Tìm kiếm</label>
@@ -441,16 +509,8 @@ function CourseInterfaceDonVi() {
                   <button className="btn btn-ceo-butterfly" onClick={AddNewCourse}>
                     <i className="fas fa-plus-circle mr-1" /> Thêm mới
                   </button>
-                  <button
-                    className="btn btn-ceo-green"
-                    id="exportExcel"
-                    data-toggle="modal"
-                    data-target="#importExcelModal"
-                  >
-                    <i className="fas fa-file-excel mr-1" /> Import danh sách học phần file từ Excel
-                  </button>
-                  <button className="btn btn-ceo-green" onClick={handleExportExcel}>
-                    <i className="fas fa-file-excel mr-1" /> Xuất dữ liệu ra file Excel
+                  <button className="btn btn-ceo-green" onClick={handleOpenOptionFilter}>
+                    <i className="fas fa-clock"></i> Mở bảng chức năng môn học
                   </button>
                   <button className="btn btn-ceo-blue" onClick={() => ShowData()}>
                     <i className="fas fa-filter mr-1" /> Lọc dữ liệu
@@ -521,13 +581,11 @@ function CourseInterfaceDonVi() {
                     <td data-label="Số tín chỉ" className="formatSo">{item.credits}</td>
                     <td data-label="Ngày tạo" className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
                     <td data-label="Cập nhật lần cuối" className="formatSo">{unixTimestampToDate(item.time_up)}</td>
+                    <td data-label="Trạng thái đề cương">{item.is_syllabus == true ? <span className="text-success">Đã hoàn thiện</span> : <span className="text-danger">Chưa hoàn thiện</span>}</td>
                     <td data-label="*" className="formatSo">
                       <div className="d-flex justify-content-center flex-wrap gap-3">
-                        <button className="btn btn-sm btn-ceo-butterfly" onClick={() => handleInfo(item.id_course)}>
-                          <i className="anticon anticon-edit me-1" /> Chỉnh sửa
-                        </button>
-                        <button className="btn btn-sm btn-ceo-red" onClick={() => handleDelete(item.id_course)}>
-                          <i className="anticon anticon-delete me-1" /> Xóa bỏ
+                        <button className="btn btn-sm btn-ceo-butterfly" onClick={() => handleOpenFunction(item.id_course)}>
+                          <i className="anticon anticon-setting me-1" /> Mở chức năng
                         </button>
                       </div>
                     </td>
@@ -670,6 +728,177 @@ function CourseInterfaceDonVi() {
             </div>
           </div>
         </form>
+      </Modal>
+
+
+      <Modal
+        isOpen={openFunction}
+        title={`CHỨC NĂNG HỌC PHẦN`}
+        onClose={() => setOpenFunction(false)}
+      >
+        <div className="action-menu">
+
+          {/* Chỉnh sửa */}
+          <div
+            className="action-card edit"
+            onClick={() => {
+              handleInfo(Number(selectedIdCourse));
+              setOpenFunction(false);
+            }}
+          >
+            <div className="icon-area">
+              <i className="fas fa-edit"></i>
+            </div>
+            <div className="text-area">
+              <h5>Chỉnh sửa học phần</h5>
+              <p>Cập nhật thông tin học phần, số tín chỉ, giờ học, nhóm học phần…</p>
+            </div>
+          </div>
+          {/* Xem chi tiết đề cương đã hoàn thiện */}
+          <div
+            className="action-card edit"
+            onClick={() => {
+              handleInfo(Number(selectedIdCourse));
+              setOpenFunction(false);
+            }}
+          >
+            <div className="icon-area">
+              <i className="fas fa-file-alt"></i>
+            </div>
+            <div className="text-area">
+              <h5>Xem chi tiết đề cương đã hoàn thiện</h5>
+              <p>Xem chi tiết đề cương đã hoàn thiện của học phần</p>
+            </div>
+          </div>
+          {/* Xem lịch sử thao tác */}
+          <div
+            className="action-card edit"
+            onClick={() => {
+              LoadLogCourse(Number(selectedIdCourse));
+              setOpenFunction(false);
+            }}
+          >
+            <div className="icon-area">
+              <i className="fas fa-history"></i>
+            </div>
+            <div className="text-area">
+              <h5>Xem lịch sử thao tác</h5>
+              <p>Xem lịch sử thao tác của học phần</p>
+            </div>
+          </div>
+          {/* Xóa */}
+          <div
+            className="action-card edit"
+            onClick={() => {
+              handleDelete(Number(selectedIdCourse));
+              setOpenFunction(false);
+            }}
+          >
+            <div className="icon-area">
+              <i className="fas fa-trash-alt"></i>
+            </div>
+            <div className="text-area">
+              <h5>Xóa học phần</h5>
+              <p>Xóa học phần và toàn bộ dữ liệu liên quan (không thể khôi phục).</p>
+            </div>
+          </div>
+
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showLogData}
+        onClose={() => setShowLogData(false)}
+        title="Lịch sử thao tác"
+      >
+        <div className="table-responsive">
+          <table className="table table-bordered">
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Nội dung thao tác</th>
+                <th>Thời gian thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {logData.length > 0 ? (
+                logData.map((item, index) => (
+                  <tr key={index}>
+                    <td className="formatSo">{index + 1}</td>
+                    <td>{item.content_value}</td>
+                    <td className="formatSo">{unixTimestampToDate(item.log_time)}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={3} className="text-center text-danger">
+                    Không có dữ liệu
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Modal>
+
+
+
+      <Modal
+        isOpen={openOptionFilter}
+        title={`CHỨC NĂNG HỌC PHẦN`}
+        onClose={() => setOpenOptionFilter(false)}
+      >
+        <div className="action-menu">
+          <div
+            className="action-card permission"
+            id="exportExcel"
+            data-toggle="modal"
+            data-target="#importExcelModal"
+            onClick={() => {
+              setOpenOptionFilter(false);
+            }}
+          >
+            <div className="icon-area permission">
+              <i className="fas fa-file-import"></i>
+            </div>
+            <div className="text-area">
+              <h5>Import dữ liệu môn học từ Excel</h5>
+              <p>Import dữ liệu môn học từ file Excel vào chương trình đào tạo này</p>
+            </div>
+          </div>
+          {/* Chỉnh sửa */}
+          <div
+            className="action-card permission"
+            onClick={() => {
+              handleExportExcel();
+              setOpenOptionFilter(false);
+            }}
+          >
+            <div className="icon-area permission">
+              <i className="fas fa-file-export"></i>
+            </div>
+            <div className="text-area">
+              <h5>Xuất Excel dữ liệu đang hiển thị</h5>
+              <p>Xuất Excel dữ liệu đang hiển thị</p>
+            </div>
+          </div>
+          {/* Xem chi tiết đề cương đã hoàn thiện */}
+          <div
+            className="action-card permission"
+            onClick={() => {
+              handleExportExcelIsStatus();
+              setOpenOptionFilter(false);
+            }}
+          >
+            <div className="icon-area permission">
+              <i className="fas fa-file-export"></i>
+            </div>
+            <div className="text-area">
+              <h5>Xuất Excel môn học chưa tồn tại đề cương</h5>
+              <p>Xuất Excel môn học chưa tồn tại đề cương</p>
+            </div>
+          </div>
+        </div>
       </Modal>
     </div>
   );

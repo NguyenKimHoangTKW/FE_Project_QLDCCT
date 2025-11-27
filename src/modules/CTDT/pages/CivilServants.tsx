@@ -4,6 +4,7 @@ import { unixTimestampToDate } from "../../../URL_Config";
 import Modal from "../../../components/ui/Modal";
 import { CivilServantsCTDTAPI } from "../../../api/CTDT/CivilServants";
 import { ListCTDTPermissionAPI } from "../../../api/CTDT/ListCTDTPermissionAPI";
+import CeoSelect2 from "../../../components/ui/CeoSelect2";
 export default function CivilServantsInterfaceDonVi() {
     const [listCTDT, setListCTDT] = useState<any[]>([]);
     const [allData, setAllData] = useState<any[]>([]);
@@ -193,12 +194,16 @@ export default function CivilServantsInterfaceDonVi() {
                             <legend className="float-none w-auto px-3">Chức năng</legend>
                             <div className="row mb-3">
                                 <div className="col-md-6">
-                                    <label className="form-label">Lọc theo CTĐT</label>
-                                    <select className="form-control  ceo-input" name="id_program" value={formData.id_program ?? ""} onChange={handleInputChange} >
-                                        {listCTDT.map((item, index) => (
-                                            <option key={index} value={item.value}>{item.text}</option>
-                                        ))}
-                                    </select>
+                                    <CeoSelect2
+                                        label="Lọc theo CTĐT"
+                                        name="id_key_year_semester"
+                                        value={formData.id_program}
+                                        onChange={handleInputChange}
+                                        options={listCTDT.map(item => ({
+                                            value: item.value,
+                                            text: item.text
+                                        }))}
+                                    />
                                 </div>
                                 <div className="col-md-4">
                                     <label className="ceo-label">Tìm kiếm</label>
@@ -239,12 +244,12 @@ export default function CivilServantsInterfaceDonVi() {
                                         <tr key={item.id_civilSer}>
                                             <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
                                             <td className="formatSo">{item.code_civilSer}</td>
-                                            <td className="formatSo">{item.fullname_civilSer}</td>
-                                            <td className="formatSo">{item.email}</td>
-                                            <td className="formatSo">{item.programName}</td>
+                                            <td>{item.fullname_civilSer}</td>
+                                            <td>{item.email}</td>
+                                            <td>{item.programName}</td>
                                             <td className="formatSo">{item.birthday}</td>
-                                            <td className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
-                                            <td className="formatSo">{unixTimestampToDate(item.time_up)}</td>
+                                            <td>{unixTimestampToDate(item.time_cre)}</td>
+                                            <td>{unixTimestampToDate(item.time_up)}</td>
                                             <td className="formatSo">{item.count_teacher_subjects}</td>
                                             <td>
                                                 <button className="btn btn-sm btn-function-ceo" onClick={() => handleOpenFunction(item.id_civilSer)}>

@@ -54,6 +54,13 @@ export const CourseDonViAPI = {
       })
       .then((res) => res.data),
 
+  GetListLogCourse: (data: { id_course: number }) =>
+    axios
+      .post(`${URL_API_DONVI}/course/log-hoat-dong-de-cuong`, data, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      })
+      .then((res) => res.data),
   UploadExcelCourse: async (file: File, idProgram: number) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -78,5 +85,19 @@ export const CourseDonViAPI = {
         responseType: "blob",
         withCredentials: true,
       }
-    ),
+    ), ExportExcelIsStatus: (data: {
+      id_gr_course: number,
+      id_key_year_semester: number,
+      id_semester: number,
+      id_program: number,
+      id_isCourse: number
+  }) =>
+      axios.post(
+          `${URL_API_DONVI}/course/export-danh-sach-mon-hoc-chua-co-de-cuong`,
+          data,
+          {
+              responseType: "blob",
+              withCredentials: true,
+          }
+      ),
 };

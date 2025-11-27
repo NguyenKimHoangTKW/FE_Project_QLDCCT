@@ -4,6 +4,7 @@ import { SweetAlert } from "../../../components/ui/SweetAlert";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import Loading from "../../../components/ui/Loading";
+import CeoSelect2 from "../../../components/ui/CeoSelect2";
 export default function ContributionMatrixInterfaceDonVi() {
     const [listCtdt, setListCtdt] = useState<any[]>([]);
     const [listKeyYear, setListKeyYear] = useState<any[]>([]);
@@ -65,7 +66,7 @@ export default function ContributionMatrixInterfaceDonVi() {
     const GetListPLoPi = async () => {
         setLoading(true);
         try {
-            const res = await ContributionMatrixAPI.LoadPLoPi({ Id_Program: Number(formData.id_program) });
+            const res = await ContributionMatrixAPI.LoadPLoPi({ Id_Program: Number(formData.id_program), id_key_semester: Number(formData.id_key_year_semester) });
             setListPLoPi(res);
         }
         finally {
@@ -258,31 +259,35 @@ export default function ContributionMatrixInterfaceDonVi() {
                 <div className="card-body">
                     <div className="page-header no-gutters">
                         <h2 className="text-uppercase">
-                            Quản lý Danh sách Khóa học thuộc Đơn vị
+                            Quản lý Ma trận đóng góp của chương trình đào tạo
                         </h2>
                         <hr />
                         <fieldset className="border rounded-3 p-3">
                             <legend className="float-none w-auto px-3">Chức năng</legend>
                             <div className="row mb-3">
                                 <div className="col-md-6">
-                                    <label className="form-label">Lọc theo CTĐT</label>
-                                    <select className="form-control" name="id_program" value={formData.id_program ?? ""} onChange={handleInputChange}>
-                                        {listCtdt.map((items, idx) => (
-                                            <option key={idx} value={items.id_program}>
-                                                {items.name_program}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <CeoSelect2
+                                        label="Lọc theo CTĐT"
+                                        name="id_program"
+                                        value={formData.id_program}
+                                        onChange={handleInputChange}
+                                        options={listCtdt.map(item => ({
+                                            value: item.id_program,
+                                            text: item.name_program
+                                        }))}
+                                    />
                                 </div>
                                 <div className="col-md-6">
-                                    <label className="form-label">Lọc theo Khóa học</label>
-                                    <select className="form-control" name="id_key_year_semester" value={formData.id_key_year_semester ?? ""} onChange={handleInputChange}>
-                                        {listKeyYear.map((items, idx) => (
-                                            <option key={idx} value={items.id_key_year_semester}>
-                                                {items.name_key}
-                                            </option>
-                                        ))}
-                                    </select>
+                                     <CeoSelect2
+                                        label="Lọc theo Khóa học"
+                                        name="id_key_year_semester"
+                                        value={formData.id_key_year_semester}
+                                        onChange={handleInputChange}
+                                        options={listKeyYear.map(item => ({
+                                            value: item.id_key_year_semester,
+                                            text: item.name_key
+                                        }))}
+                                    />
                                 </div>
                             </div>
                             <hr />

@@ -20,8 +20,11 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   const [loadListPLOCourse, setLoadListPLOCourse] = useState<any[]>([]);
   const storageKey = `syllabus_draft_${id_syllabus}`;
   const [draftData, setDraftData] = useState<any>({});
+  const draftTimeouts = useRef<Record<string, any>>({});
+  const editingSection = useRef<string | null>(null);
   const [loadPreviewLevelContribution, setLoadPreviewLevelContribution] = useState<any[]>([]);
   const [mappingRows, setMappingRows] = useState<any[]>([]);
+  const [typingUsers, setTypingUsers] = useState<Record<string, string[]>>({});
   const [levelMatrix, setLevelMatrix] = useState<
     Record<string, { Id_Level: number; code_Level: string }>
   >({});
@@ -36,7 +39,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   const [aiResult, setAIResult] = useState("");
   const [currentSection, setCurrentSection] = useState<any>(null);
   const [aiLoading, setAILoading] = useState(false);
-
+  const tempContent = useRef<Record<string, string>>({});
   const [checkOpen, setCheckOpen] = useState<{
     status?: boolean;
     is_open?: boolean;
@@ -87,11 +90,6 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
     const res = await TemplateWriteCourseAPI.PreviewCourseLearningOutcome({ id_syllabus: Number(id_syllabus) });
     if (res.success) setLoadPreviewCourseLearningOutcome(res.data);
   };
-  const saveDraftToLocal = (updatedDraft: any) => {
-    setDraftData(updatedDraft);
-    localStorage.setItem(storageKey, JSON.stringify(updatedDraft));
-  };
-
   const LoadPreviewMapPLObySyllabus = async () => {
     const res = await TemplateWriteCourseAPI.PreviewMapPLObySyllabus({
       id_syllabus: Number(id_syllabus)
@@ -137,31 +135,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
       setDraftData(map);
     }
   };
-  const draftTimeouts = useRef<Record<string, any>>({});
 
-
-  const saveDraftSection = (sectionCode: string, content: string) => {
-
-    setDraftData(prev => ({
-      ...prev,
-      [sectionCode]: content
-    }));
-
-    // debounce
-    if (draftTimeouts.current[sectionCode]) {
-      clearTimeout(draftTimeouts.current[sectionCode]);
-    }
-
-    draftTimeouts.current[sectionCode] = setTimeout(() => {
-
-      TemplateWriteCourseAPI.SaveDraftSection({
-        id_syllabus: Number(id_syllabus),
-        section_code: sectionCode,
-        content: content,
-      });
-
-    }, 700);
-  };
 
   useEffect(() => {
     const loadAll = async () => {
@@ -179,10 +153,6 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   useEffect(() => {
     if (checkOpen.status === false && checkOpen.is_open === true) {
       const loadAll = async () => {
-        const savedDraft = localStorage.getItem(storageKey);
-        if (savedDraft) {
-          setDraftData(JSON.parse(savedDraft));
-        }
 
         await LoadPreviewCourseObjectives();
         await LoadPreviewCourseLearningOutcome();
@@ -191,11 +161,13 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         await LoadPreviewLevelContribution();
         await LoadPreviewMapPLObySyllabus();
         await LoadSavedMappingCLOPI();
+
       };
 
       loadAll();
     }
   }, [checkOpen.status === false && checkOpen.is_open === true]);
+
 
   useEffect(() => {
 
@@ -206,32 +178,66 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         })
         .withAutomaticReconnect()
         .build();
+      conn.on("SectionDraftUpdated", (sid, code, content) => {
 
-      conn.on("SectionDraftUpdated", (
-        recv_syllabus_id,
-        section_code,
-        content
-      ) => {
+        if (sid !== Number(id_syllabus)) return;
 
-        if (recv_syllabus_id !== Number(id_syllabus)) return;
-
-        // update state
         setDraftData(prev => ({
           ...prev,
-          [section_code]: content,
+          [code]: content
         }));
 
-        // sync vào tinyMCE nếu đang _KHÔNG_ edit section đó
-        const editor = window.tinymce.get(section_code);
+        if (editingSection.current === code) return;
 
-        if (editor) {
-          const currentContent = editor.getContent();
+        const editor = (window as any).tinymce?.get(code);
+        if (!editor) return;
 
-          if (currentContent !== content) {
-            editor.setContent(content);
+        try {
+
+          const currentRaw = editor.getContent({ format: "raw" }).trim();
+          const incomingRaw = (content ?? "").trim();
+
+          if (currentRaw !== incomingRaw) {
+            editor.setContent(content, { format: "raw" });
           }
-        }
+
+        } catch { }
+
       });
+
+      conn.on("UserTypingStatusChanged", (sid, user, section, isTyping) => {
+        if (sid !== Number(id_syllabus)) return;
+
+        setTypingUsers(prev => {
+
+          const copy: Record<string, string[]> = {};
+          for (const k in prev) {
+            copy[k] = [...prev[k]];
+          }
+
+          if (!copy[section])
+            copy[section] = [];
+
+          if (isTyping) {
+
+            if (!copy[section].includes(user)) {
+              copy[section].push(user);
+            }
+
+          } else {
+
+            copy[section] = copy[section].filter(u => u !== user);
+
+            if (copy[section].length === 0) {
+              delete copy[section];
+            }
+          }
+
+          return copy;
+        });
+      });
+
+
 
 
       await conn.start();
@@ -895,8 +901,6 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         const ed = (window as any).tinymce?.get(sec);
         if (!ed || ed.destroyed) return;
 
-        if (document.activeElement === ed.getBody()) return;
-
         try {
           const current = ed.getContent({ format: "raw" });
           if (current !== content) ed.setContent(content);
@@ -907,30 +911,62 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
 
   const renderSectionContent = (section: any) => {
     const type = section.contentType?.split(" - ")[0] || "";
-    const bindingCode = section.dataBinding ? section.dataBinding.split(" - ")[0].trim() : "";
+    const bindingCode = section.dataBinding
+      ? section.dataBinding.split(" - ")[0].trim()
+      : "";
+    const sectionId = section.section_code;
 
     switch (type) {
       case "text":
-      case "obe_structured":
+      case "obe_structured": {
         if (bindingCode === "CLO" || bindingCode === "PLO") {
           return getDefaultTemplateContent(bindingCode);
         }
+
+        const initialContent =
+          draftData[sectionId] ??
+          section.value ??
+          getDefaultTemplateContent(bindingCode);
+
         return (
           <div className="tinymce-wrapper">
             <Editor
-              key={section.section_code}
-              id={section.section_code}
-              value={
-                draftData[section.section_code] ??
-                section.value ??
-                getDefaultTemplateContent(bindingCode)
-              }
+              key={sectionId}
+              id={sectionId}
+              value={initialContent}
               onEditorChange={(newContent) => {
-                saveDraftSection(section.section_code, newContent);
-              }}
-              onInit={() => {
-                editorReady.current = true;
-                setTimeout(() => applyDraftToEditors(), 200);
+                setDraftData((prev: any) => ({
+                  ...prev,
+                  [sectionId]: newContent,
+                }));
+
+                tempContent.current[sectionId] = newContent;
+
+                if (
+                  hubConnection?.state ===
+                  signalR.HubConnectionState.Connected
+                ) {
+                  hubConnection
+                    .invoke(
+                      "UpdateSectionDraft",
+                      Number(id_syllabus),
+                      sectionId,
+                      newContent
+                    )
+                    .catch(() => { });
+                }
+
+                if (draftTimeouts.current[sectionId]) {
+                  clearTimeout(draftTimeouts.current[sectionId]);
+                }
+
+                draftTimeouts.current[sectionId] = setTimeout(() => {
+                  TemplateWriteCourseAPI.SaveDraftSection({
+                    id_syllabus: Number(id_syllabus),
+                    section_code: sectionId,
+                    content: newContent,
+                  });
+                }, 1200);
               }}
               init={{
                 height: 500,
@@ -958,23 +994,34 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
                   "bold italic underline forecolor backcolor | " +
                   "alignleft aligncenter alignright alignjustify | " +
                   "bullist numlist outdent indent | " +
-                  "table tabledelete | tableprops tablecellprops tablerowprops | " +
-                  "link image | preview code fullscreen",
+                  "table | link image | preview code fullscreen",
                 forced_root_block: "",
                 setup(editor) {
-                  editor.on("BeforeSetContent", (e) => {
-                    if (editor.hasFocus()) e.preventDefault();
+                  editor.on("focus", () => {
+                    editingSection.current = sectionId;
+                    hubConnection?.invoke("StartTyping", Number(id_syllabus), sectionId);
+                  });
+
+                  editor.on("blur", () => {
+                    editingSection.current = null;
+                    hubConnection?.invoke("StopTyping", Number(id_syllabus), sectionId);
                   });
                 }
               }}
             />
           </div>
         );
+      }
 
       default:
-        return <div className="text-muted fst-italic">(Không có cấu hình hiển thị cho loại này)</div>;
+        return (
+          <div className="text-muted fst-italic">
+            (Không có cấu hình hiển thị cho loại này)
+          </div>
+        );
     }
   };
+
   const sortSectionCodes = (sections: any[]) => {
     return sections.slice().sort((a, b) => {
       const pa = a.section_code.split('.').map(Number);
@@ -1099,7 +1146,6 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         return;
       }
 
-      // Đọc stream
       const reader = res.body?.getReader();
       if (!reader) {
         setAIResult("⚠ Trình duyệt không hỗ trợ streaming.");
@@ -1115,7 +1161,6 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         done = doneReading;
         if (value) {
           const chunk = decoder.decode(value, { stream: true });
-          // Thêm chunk mới vào kết quả
           setAIResult(prev => prev + chunk);
         }
       }
@@ -1175,6 +1220,13 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
                   return (
                     <div key={index} className={`template-section ${levelClass}`}>
                       <h6>{section.section_code}. {section.section_name}</h6>
+                      {typingUsers[section.section_code]?.length > 0 && (
+                        <div className="text-primary small fst-italic mb-1" style={{ opacity: 0.8 }}>
+                          👉 {typingUsers[section.section_code].join(", ")} đang nhập...
+                        </div>
+                      )}
+
+
                       <button
                         className="btn btn-sm btn-outline-primary"
                         onClick={() => {

@@ -5,6 +5,7 @@ import { unixTimestampToDate } from "../../../URL_Config";
 import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import Modal from "../../../components/ui/Modal";
 import Swal from "sweetalert2";
+import CeoSelect2 from "../../../components/ui/CeoSelect2";
 export default function TrainingProgramInterfaceDonVi() {
     const [loading, setLoading] = useState(false);
     const [listFaculty, setListFaculty] = useState<any[]>([]);
@@ -248,12 +249,16 @@ export default function TrainingProgramInterfaceDonVi() {
                             <legend className="float-none w-auto px-3">Chức năng</legend>
                             <div className="row mb-3">
                                 <div className="col-md-6">
-                                    <label className="form-label">Lọc theo Đơn vị</label>
-                                    <select className="form-control ceo-input" name="id_faculty" value={optionFilter.id_faculty ?? ""} onChange={handleFilterChange} >
-                                        {listFaculty.map((item, index) => (
-                                            <option key={index} value={item.value}>{item.name}</option>
-                                        ))}
-                                    </select>
+                                    <CeoSelect2
+                                        label="Lọc theo Đơn vị"
+                                        name="id_faculty"
+                                        value={optionFilter.id_faculty}
+                                        onChange={handleFilterChange}
+                                        options={listFaculty.map(item => ({
+                                            value: item.value,
+                                            text: item.name
+                                        }))}
+                                    />
                                 </div>
                                 <div className="col-md-4">
                                     <label className="ceo-label">Tìm kiếm</label>

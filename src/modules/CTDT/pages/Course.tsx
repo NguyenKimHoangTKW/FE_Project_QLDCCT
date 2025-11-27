@@ -7,6 +7,7 @@ import { CourseCTDTAPI } from "../../../api/CTDT/Course";
 import { ListCTDTPermissionAPI } from "../../../api/CTDT/ListCTDTPermissionAPI";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import CeoSelect2 from "../../../components/ui/CeoSelect2";
 
 function CourseInterfaceCtdt() {
   const didFetch = useRef(false);
@@ -649,80 +650,83 @@ function CourseInterfaceCtdt() {
               {/* HÀNG 1: FILTER */}
               <div className="row g-3 mb-2">
                 <div className="col-md-4">
-                  <label className="ceo-label">Chương trình đào tạo</label>
-                  <select
-                    className="form-control ceo-input"
+                  <CeoSelect2
+                    label="Chương trình đào tạo"
                     name="id_ctdt_filter"
-                    value={optionFilter.id_ctdt || 0}
+                    value={optionFilter.id_ctdt}
                     onChange={handleInputChange}
-                  >
-                    {listCTDT.map((items, idx) => (
-                      <option key={idx} value={items.value}>{items.text}</option>
-                    ))}
-                  </select>
+                    options={listCTDT.map(item => ({
+                      value: item.value,
+                      text: item.text
+                    }))}
+                  />
                 </div>
 
                 <div className="col-md-4">
-                  <label className="ceo-label">Kiểm tra học phần bắt buộc</label>
-                  <select
-                    className="form-control ceo-input"
+                  <CeoSelect2
+                    label="Kiểm tra học phần bắt buộc"
                     name="id_isCourse_filter"
-                    value={optionFilter.id_isCourse || 0}
+                    value={optionFilter.id_isCourse}
                     onChange={handleInputChange}
-                  >
-                    <option value="0">Tất cả</option>
-                    {listKiemTraHocPhanBatBuocFilter.map((items, idx) => (
-                      <option key={idx} value={items.value}>{items.text}</option>
-                    ))}
-                  </select>
+                    options={[
+                      { value: 0, text: "Tất cả" },
+                      ...listKiemTraHocPhanBatBuocFilter.map(x => ({
+                        value: x.value,
+                        text: x.text
+                      }))
+                    ]}
+                  />
                 </div>
 
                 <div className="col-md-4">
-                  <label className="ceo-label">Nhóm học phần</label>
-                  <select
-                    className="form-control ceo-input"
+                  <CeoSelect2
+                    label="Nhóm học phần"
                     name="id_gr_course_filter"
-                    value={optionFilter.id_gr_course || 0}
+                    value={optionFilter.id_gr_course}
                     onChange={handleInputChange}
-                  >
-                    <option value="0">Tất cả</option>
-                    {lisNhomHocPhanFilter.map((items, idx) => (
-                      <option key={idx} value={items.value}>{items.text}</option>
-                    ))}
-                  </select>
+                    options={[
+                      { value: 0, text: "Tất cả" },
+                      ...lisNhomHocPhanFilter.map(x => ({
+                        value: x.value,
+                        text: x.text
+                      }))
+                    ]}
+                  />
                 </div>
               </div>
 
               {/* HÀNG 2: FILTER */}
               <div className="row g-3">
                 <div className="col-md-4">
-                  <label className="ceo-label">Khóa học</label>
-                  <select
-                    className="form-control ceo-input"
+                  <CeoSelect2
+                    label="Khóa học"
                     name="id_key_year_semester_filter"
-                    value={optionFilter.id_key_year_semester || 0}
+                    value={optionFilter.id_key_year_semester}
                     onChange={handleInputChange}
-                  >
-                    <option value="0">Tất cả</option>
-                    {listKeyYearSemesterFilter.map((items, idx) => (
-                      <option key={idx} value={items.value}>{items.text}</option>
-                    ))}
-                  </select>
+                    options={[
+                      { value: 0, text: "Tất cả" },
+                      ...lisNhomHocPhanFilter.map(x => ({
+                        value: x.value,
+                        text: x.text
+                      }))
+                    ]}
+                  />
                 </div>
 
                 <div className="col-md-4">
-                  <label className="ceo-label">Học kỳ</label>
-                  <select
-                    className="form-control ceo-input"
+                  <CeoSelect2
+                    label="Học kỳ"
                     name="id_semester_filter"
-                    value={optionFilter.id_semester || 0}
+                    value={optionFilter.id_semester}
                     onChange={handleInputChange}
-                  >
-                    <option value="0">Tất cả</option>
-                    {listSemesterFilter.map((items, idx) => (
-                      <option key={idx} value={items.value}>{items.text}</option>
-                    ))}
-                  </select>
+                    options={[
+                      { value: 0, text: "Tất cả" },
+                      ...listSemesterFilter.map(x => ({
+                        value: x.value,
+                        text: x.text
+                      }))
+                    ]}
+                  />
                 </div>
 
                 <div className="col-md-4">
@@ -814,16 +818,16 @@ function CourseInterfaceCtdt() {
                           <tr key={course.id_course} style={{ backgroundColor: "white" }}>
                             <td className="text-center">{course.code_course}</td>
                             <td>{course.name_course}</td>
-                            <td className="text-center">{course.name_isCourse}</td>
-                            <td className="text-center">{course.name_gr_course}</td>
+                            <td >{course.name_isCourse}</td>
+                            <td >{course.name_gr_course}</td>
                             <td className="text-center">{course.totalTheory}</td>
                             <td className="text-center">{course.totalPractice}</td>
                             <td className="text-center">{course.credits}</td>
-                            <td className="formatSo">{course.time_open == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-primary">{unixTimestampToDate(course.time_open)}</span>}</td>
-                            <td className="formatSo">{course.time_close == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-primary">{unixTimestampToDate(course.time_close)}</span>}</td>
-                            <td className="formatSo">{course.time_close == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-success">{formatCountdown(course.time_close * 1000 - Date.now())}</span>}</td>
+                            <td >{course.time_open == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-primary">{unixTimestampToDate(course.time_open)}</span>}</td>
+                            <td >{course.time_close == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-primary">{unixTimestampToDate(course.time_close)}</span>}</td>
+                            <td>{course.time_close == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-success">{formatCountdown(course.time_close * 1000 - Date.now())}</span>}</td>
                             <td className="formatSo">{course.count_syllabus}</td>
-                            <td className="formatSo">{course.is_syllabus == true ? <span className="text-success">Môn học này đã hoàn thành đề cương</span> : <span className="text-danger">Môn học này chưa hoàn thành đề cương</span>}</td>
+                            <td>{course.is_syllabus == true ? <span className="text-success">Môn học này đã hoàn thành đề cương</span> : <span className="text-danger">Môn học này chưa hoàn thành đề cương</span>}</td>
                             <td>
                               <button
                                 className="btn btn-sm btn-function-ceo"
@@ -881,13 +885,13 @@ function CourseInterfaceCtdt() {
                           <td className="formatSo">{item.totalTheory}</td>
                           <td className="formatSo">{item.totalPractice}</td>
                           <td className="formatSo">{item.credits}</td>
-                          <td className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
-                          <td className="formatSo">{unixTimestampToDate(item.time_up)}</td>
-                          <td className="formatSo">
+                          <td>{unixTimestampToDate(item.time_cre)}</td>
+                          <td>{unixTimestampToDate(item.time_up)}</td>
+                          <td>
                             {item.time_close == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-success">{formatCountdown(item.time_close * 1000 - Date.now())}</span>}
                           </td>
                           <td className="formatSo">{item.count_syllabus}</td>
-                          <td className="formatSo">{item.is_syllabus == true ? <span className="text-success">Môn học này đã hoàn thành đề cương</span> : <span className="text-danger">Môn học này chưa hoàn thành đề cương</span>}</td>
+                          <td>{item.is_syllabus == true ? <span className="text-success">Môn học này đã hoàn thành đề cương</span> : <span className="text-danger">Môn học này chưa hoàn thành đề cương</span>}</td>
                           <td>
                             <button
                               className="btn btn-sm btn-function-ceo"
@@ -1201,8 +1205,8 @@ function CourseInterfaceCtdt() {
                   <td>{item.code_course}</td>
                   <td>{item.name_course}</td>
                   <td className="formatSo">{item.version}</td>
-                  <td className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
-                  <td className="formatSo">{unixTimestampToDate(item.time_up)}</td>
+                  <td>{unixTimestampToDate(item.time_cre)}</td>
+                  <td>{unixTimestampToDate(item.time_up)}</td>
                   <td>{item.status == "Duyệt thành công" ? <span className="text-success">Đã hoàn thành</span> : <span className="text-danger">Chưa hoàn thành</span>}</td>
                   <td>
                     <button className="btn btn-sm btn-function-ceo" onClick={() => handlePreviewSyllabus(item.id_syllabus)}>

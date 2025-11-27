@@ -18,6 +18,7 @@ function ListWriteCourseDVDC() {
     const [returned_content, setReturned_content] = useState<string>("");
     const [showModalRequestEditSyllabus, setShowModalRequestEditSyllabus] = useState(false);
     const [contentRequestEditSyllabus, setContentRequestEditSyllabus] = useState<string>("");
+    const [code_civilSer, setCode_civilSer] = useState<string>("");
     const [listTeacher, setListTeacher] = useState<{
         success?: boolean;
         data?: any[];
@@ -309,6 +310,15 @@ function ListWriteCourseDVDC() {
             SweetAlert("error", res.message);
         }
     }
+    const handleSearchRequestWriteCourse = async () => {
+        const res = await WriteCourseAPI.SearchRequestWriteCourse({ code_civilSer: code_civilSer, id_syllabus: Number(formData.id_syllabus) });
+        if (res.success) {
+            SweetAlert("success", res.message);
+            getListRequestWriteCourse(Number(formData.id_syllabus));
+        } else {
+            SweetAlert("error", res.message);
+        }
+    }
     useEffect(() => {
         GetListCourse();
     }, []);
@@ -346,13 +356,11 @@ function ListWriteCourseDVDC() {
                                             <td className="formatSo">{item.totalPractice}</td>
                                             <td className="formatSo">{item.credits}</td>
                                             <td
-                                                className="formatSo"
                                                 style={{ color: item.is_open === 1 ? "blue" : "red" }}
                                             >
                                                 {unixTimestampToDate(item.time_open)}
                                             </td>
                                             <td
-                                                className="formatSo"
                                                 style={{ color: item.is_open === 1 ? "blue" : "red" }}
                                             >
                                                 {unixTimestampToDate(item.time_close)}
@@ -663,79 +671,99 @@ function ListWriteCourseDVDC() {
                 onClose={() => setShowModalRequestWriteCourse(false)}
             >
                 <>
-                    {listRequestWriteCourse.length > 0 ? (
-                        <table className="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>STT</th>
-                                    <th>Mã giảng viên</th>
-                                    <th>Tên giảng viên</th>
-                                    <th>Email</th>
-                                    <th>Thuộc CTĐT</th>
-                                    <th>Trạng thái</th>
-                                    <th>Thời gian nhận yêu cầu</th>
-                                    <th>Thời gian duyệt yêu cầu</th>
-                                    <th>*</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {listRequestWriteCourse.map((item, index) => (
-                                    <tr key={item.id_ApproveUserSyllabus}>
-                                        <td>{index + 1}</td>
-                                        <td>{item.code_civil}</td>
-                                        <td>{item.name_civil}</td>
-                                        <td>{item.email}</td>
-                                        <td>{item.name_program}</td>
-                                        {item.is_approve === true && item.is_refuse === false ? (
-                                            <td><span className="badge badge-pill badge-success">Đã duyệt</span></td>
-                                        ) : item.is_approve === false && item.is_refuse === false ? (
-                                            <td><span className="badge badge-pill badge-warning">Chờ duyệt</span></td>
-                                        ) : item.is_refuse === true && item.is_approve === false ? (
-                                            <td><span className="badge badge-pill badge-danger">Từ chối</span></td>
-                                        ) : null}
-                                        <td className="formatSo">{unixTimestampToDate(item.time_request)}</td>
-                                        <td className="formatSo">{item.time_accept_request === null ? "" : unixTimestampToDate(item.time_accept_request)}</td>
-                                        <td data-label="*" className="formatSo">
-                                            <div className="d-flex justify-content-center flex-wrap gap-3">
-                                                {item.is_approve === false && item.is_refuse === false ? (
-                                                    <>
-                                                        <button className="btn btn-success btn-tone m-r-5" onClick={() => handleAcceptRequestWriteCourse(item.id_ApproveUserSyllabus)}>
-                                                            <i className="anticon anticon-edit me-1" /> Duyệt yêu cầu
-                                                        </button>
-                                                        <button className="btn btn-danger btn-tone m-r-5" onClick={() => handleRejectRequestWriteCourse(item.id_ApproveUserSyllabus)}>
-                                                            <i className="anticon anticon-delete me-1" /> Từ chối yêu cầu
-                                                        </button>
-                                                    </>
-                                                ) : item.is_approve === true && item.is_refuse === false ? (
-                                                    <>
-                                                        <button className="btn btn-danger btn-tone m-r-5" onClick={() => handleRemoveJoinWriteCourse(item.id_ApproveUserSyllabus)}>
-                                                            <i className="anticon anticon-delete me-1" /> Loại khỏi danh sách
-                                                        </button>
-                                                    </>
-                                                ) : item.is_approve === false && item.is_refuse === true ? (
-                                                    <>
-                                                        <button className="btn btn-success btn-tone m-r-5" onClick={() => handleAcceptRequestWriteCourse(item.id_ApproveUserSyllabus)}>
-                                                            <i className="anticon anticon-edit me-1" /> Mở duyệt lại
-                                                        </button>
-                                                        <hr />
-                                                        <div className="alert alert-danger py-1 px-2 mb-2" style={{ fontSize: "13px", borderRadius: "8px" }}>
-                                                            <i className="fas fa-times-circle me-2"></i>
-                                                            Đã bị từ chối yêu cầu tham gia viết đề cương
-                                                        </div>
-                                                    </>
-                                                ) : null}
-
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    ) : (
-                        <div className="alert alert-info" style={{ textAlign: "center", marginTop: "20px" }}>
-                            Không có yêu cầu tham gia viết đề cương
+                    <div className="table-responsive">
+                        <h5 className="text-center text-uppercase font-size-20">Nhập mã giảng viên vào ô để phân quyền vào đề cương môn học này</h5>
+                        <hr />
+                        <div className="form-group row">
+                            <label className="ceo-label col-sm-2 col-form-label">Mã cán bộ</label>
+                            <div className="col-sm-10">
+                                <input
+                                    type="text"
+                                    name="code_civilSer"
+                                    value={code_civilSer}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCode_civilSer(e.target.value)}
+                                    className="form-control ceo-input"
+                                    autoComplete="off"
+                                />
+                            </div>
                         </div>
-                    )}
+                        <button className="btn btn-ceo-blue" onClick={handleSearchRequestWriteCourse}>Kiểm tra và phân quyền</button>
+                        <hr />
+                        
+                        {listRequestWriteCourse.length > 0 ? (
+                            <table className="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>STT</th>
+                                        <th>Mã giảng viên</th>
+                                        <th>Tên giảng viên</th>
+                                        <th>Email</th>
+                                        <th>Thuộc CTĐT</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thời gian nhận yêu cầu</th>
+                                        <th>Thời gian duyệt yêu cầu</th>
+                                        <th>*</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {listRequestWriteCourse.map((item, index) => (
+                                        <tr key={item.id_ApproveUserSyllabus}>
+                                            <td>{index + 1}</td>
+                                            <td>{item.code_civil}</td>
+                                            <td>{item.name_civil}</td>
+                                            <td>{item.email}</td>
+                                            <td>{item.name_program}</td>
+                                            {item.is_approve === true && item.is_refuse === false ? (
+                                                <td><span className="badge badge-pill badge-success">Đã duyệt</span></td>
+                                            ) : item.is_approve === false && item.is_refuse === false ? (
+                                                <td><span className="badge badge-pill badge-warning">Chờ duyệt</span></td>
+                                            ) : item.is_refuse === true && item.is_approve === false ? (
+                                                <td><span className="badge badge-pill badge-danger">Từ chối</span></td>
+                                            ) : null}
+                                            <td className="formatSo">{unixTimestampToDate(item.time_request)}</td>
+                                            <td className="formatSo">{item.time_accept_request === null ? "" : unixTimestampToDate(item.time_accept_request)}</td>
+                                            <td data-label="*" className="formatSo">
+                                                <div className="d-flex justify-content-center flex-wrap gap-3">
+                                                    {item.is_approve === false && item.is_refuse === false ? (
+                                                        <>
+                                                            <button className="btn btn-success btn-tone m-r-5" onClick={() => handleAcceptRequestWriteCourse(item.id_ApproveUserSyllabus)}>
+                                                                <i className="anticon anticon-edit me-1" /> Duyệt yêu cầu
+                                                            </button>
+                                                            <button className="btn btn-danger btn-tone m-r-5" onClick={() => handleRejectRequestWriteCourse(item.id_ApproveUserSyllabus)}>
+                                                                <i className="anticon anticon-delete me-1" /> Từ chối yêu cầu
+                                                            </button>
+                                                        </>
+                                                    ) : item.is_approve === true && item.is_refuse === false ? (
+                                                        <>
+                                                            <button className="btn btn-danger btn-tone m-r-5" onClick={() => handleRemoveJoinWriteCourse(item.id_ApproveUserSyllabus)}>
+                                                                <i className="anticon anticon-delete me-1" /> Loại khỏi danh sách
+                                                            </button>
+                                                        </>
+                                                    ) : item.is_approve === false && item.is_refuse === true ? (
+                                                        <>
+                                                            <button className="btn btn-success btn-tone m-r-5" onClick={() => handleAcceptRequestWriteCourse(item.id_ApproveUserSyllabus)}>
+                                                                <i className="anticon anticon-edit me-1" /> Mở duyệt lại
+                                                            </button>
+                                                            <hr />
+                                                            <div className="alert alert-danger py-1 px-2 mb-2" style={{ fontSize: "13px", borderRadius: "8px" }}>
+                                                                <i className="fas fa-times-circle me-2"></i>
+                                                                Đã bị từ chối yêu cầu tham gia viết đề cương
+                                                            </div>
+                                                        </>
+                                                    ) : null}
+
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        ) : (
+                            <div className="alert alert-info" style={{ textAlign: "center", marginTop: "20px" }}>
+                                Không có yêu cầu tham gia viết đề cương
+                            </div>
+                        )}
+                    </div>
                 </>
             </Modal>
             <Modal
