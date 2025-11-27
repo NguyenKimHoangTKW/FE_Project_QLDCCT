@@ -705,7 +705,7 @@ function CourseInterfaceCtdt() {
                     onChange={handleInputChange}
                     options={[
                       { value: 0, text: "Tất cả" },
-                      ...lisNhomHocPhanFilter.map(x => ({
+                      ...listKeyYearSemester.map(x => ({
                         value: x.value,
                         text: x.text
                       }))
@@ -1294,7 +1294,7 @@ function CourseInterfaceCtdt() {
           <div
             className="action-card edit"
             onClick={() => {
-              LoadLogCourse(Number(selectedIdCourse));
+              handleDelete(Number(selectedIdCourse));
               setOpenFunction(false);
             }}
           >

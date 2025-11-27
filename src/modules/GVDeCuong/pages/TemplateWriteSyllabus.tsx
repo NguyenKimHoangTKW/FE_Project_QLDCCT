@@ -51,8 +51,13 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         id_syllabus: Number(id_syllabus),
       });
       if (res.success) {
-        const jsonString = res.data?.syllabus_json || "[]";
-        setTemplateSections(JSON.parse(jsonString));
+        if (res.data?.syllabus_section_json === null) {
+          const jsonString = res.data?.syllabus_json || "[]";
+          setTemplateSections(JSON.parse(jsonString));
+        } else {
+          const jsonString = res.data?.syllabus_section_json || "[]";
+          setTemplateSections(JSON.parse(jsonString));
+        }
         setCheckOpen({ status: res.data.status, is_open: res.data.is_open, name_course: res.data.course });
         SweetAlert("success", res.message);
       } else {
@@ -178,32 +183,25 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         })
         .withAutomaticReconnect()
         .build();
-      conn.on("SectionDraftUpdated", (sid, code, content) => {
+        conn.on("SectionDraftUpdated", (sid, code, content) => {
 
-        if (sid !== Number(id_syllabus)) return;
+          if (sid !== Number(id_syllabus)) return;
+          if (editingSection.current === code) return;
+        
+          const editor = (window as any).tinymce?.get(code);
+          if (!editor) return;
+        
+          try {
+              const currentRaw = editor.getContent({ format: "raw" }).trim();
+              const incomingRaw = (content ?? "").trim();
+        
+              if (currentRaw !== incomingRaw) {
+                editor.setContent(content, { format: "raw" });
+              }
+          } catch {}
+        });
+        
 
-        setDraftData(prev => ({
-          ...prev,
-          [code]: content
-        }));
-
-        if (editingSection.current === code) return;
-
-        const editor = (window as any).tinymce?.get(code);
-        if (!editor) return;
-
-        try {
-
-          const currentRaw = editor.getContent({ format: "raw" }).trim();
-          const incomingRaw = (content ?? "").trim();
-
-          if (currentRaw !== incomingRaw) {
-            editor.setContent(content, { format: "raw" });
-          }
-
-        } catch { }
-
-      });
 
       conn.on("UserTypingStatusChanged", (sid, user, section, isTyping) => {
         if (sid !== Number(id_syllabus)) return;
@@ -903,7 +901,9 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
 
         try {
           const current = ed.getContent({ format: "raw" });
-          if (current !== content) ed.setContent(content);
+          if (editingSection.current !== sec) {
+            if (current !== content) ed.setContent(content);
+          }
         } catch { }
       });
     }, 200);
@@ -933,38 +933,25 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
             <Editor
               key={sectionId}
               id={sectionId}
-              value={initialContent}
+              initialValue={initialContent}
               onEditorChange={(newContent) => {
-                setDraftData((prev: any) => ({
-                  ...prev,
-                  [sectionId]: newContent,
-                }));
-
                 tempContent.current[sectionId] = newContent;
 
-                if (
-                  hubConnection?.state ===
-                  signalR.HubConnectionState.Connected
-                ) {
-                  hubConnection
-                    .invoke(
-                      "UpdateSectionDraft",
-                      Number(id_syllabus),
-                      sectionId,
-                      newContent
-                    )
-                    .catch(() => { });
-                }
+                hubConnection?.invoke(
+                  "UpdateSectionDraft",
+                  Number(id_syllabus),
+                  sectionId,
+                  newContent
+                );
 
                 if (draftTimeouts.current[sectionId]) {
                   clearTimeout(draftTimeouts.current[sectionId]);
                 }
-
                 draftTimeouts.current[sectionId] = setTimeout(() => {
                   TemplateWriteCourseAPI.SaveDraftSection({
                     id_syllabus: Number(id_syllabus),
                     section_code: sectionId,
-                    content: newContent,
+                    content: newContent
                   });
                 }, 1200);
               }}
