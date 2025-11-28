@@ -283,140 +283,22 @@ export default function PreviewTemplateSyllabusFinal() {
                 );
         }
     };
-    const getHeadingTag = (sectionCode: string) => {
-        const level = sectionCode.split(".").length - 1;
-
-        if (level === 0) return "h1"; 
-        if (level === 1) return "h2";
-        if (level === 2) return "h3";
-        return "h4";
-    };
-    const buildFullHTML = () => {
-        let html = `
-    <html>
-      <head>
-        <meta charset="utf-8"/>
-        <style>
-          body { font-family: 'Times New Roman', serif; font-size: 13pt; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-          th, td { border: 1px solid #000; padding: 6px; }
-          h2, h3, h4 { margin-top: 20px; }
-        </style>
-      </head>
-      <body>
-        <h2 style="text-align:center;">ĐỀ CƯƠNG CHI TIẾT</h2>
-    `;
-
-        const ploMatrixData = loadListPLOCourse || [];
-        const totalPiCols = ploMatrixData.reduce(
-            (sum: number, p: any) => sum + (p.pi_list?.length || 0),
-            0
-        );
-
-        templateSections.forEach(section => {
-            const binding = section.dataBinding?.split(" - ")[0] ?? "";
-            const content =
-                section.value ||
-                "(không có nội dung)";
-
-            const HeadingTag = getHeadingTag(section.section_code);
-
-            html += `
-                <${HeadingTag}>${section.section_code}. ${section.section_name}</${HeadingTag}>
-                <div>${content}</div>
-            `;
-
-
-            if (binding === "CLO") {
-                html += `
-          <h4>Danh sách CLO</h4>
-          <table>
-            <tr><th>Mã CLO</th><th>Mô tả</th></tr>
-            ${mappingRows
-                        .map(
-                            r => `<tr><td>${r.map_clo}</td><td>${r.description}</td></tr>`
-                        )
-                        .join("")}
-          </table>
-        `;
-            }
-
-            if (binding === "PLO") {
-                if (ploMatrixData && ploMatrixData.length > 0) {
-                    html += `
-            <h4>Ma trận CLO – PLO/PI</h4>
-            <table>
-              <thead>
-                <tr>
-                  <th rowspan="3">CLO</th>
-                  <th colspan="${totalPiCols}">PLO và PI</th>
-                </tr>
-                <tr>
-                  ${ploMatrixData
-                            .map(
-                                (p: any) =>
-                                    `<th colspan="${p.pi_list.length}">${p.plo_code}</th>`
-                            )
-                            .join("")}
-                </tr>
-                <tr>
-                  ${ploMatrixData
-                            .flatMap((p: any) =>
-                                p.pi_list.map(
-                                    (pi: any) => `<th>${pi.pi_code}</th>`
-                                )
-                            )
-                            .join("")}
-                </tr>
-              </thead>
-              <tbody>
-                ${mappingRows
-                            .map((clo: any, rowIndex: number) => {
-                                const cells = ploMatrixData
-                                    .flatMap((p: any) => p.pi_list)
-                                    .map((pi: any) => {
-                                        const key = `${rowIndex}_${pi.id_PI}`;
-                                        const code = levelMatrix[key]?.code_Level || "";
-                                        return `<td>${code}</td>`;
-                                    })
-                                    .join("");
-
-                                return `
-                      <tr>
-                        <td>${clo.map_clo}</td>
-                        ${cells}
-                      </tr>
-                    `;
-                            })
-                            .join("")}
-              </tbody>
-            </table>
-          `;
-                }
-            }
-        });
-
-        html += `</body></html>`;
-        return html;
-    };
     const exportWordHTML = async () => {
         try {
-            const html = buildFullHTML();
-
             const res = await fetch(`${URL_API_DVDC}/write-template-syllabus/export-word-html`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ html })
+                credentials: "include",
+                body: JSON.stringify({ id_syllabus })
             });
-
+    
             const blob = await res.blob();
-            saveAs(blob, `Exports.docx`);
-
+            saveAs(blob, `Syllabus_${id_syllabus}.docx`);
         } catch (e) {
             SweetAlert("error", "Không thể xuất file Word");
         }
     };
-
+    
     if (loading)
         return (
             <div className="p-4 text-center">
@@ -425,135 +307,136 @@ export default function PreviewTemplateSyllabusFinal() {
             </div>
         );
 
-        return (
-            <div
-                className="main-content"
-                style={{
-                    background: "linear-gradient(135deg, #f7f9fb, #eef3f8)",
-                    minHeight: "100vh",
-                    padding: "24px"
-                }}
-            >
-                <div className="container">
-    
-                    <div
-                        className="p-4 mb-4"
+    return (
+        <div
+            className="main-content"
+            style={{
+                background: "linear-gradient(135deg, #f7f9fb, #eef3f8)",
+                minHeight: "100vh",
+                padding: "24px",
+                marginTop: "55px"
+            }}
+        >
+            <div className="container">
+
+                <div
+                    className="p-4 mb-4"
+                    style={{
+                        background: "white",
+                        borderRadius: "18px",
+                        boxShadow: "0 4px 18px rgba(0,0,0,0.06)"
+                    }}
+                >
+                    <h1
+                        className="text-uppercase fw-bold"
+                        style={{ fontSize: "26px", color: "#1e3a8a" }}
+                    >
+                        📘 Xem bản hoàn chỉnh đề cương
+                    </h1>
+
+                    <p
                         style={{
-                            background: "white",
-                            borderRadius: "18px",
-                            boxShadow: "0 4px 18px rgba(0,0,0,0.06)"
+                            fontSize: "16px",
+                            opacity: 0.8,
+                            marginTop: "6px"
                         }}
                     >
-                        <h1
-                            className="text-uppercase fw-bold"
-                            style={{ fontSize: "26px", color: "#1e3a8a" }}
-                        >
-                            📘 Xem bản hoàn chỉnh đề cương
-                        </h1>
-    
-                        <p
-                            style={{
-                                fontSize: "16px",
-                                opacity: 0.8,
-                                marginTop: "6px"
-                            }}
-                        >
-                            Môn học: <span className="fw-bold" style={{ color: "#dc2626" }}>{nameCourse}</span>
-                        </p>
-                    </div>
-    
-                    <div
-                        className="card border-0"
-                        style={{
-                            borderRadius: "18px",
-                            boxShadow: "0 6px 24px rgba(0,0,0,0.08)",
-                            background: "white"
-                        }}
-                    >
-                        <div className="card-body p-4">
-    
-                            {templateSections.length === 0 ? (
-                                <p className="text-muted text-center fs-5 py-5">
-                                    Không có dữ liệu trong template này.
-                                </p>
-                            ) : (
-                                <div className="template-preview">
-    
-                                    {templateSections.map((section, index) => {
-                                        const level = section.section_code.split(".").length - 1;
-    
-                                        const marginLeft =
-                                            level === 0 ? "0px" :
-                                                level === 1 ? "20px" :
-                                                    "40px";
-    
-                                        return (
-                                            <div
-                                                key={index}
+                        Môn học: <span className="fw-bold" style={{ color: "#dc2626" }}>{nameCourse}</span>
+                    </p>
+                </div>
+
+                <div
+                    className="card border-0"
+                    style={{
+                        borderRadius: "18px",
+                        boxShadow: "0 6px 24px rgba(0,0,0,0.08)",
+                        background: "white"
+                    }}
+                >
+                    <div className="card-body p-4">
+
+                        {templateSections.length === 0 ? (
+                            <p className="text-muted text-center fs-5 py-5">
+                                Không có dữ liệu trong template này.
+                            </p>
+                        ) : (
+                            <div className="template-preview">
+
+                                {templateSections.map((section, index) => {
+                                    const level = section.section_code.split(".").length - 1;
+
+                                    const marginLeft =
+                                        level === 0 ? "0px" :
+                                            level === 1 ? "20px" :
+                                                "40px";
+
+                                    return (
+                                        <div
+                                            key={index}
+                                            style={{
+                                                marginBottom: "28px",
+                                                marginLeft: marginLeft,
+                                                borderLeft: "4px solid #3b82f6",
+                                                paddingLeft: "14px"
+                                            }}
+                                        >
+                                            <h5
                                                 style={{
-                                                    marginBottom: "28px",
-                                                    marginLeft: marginLeft,
-                                                    borderLeft: "4px solid #3b82f6",
-                                                    paddingLeft: "14px"
+                                                    color: "#1f2937",
+                                                    fontWeight: 600,
+                                                    marginBottom: "14px"
                                                 }}
                                             >
-                                                <h5
-                                                    style={{
-                                                        color: "#1f2937",
-                                                        fontWeight: 600,
-                                                        marginBottom: "14px"
-                                                    }}
-                                                >
-                                                    {section.section_code}. {section.section_name}
-                                                </h5>
-    
-                                                <div
-                                                    className="template-section-content"
-                                                    style={{
-                                                        background: "#fafbff",
-                                                        padding: "16px",
-                                                        borderRadius: "12px",
-                                                        border: "1px solid #e5e7eb"
-                                                    }}
-                                                >
-                                                    {renderSectionContent(section)}
-                                                </div>
+                                                {section.section_code}. {section.section_name}
+                                            </h5>
+
+                                            <div
+                                                className="template-section-content"
+                                                style={{
+                                                    background: "#fafbff",
+                                                    padding: "16px",
+                                                    borderRadius: "12px",
+                                                    border: "1px solid #e5e7eb"
+                                                }}
+                                            >
+                                                {renderSectionContent(section)}
                                             </div>
-                                        );
-                                    })}
-    
-                                </div>
-                            )}
-                        </div>
+                                        </div>
+                                    );
+                                })}
+
+                            </div>
+                        )}
                     </div>
-    
-                    <div
-                        className="d-flex justify-content-center gap-3 flex-wrap mt-4 p-3"
+                </div>
+
+                <div
+                    className="d-flex justify-content-center gap-3 flex-wrap mt-4 p-3"
+                    style={{
+                        position: "sticky",
+                        bottom: "0",
+                        background: "rgba(255,255,255,0.95)",
+                        backdropFilter: "blur(6px)",
+                        borderRadius: "14px",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+                    }}
+                >
+                    <button
+                        className="btn btn-lg px-4"
+                        onClick={exportWordHTML}
                         style={{
-                            position: "sticky",
-                            bottom: "0",
-                            background: "rgba(255,255,255,0.95)",
-                            backdropFilter: "blur(6px)",
+                            background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
+                            color: "white",
+                            fontWeight: 600,
                             borderRadius: "14px",
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+                            boxShadow: "0 4px 14px rgba(37,99,235,0.4)"
                         }}
                     >
-                        <button
-                            className="btn btn-lg px-4"
-                            onClick={exportWordHTML}
-                            style={{
-                                background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
-                                color: "white",
-                                fontWeight: 600,
-                                borderRadius: "14px",
-                                boxShadow: "0 4px 14px rgba(37,99,235,0.4)"
-                            }}
-                        >
-                            📝 Xuất Word
-                        </button>
-                    </div>
-    
+                        📝 Xuất Word
+                    </button>
                 </div>
+
             </div>
-        );
+        </div>
+    );
 }

@@ -17,7 +17,13 @@ export const CourseDonViAPI = {
         withCredentials: true,
       })
       .then((res) => res.data),
-
+  GetListCourseByKeyYear: (data: { id_key_year_semester: number, id_program: number }) =>
+    axios
+      .post(`${URL_API_DONVI}/course/loads-mon-hoc-dang-hoc-ky`, data, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      })
+      .then((res) => res.data),
   GetListCourse: (data: { id_gr_course: number, id_key_year_semester: number, id_semester: number, id_program: number, id_isCourse: number, Page: number; PageSize: number }) =>
     axios
       .post(`${URL_API_DONVI}/course/loads-danh-sach-mon-hoc-thuoc-don-vi`, data, {
@@ -71,6 +77,12 @@ export const CourseDonViAPI = {
     })
       .then((res) => res.data);
   },
+  LoadListUserWriteCourse: (data:{id_course:number}) =>
+    axios.post(`${URL_API_DONVI}/course/loads-danh-sach-giang-vien-viet-de-cuong`, data, {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true,
+    })
+      .then((res) => res.data),
   ExportExcelCourse: (data: {
     id_gr_course: number,
     id_key_year_semester: number,
@@ -91,13 +103,13 @@ export const CourseDonViAPI = {
       id_semester: number,
       id_program: number,
       id_isCourse: number
-  }) =>
+    }) =>
       axios.post(
-          `${URL_API_DONVI}/course/export-danh-sach-mon-hoc-chua-co-de-cuong`,
-          data,
-          {
-              responseType: "blob",
-              withCredentials: true,
-          }
+        `${URL_API_DONVI}/course/export-danh-sach-mon-hoc-chua-co-de-cuong`,
+        data,
+        {
+          responseType: "blob",
+          withCredentials: true,
+        }
       ),
 };

@@ -322,6 +322,19 @@ function ListWriteCourseDVDC() {
     useEffect(() => {
         GetListCourse();
     }, []);
+    useEffect(() => {
+        const handleReload = (e: StorageEvent) => {
+            if (e.key === "reload_syllabus_final" && e.newValue) {
+                getListTeacherbyWriteCourse(Number(formData.id_course));
+    
+                localStorage.removeItem("reload_syllabus_final");
+            }
+        };
+    
+        window.addEventListener("storage", handleReload);
+        return () => window.removeEventListener("storage", handleReload);
+    }, []);
+    
     return (
         <div className="main-content">
             <div className="card">

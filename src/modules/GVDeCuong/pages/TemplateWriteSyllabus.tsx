@@ -38,6 +38,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   const [aiPrompt, setAIPrompt] = useState("");
   const [aiResult, setAIResult] = useState("");
   const [currentSection, setCurrentSection] = useState<any>(null);
+  const [checkCreate, setCheckCreate] = useState(false);
   const [aiLoading, setAILoading] = useState(false);
   const tempContent = useRef<Record<string, string>>({});
   const [checkOpen, setCheckOpen] = useState<{
@@ -58,6 +59,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
           const jsonString = res.data?.syllabus_section_json || "[]";
           setTemplateSections(JSON.parse(jsonString));
         }
+        setCheckCreate(res.is_create);
         setCheckOpen({ status: res.data.status, is_open: res.data.is_open, name_course: res.data.course });
         SweetAlert("success", res.message);
       } else {
@@ -68,6 +70,12 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
     }
   };
 
+  const handleSaveAllContentDraft = async (json: string) => {
+    const res = await TemplateWriteCourseAPI.SaveAllContentDraft({
+      id_syllabus: Number(id_syllabus),
+      section_json: json,
+    });
+  };
   const LoadPreviewLevelContribution = async () => {
     const res = await TemplateWriteCourseAPI.PreviewLevelContribution({
       id_syllabus: Number(id_syllabus),
@@ -165,13 +173,28 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         await LoadListPLOCourse();
         await LoadPreviewLevelContribution();
         await LoadPreviewMapPLObySyllabus();
-        await LoadSavedMappingCLOPI();
+
 
       };
 
       loadAll();
     }
   }, [checkOpen.status === false && checkOpen.is_open === true]);
+  useEffect(() => {
+    if (
+      checkOpen.status === false &&
+      checkOpen.is_open === true &&
+      mappingRows.length > 0 &&
+      loadPreviewLevelContribution.length > 0
+    ) {
+      LoadSavedMappingCLOPI();
+    }
+  }, [
+    checkOpen.status,
+    checkOpen.is_open,
+    mappingRows,
+    loadPreviewLevelContribution
+  ]);
 
 
   useEffect(() => {
@@ -183,24 +206,24 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         })
         .withAutomaticReconnect()
         .build();
-        conn.on("SectionDraftUpdated", (sid, code, content) => {
+      conn.on("SectionDraftUpdated", (sid, code, content) => {
 
-          if (sid !== Number(id_syllabus)) return;
-          if (editingSection.current === code) return;
-        
-          const editor = (window as any).tinymce?.get(code);
-          if (!editor) return;
-        
-          try {
-              const currentRaw = editor.getContent({ format: "raw" }).trim();
-              const incomingRaw = (content ?? "").trim();
-        
-              if (currentRaw !== incomingRaw) {
-                editor.setContent(content, { format: "raw" });
-              }
-          } catch {}
-        });
-        
+        if (sid !== Number(id_syllabus)) return;
+        if (editingSection.current === code) return;
+
+        const editor = (window as any).tinymce?.get(code);
+        if (!editor) return;
+
+        try {
+          const currentRaw = editor.getContent({ format: "raw" }).trim();
+          const incomingRaw = (content ?? "").trim();
+
+          if (currentRaw !== incomingRaw) {
+            editor.setContent(content, { format: "raw" });
+          }
+        } catch { }
+      });
+
 
 
       conn.on("UserTypingStatusChanged", (sid, user, section, isTyping) => {
@@ -818,7 +841,122 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
       SweetAlert("error", res.message || "Lưu mapping CLO – PI thất bại!");
     }
   };
+  const getHeadingTag = (sectionCode: string) => {
+    const level = sectionCode.split(".").length - 1;
 
+    if (level === 0) return "h1";
+    if (level === 1) return "h2";
+    if (level === 2) return "h3";
+    return "h4";
+  };
+  const buildFullHTML = () => {
+    let html = `
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <style>
+      body { font-family: 'Times New Roman', serif; font-size: 13pt; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+      th, td { border: 1px solid #000; padding: 6px; }
+      h2, h3, h4 { margin-top: 20px; }
+    </style>
+  </head>
+  <body>
+    <h2 style="text-align:center;">ĐỀ CƯƠNG CHI TIẾT</h2>
+`;
+
+    const ploMatrixData = loadListPLOCourse || [];
+    const totalPiCols = ploMatrixData.reduce(
+      (sum: number, p: any) => sum + (p.pi_list?.length || 0),
+      0
+    );
+
+    templateSections.forEach(section => {
+      const binding = section.dataBinding?.split(" - ")[0] ?? "";
+      const content =
+        section.value ||
+        "(không có nội dung)";
+
+      const HeadingTag = getHeadingTag(section.section_code);
+
+      html += `
+            <${HeadingTag}>${section.section_code}. ${section.section_name}</${HeadingTag}>
+            <div>${content}</div>
+        `;
+
+
+      if (binding === "CLO") {
+        html += `
+      <h4>Danh sách CLO</h4>
+      <table>
+        <tr><th>Mã CLO</th><th>Mô tả</th></tr>
+        ${mappingRows
+            .map(
+              r => `<tr><td>${r.map_clo}</td><td>${r.description}</td></tr>`
+            )
+            .join("")}
+      </table>
+    `;
+      }
+
+      if (binding === "PLO") {
+        if (ploMatrixData && ploMatrixData.length > 0) {
+          html += `
+        <h4>Ma trận CLO – PLO/PI</h4>
+        <table>
+          <thead>
+            <tr>
+              <th rowspan="3">CLO</th>
+              <th colspan="${totalPiCols}">PLO và PI</th>
+            </tr>
+            <tr>
+              ${ploMatrixData
+              .map(
+                (p: any) =>
+                  `<th colspan="${p.pi_list.length}">${p.plo_code}</th>`
+              )
+              .join("")}
+            </tr>
+            <tr>
+              ${ploMatrixData
+              .flatMap((p: any) =>
+                p.pi_list.map(
+                  (pi: any) => `<th>${pi.pi_code}</th>`
+                )
+              )
+              .join("")}
+            </tr>
+          </thead>
+          <tbody>
+            ${mappingRows
+              .map((clo: any, rowIndex: number) => {
+                const cells = ploMatrixData
+                  .flatMap((p: any) => p.pi_list)
+                  .map((pi: any) => {
+                    const key = `${rowIndex}_${pi.id_PI}`;
+                    const code = levelMatrix[key]?.code_Level || "";
+                    return `<td>${code}</td>`;
+                  })
+                  .join("");
+
+                return `
+                  <tr>
+                    <td>${clo.map_clo}</td>
+                    ${cells}
+                  </tr>
+                `;
+              })
+              .join("")}
+          </tbody>
+        </table>
+      `;
+        }
+      }
+    });
+
+    html += `</body></html>`;
+    return html;
+  };
 
   const LoadSavedMappingCLOPI = async () => {
     const res = await TemplateWriteCourseAPI.GetMappingCLOPI({
@@ -859,36 +997,41 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   };
   const saveFinalSyllabus = async () => {
     const confirm = await Swal.fire({
-      title: "Bạn có chắc chắn muốn lưu đề cương này không?",
-      text: "Bạn sẽ không thể hoàn tác lại!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Có, lưu ngay!",
-      cancelButtonText: "Hủy"
+        title: "Bạn có chắc chắn muốn lưu đề cương này không?",
+        text: "Bạn sẽ không thể hoàn tác lại!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Có, lưu ngay!",
+        cancelButtonText: "Hủy"
     });
 
     if (!confirm.isConfirmed) return;
 
+    const html = buildFullHTML();
+
     const res = await TemplateWriteCourseAPI.SaveFinalFromDraft({
-      id_syllabus: Number(id_syllabus),
+        id_syllabus: Number(id_syllabus),
+        html_export_word: html,
     });
 
     if (res.success) {
-      Swal.fire({
-        title: "Đã lưu!",
-        text: res.message || "Đề cương đã được lưu hoàn chỉnh.",
-        icon: "success"
-      });
-      localStorage.removeItem(storageKey);
-      setTimeout(() => {
-        window.history.back();
-      }, 1000);
+        Swal.fire({
+            title: "Đã lưu!",
+            text: res.message || "Đề cương đã được lưu hoàn chỉnh.",
+            icon: "success"
+        });
+        localStorage.setItem("reload_syllabus_final", Date.now().toString());
+        setTimeout(() => {
+            window.close();
+        }, 1200);
+
     } else {
-      SweetAlert("error", res.message || "Lưu đề cương thất bại!");
+        SweetAlert("error", res.message || "Lưu đề cương thất bại!");
     }
-  };
+};
+
 
 
   const applyDraftToEditors = () => {
@@ -1050,12 +1193,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
 
     const updated = sortSectionCodes([...templateSections, newSection]);
     setTemplateSections(updated);
-
-    localStorage.setItem(
-      `syllabus_draft_${id_syllabus}_sections`,
-      JSON.stringify(updated)
-    );
-
+    handleSaveAllContentDraft(JSON.stringify(updated));
     setShowAddSection(false);
     setNewSectionName("");
   };
@@ -1077,11 +1215,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
     updated = sortSectionCodes(updated);
 
     setTemplateSections(updated);
-
-    localStorage.setItem(
-      `syllabus_draft_${id_syllabus}_sections`,
-      JSON.stringify(updated)
-    );
+    handleSaveAllContentDraft(JSON.stringify(updated));
   };
 
   const addChildSection = (parentCode: string) => {
@@ -1292,25 +1426,32 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
           {checkOpen.status === false && checkOpen.is_open === true ? (
             <>
               <div className="d-flex flex-wrap justify-content-center gap-3">
+                {checkCreate === true ? (
+                  <>
+                    <button
+                      type="button"
+                      className="btn-ceo-primary shadow-sm"
+                      style={{ borderRadius: "10px" }}
+                      onClick={saveFinalSyllabus}
+                    >
+                      <i className="fas fa-save me-2 fs-5"></i>
+                      <span className="fw-semibold">Lưu đề cương</span>
+                    </button>
 
-                <button
-                  type="button"
-                  className="btn-ceo-primary shadow-sm"
-                  style={{ borderRadius: "10px" }}
-                  onClick={saveFinalSyllabus}
-                >
-                  <i className="fas fa-save me-2 fs-5"></i>
-                  <span className="fw-semibold">Lưu đề cương</span>
-                </button>
-
-                <button
-                  className="btn btn-lg px-4 btn-outline-primary shadow-sm d-flex align-items-center"
-                  style={{ borderRadius: "10px" }}
-                  onClick={() => setShowAddSection(true)}
-                >
-                  <i className="fas fa-plus-circle me-2 fs-5"></i>
-                  <span className="fw-semibold">Thêm tiêu đề cha</span>
-                </button>
+                    <button
+                      className="btn btn-lg px-4 btn-outline-primary shadow-sm d-flex align-items-center"
+                      style={{ borderRadius: "10px" }}
+                      onClick={() => setShowAddSection(true)}
+                    >
+                      <i className="fas fa-plus-circle me-2 fs-5"></i>
+                      <span className="fw-semibold">Thêm tiêu đề cha</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p>Bạn là giảng viên phụ viết đề cương, chỉ có giảng viên tạo đề cương này mới có thể thao tác nộp đề cương</p>
+                  </>
+                )}
 
               </div>
 

@@ -355,7 +355,6 @@ export default function () {
                         </div>
 
 
-                        {/* từ chối mở */}
                         <div className="col-md-3">
                             <div className="card shadow-sm stat-card"
                                 style={{

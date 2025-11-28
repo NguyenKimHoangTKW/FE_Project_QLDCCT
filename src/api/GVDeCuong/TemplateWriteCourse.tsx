@@ -80,14 +80,10 @@ export const TemplateWriteCourseAPI = {
             .post(`${URL_API_DVDC}/write-template-syllabus/load-drafts`, payload, { headers: { "Content-Type": "application/json" }, withCredentials: true })
             .then(res => res.data),
 
-    SaveFinalFromDraft: (payload: { id_syllabus: number }) =>
+    SaveFinalFromDraft: (payload: { id_syllabus: number,html_export_word: string }) =>
         axios
             .post(`${URL_API_DVDC}/write-template-syllabus/save-final-from-draft`, payload, { headers: { "Content-Type": "application/json" }, withCredentials: true })
             .then(res => res.data),
-
-
-
-
 
     SaveContentDraft: (data: { id_syllabus: number, draft_json: string }) =>
         axios.post(`${URL_API_DVDC}/write-template-syllabus/save-content-draft`, data,

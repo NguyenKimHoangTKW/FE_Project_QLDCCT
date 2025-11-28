@@ -19,7 +19,10 @@ function CourseInterfaceDonVi() {
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [checkClickFilter, setCheckClickFilter] = useState(false);
   const [allData, setAllData] = useState<any[]>([]);
+  const [listUserWriteCourse, setListUserWriteCourse] = useState<any[]>([]);
+  const [showListUserWriteCourse, setShowListUserWriteCourse] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [listCTDT, setListCTDT] = useState<any[]>([]);
@@ -27,6 +30,8 @@ function CourseInterfaceDonVi() {
   const [openFunction, setOpenFunction] = useState(false);
   const [listKeyYearSemester, setListKeyYearSemester] = useState<any[]>([]);
   const [listSemester, setListSemester] = useState<any[]>([]);
+  const [listCourseByKeyYear, setListCourseByKeyYear] = useState<any[]>([]);
+  const [checkClickKeyYear, setCheckClickKeyYear] = useState(false);
   const [logData, setLogData] = useState<any[]>([]);
   const [showLogData, setShowLogData] = useState(false);
   const [listKeyYearSemesterFilter, setListKeyYearSemesterFilter] = useState<any[]>([]);
@@ -184,6 +189,37 @@ function CourseInterfaceDonVi() {
       unixTimestampToDate(item.time_up)?.toLowerCase().includes(keyword)
     );
   });
+
+  const GetListCourseByKeyYear = async () => {
+    setLoading(true);
+    try {
+      const res = await CourseDonViAPI.GetListCourseByKeyYear({ id_key_year_semester: Number(optionFilter.id_key_year_semester), id_program: Number(optionFilter.id_ctdt) });
+      if (res.success) {
+        setListCourseByKeyYear(res.data);
+        SweetAlert("success", res.message);
+      }
+      else {
+        SweetAlert("error", res.message);
+      }
+    }
+    finally {
+      setLoading(false);
+    }
+  }
+  const handleClickKeyYearTrue = () => {
+    if (Number(optionFilter.id_key_year_semester) === 0) {
+      SweetAlert("error", "Vui lòng chọn khóa học trước để có thể lọc tính năng này");
+      return;
+    }
+    else {
+      setCheckClickKeyYear(true);
+      GetListCourseByKeyYear();
+    }
+  }
+  const handleClickKeyYearFalse = () => {
+    setCheckClickKeyYear(false);
+    ShowData();
+  }
   const handleSave = async () => {
     setLoading(true);
     try {
@@ -393,6 +429,19 @@ function CourseInterfaceDonVi() {
   const handleOpenOptionFilter = () => {
     setOpenOptionFilter(true);
   }
+
+
+  const LoadListUserWriteCourse = async (id_course: number) => {
+    const res = await CourseDonViAPI.LoadListUserWriteCourse({ id_course: Number(id_course) });
+    if (res.success) {
+      setListUserWriteCourse(res.data);
+      setShowListUserWriteCourse(true);
+    }
+    else {
+      SweetAlert("error", res.message);
+      setListUserWriteCourse([]);
+    }
+  }
   useEffect(() => {
     if (!didFetch.current) {
       GetDataListOptionCourse();
@@ -510,13 +559,32 @@ function CourseInterfaceDonVi() {
                     <i className="fas fa-plus-circle mr-1" /> Thêm mới
                   </button>
                   <button className="btn btn-ceo-green" onClick={handleOpenOptionFilter}>
-                    <i className="fas fa-clock"></i> Mở bảng chức năng môn học
+                    <i className="fas fa-clock"></i> Mở bảng chức năng Excel
                   </button>
                   <button className="btn btn-ceo-blue" onClick={() => ShowData()}>
                     <i className="fas fa-filter mr-1" /> Lọc dữ liệu
                   </button>
                 </div>
               </div>
+              {/* KEY YEAR BUTTONS */}
+              {filteredData.length > 0 && (
+                <>
+                  <hr />
+                  <div className="row justify-content-center mt-4">
+                    <div className="col-12 d-flex flex-wrap justify-content-center gap-4">
+                      <button className="btn btn-outline-ceo-primary" onClick={handleClickKeyYearFalse}>
+                        <i className="fas fa-list-ul mb-1 d-block"></i>
+                        Danh sách tổng hợp<br />theo CTĐT
+                      </button>
+
+                      <button className="btn btn-outline-ceo-green" onClick={handleClickKeyYearTrue}>
+                        <i className="fas fa-calendar-alt mb-1 d-block"></i>
+                        Danh sách theo học kỳ<br />theo CTĐT
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
             </fieldset>
           </div>
           {/*Modal Import*/}
@@ -555,75 +623,147 @@ function CourseInterfaceDonVi() {
             </div>
           </div>
           {/*Modal Import*/}
-          <div className="table-responsive"></div>
-          <table className="table table-bordered">
-            <thead>
-              <tr>
-                {headers.map((h, idx) => (
-                  <th key={idx}>{h.label}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filteredData.length > 0 ? (
-                filteredData.map((item, index) => (
-                  <tr key={item.id_course}>
-                    <td data-label="STT" className="formatSo">{(page - 1) * pageSize + index + 1}</td>
-                    <td data-label="Thuộc khóa học">{item.name_key_year_semester}</td>
-                    <td data-label="Thuộc học kỳ">{item.name_semester}</td>
-                    <td data-label="Thuộc CTĐT">{item.name_program}</td>
-                    <td className="formatSo">{item.code_course}</td>
-                    <td data-label="Tên học phần">{item.name_course}</td>
-                    <td>{item.name}</td>
-                    <td data-label="Nhóm học phần">{item.name_gr_course}</td>
-                    <td data-label="Số giờ lý thuyết" className="formatSo">{item.totalTheory}</td>
-                    <td data-label="Số giờ thực hành" className="formatSo">{item.totalPractice}</td>
-                    <td data-label="Số tín chỉ" className="formatSo">{item.credits}</td>
-                    <td data-label="Ngày tạo" className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
-                    <td data-label="Cập nhật lần cuối" className="formatSo">{unixTimestampToDate(item.time_up)}</td>
-                    <td data-label="Trạng thái đề cương">{item.is_syllabus == true ? <span className="text-success">Đã hoàn thiện</span> : <span className="text-danger">Chưa hoàn thiện</span>}</td>
-                    <td data-label="*" className="formatSo">
-                      <div className="d-flex justify-content-center flex-wrap gap-3">
-                        <button className="btn btn-sm btn-ceo-butterfly" onClick={() => handleOpenFunction(item.id_course)}>
-                          <i className="anticon anticon-setting me-1" /> Mở chức năng
-                        </button>
-                      </div>
-                    </td>
+          {checkClickKeyYear === true ? (
+            <div className="table-responsive mt-3">
+              <table className="table table-bordered table-rounded">
+                <thead className="table-light">
+                  <tr>
+                    <th style={{ width: "8%" }}>Mã môn học</th>
+                    <th style={{ width: "25%" }}>Tên học phần</th>
+                    <th style={{ width: "15%" }}>Kiểm tra học phần bắt buộc</th>
+                    <th style={{ width: "15%" }}>Nhóm học phần</th>
+                    <th style={{ width: "10%" }}>Số giờ lý thuyết</th>
+                    <th style={{ width: "10%" }}>Số giờ thực hành</th>
+                    <th style={{ width: "8%" }}>Số tín chỉ</th>
+                    <th style={{ width: "10%" }}>Trạng thái đề cương</th>
+                    <th style={{ width: "10%" }}>Hành động</th>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={headers.length}
-                    className="text-center text-danger">
-                    Không có dữ liệu môn học trong chương trình này
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-          <div className="ceo-pagination mt-3">
-            <div className="ceo-pagination-info">
-              Tổng số: {totalRecords} bản ghi | Trang {page}/{totalPages}
-            </div>
+                </thead>
 
-            <div className="ceo-pagination-actions">
-              <button
-                className="btn btn-outline-primary btn-sm"
-                disabled={page <= 1}
-                onClick={() => setPage(page - 1)}
-              >
-                ← Trang trước
-              </button>
-              <button
-                className="btn btn-outline-primary btn-sm"
-                disabled={page >= totalPages}
-                onClick={() => setPage(page + 1)}
-              >
-                Trang sau →
-              </button>
+                {Array.isArray(listCourseByKeyYear) && listCourseByKeyYear.length > 0 ? (
+                  listCourseByKeyYear.map((semester: any, sIdx: number) => (
+                    <tbody key={sIdx} style={{ color: "black" }}>
+                      <tr className="table-secondary" >
+                        <td colSpan={13} className="fw-bold text-start" style={{ backgroundColor: "#bfd1ec" }}>
+                          {semester.name_se}
+                        </td>
+                      </tr>
+
+                      {semester.course.length > 0 ? (
+                        semester.course.map((course: any, cIdx: number) => (
+                          <tr key={course.id_course} style={{ backgroundColor: "white" }}>
+                            <td className="text-center">{course.code_course}</td>
+                            <td>{course.name_course}</td>
+                            <td >{course.name_isCourse}</td>
+                            <td >{course.name_gr_course}</td>
+                            <td className="text-center">{course.totalTheory}</td>
+                            <td className="text-center">{course.totalPractice}</td>
+                            <td className="text-center">{course.credits}</td>
+                            <td>{course.is_syllabus == true ? <span className="text-success">Môn học này đã hoàn thành đề cương</span> : <span className="text-danger">Môn học này chưa hoàn thành đề cương</span>}</td>
+                            <td>
+                              <button
+                                className="btn btn-sm btn-function-ceo"
+                                onClick={() => handleOpenFunction(course.id_course)}
+                              >
+                                ⚙️ Mở chức năng
+                              </button>
+
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={8} className="text-center text-muted">
+                            Không có môn học trong học kỳ này
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  ))
+                ) : (
+                  <tbody>
+                    <tr>
+                      <td colSpan={8} className="text-center text-danger">
+                        Chưa có dữ liệu học phần trong khóa học này
+                      </td>
+                    </tr>
+                  </tbody>
+                )}
+              </table>
             </div>
-          </div>
+          ) : (
+            <>
+              <div className="table-responsive">
+                <table className="table table-bordered table-rounded">
+                  <thead>
+                    <tr>
+                      {headers.map((h, idx) => (
+                        <th key={idx}>{h.label}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredData.length > 0 ? (
+                      filteredData.map((item, index) => (
+                        <tr key={item.id_course}>
+                          <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
+                          <td>{item.name_key_year_semester}</td>
+                          <td>{item.name_semester}</td>
+                          <td>{item.name_program}</td>
+                          <td className="formatSo">{item.code_course}</td>
+                          <td>{item.name_course}</td>
+                          <td>{item.name}</td>
+                          <td>{item.name_gr_course}</td>
+                          <td className="formatSo">{item.totalTheory}</td>
+                          <td className="formatSo">{item.totalPractice}</td>
+                          <td className="formatSo">{item.credits}</td>
+                          <td>{unixTimestampToDate(item.time_cre)}</td>
+                          <td>{unixTimestampToDate(item.time_up)}</td>
+                          <td>{item.is_syllabus == true ? <span className="text-success">Đã hoàn thiện</span> : <span className="text-danger">Chưa hoàn thiện</span>}</td>
+                          <td>
+                            <button
+                              className="btn btn-sm btn-function-ceo"
+                              onClick={() => handleOpenFunction(item.id_course)}
+                            >
+                              ⚙️ Mở chức năng
+                            </button>
+
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={headers.length} className="text-center text-danger">
+                          Không có dữ liệu
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              <div className="d-flex justify-content-between align-items-center mt-3">
+                <span>
+                  Tổng số: {totalRecords} bản ghi | Trang {page}/{totalPages}
+                </span>
+                <div>
+                  <button
+                    className="btn btn-secondary btn-sm mr-2"
+                    disabled={page <= 1}
+                    onClick={() => setPage(page - 1)}
+                  >
+                    Trang trước
+                  </button>
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    disabled={page >= totalPages}
+                    onClick={() => setPage(page + 1)}
+                  >
+                    Trang sau
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
 
         </div>
       </div>
@@ -786,6 +926,22 @@ function CourseInterfaceDonVi() {
               <p>Xem lịch sử thao tác của học phần</p>
             </div>
           </div>
+          {/* Xem danh sách giảng viên phụ trách đề cương */}
+          <div
+            className="action-card edit"
+            onClick={() => {
+              LoadListUserWriteCourse(Number(selectedIdCourse));
+              setOpenFunction(false);
+            }}
+          >
+            <div className="icon-area">
+              <i className="fas fa-users"></i>
+            </div>
+            <div className="text-area">
+              <h5>Xem danh sách giảng viên phụ trách đề cương</h5>
+              <p>Xem danh sách giảng viên phụ trách đề cương của học phần</p>
+            </div>
+          </div>
           {/* Xóa */}
           <div
             className="action-card edit"
@@ -899,6 +1055,51 @@ function CourseInterfaceDonVi() {
             </div>
           </div>
         </div>
+      </Modal>
+
+
+      <Modal
+        isOpen={showListUserWriteCourse}
+        title="Danh sách yêu cầu tham gia viết đề cương"
+        onClose={() => setShowListUserWriteCourse(false)}
+      >
+        <>
+          <div className="table-responsive">
+
+            {listUserWriteCourse.length > 0 ? (
+              <table className="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>STT</th>
+                    <th>Mã giảng viên</th>
+                    <th>Tên giảng viên</th>
+                    <th>Email</th>
+                    <th>Thuộc CTĐT</th>
+                    <th>Thời gian nhận yêu cầu</th>
+                    <th>Thời gian duyệt yêu cầu</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {listUserWriteCourse.map((item, index) => (
+                    <tr key={item.id_ApproveUserSyllabus}>
+                      <td>{index + 1}</td>
+                      <td>{item.code_civil}</td>
+                      <td>{item.name_civil}</td>
+                      <td>{item.email}</td>
+                      <td>{item.name_program}</td>
+                      <td>{item.time_accept_request === null ? "" : unixTimestampToDate(item.time_request)}</td>
+                      <td>{item.time_accept_request === null ? "" : unixTimestampToDate(item.time_accept_request)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="alert alert-info" style={{ textAlign: "center", marginTop: "20px" }}>
+                Không có yêu cầu tham gia viết đề cương
+              </div>
+            )}
+          </div>
+        </>
       </Modal>
     </div>
   );
