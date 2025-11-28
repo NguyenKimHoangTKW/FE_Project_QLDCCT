@@ -125,4 +125,14 @@ export const CourseCTDTAPI = {
                 withCredentials: true,
             }
         ),
+    ExportMultipleWord: (data: { id_key_year_semester: number }) =>
+        axios.post(
+            `${URL_API_CTDT}/course/export-multi-word`,
+            data,
+            {
+                responseType: "blob",
+                withCredentials: true,
+            }
+        ),
+
 }

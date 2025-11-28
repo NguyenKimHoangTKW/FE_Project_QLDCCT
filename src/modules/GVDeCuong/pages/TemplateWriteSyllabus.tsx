@@ -18,7 +18,6 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   const [loadPreviewCourseLearningOutcome, setLoadPreviewCourseLearningOutcome] = useState<any[]>([]);
   const [loadPreviewProgramLearningOutcome, setLoadPreviewProgramLearningOutcome] = useState<any[]>([]);
   const [loadListPLOCourse, setLoadListPLOCourse] = useState<any[]>([]);
-  const storageKey = `syllabus_draft_${id_syllabus}`;
   const [draftData, setDraftData] = useState<any>({});
   const draftTimeouts = useRef<Record<string, any>>({});
   const editingSection = useRef<string | null>(null);

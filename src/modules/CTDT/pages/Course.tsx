@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { unixTimestampToDate } from "../../../URL_Config";
+import { unixTimestampToDate, URL_API_CTDT } from "../../../URL_Config";
 import Modal from "../../../components/ui/Modal";
 import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import Loading from "../../../components/ui/Loading";
@@ -8,6 +8,10 @@ import { ListCTDTPermissionAPI } from "../../../api/CTDT/ListCTDTPermissionAPI";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import CeoSelect2 from "../../../components/ui/CeoSelect2";
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import { PieChart } from '@mui/x-charts/PieChart';
 
 function CourseInterfaceCtdt() {
   const didFetch = useRef(false);
@@ -44,6 +48,8 @@ function CourseInterfaceCtdt() {
   const [searchText, setSearchText] = useState("");
   const [showLogData, setShowLogData] = useState(false);
   const [logData, setLogData] = useState<any[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalCountIsSyllabus, setTotalCountIsSyllabus] = useState(0);
   const [listSyllabusByCourseFinal, setListSyllabusByCourseFinal] = useState<{
     message?: string;
     success?: boolean;
@@ -268,6 +274,8 @@ function CourseInterfaceCtdt() {
         setListCourseByKeyYear(res.data);
         SweetAlert("success", res.message);
         startCountdownForCourses(res.data);
+        setTotalCount(res.total_course);
+        setTotalCountIsSyllabus(res.total_syllabus);
       }
       else {
         SweetAlert("error", res.message);
@@ -290,6 +298,8 @@ function CourseInterfaceCtdt() {
   const handleClickKeyYearFalse = () => {
     setCheckClickKeyYear(false);
     ShowData();
+    setListCourseByKeyYear([]);
+
   }
   const handleClickFilter = () => {
     setCheckClickFilter(true);
@@ -620,6 +630,23 @@ function CourseInterfaceCtdt() {
       setLoading(false);
     }
   };
+  const handleExportMultipleWord = async () => {
+    if (optionFilter.id_key_year_semester === 0) {
+      SweetAlert("error", "Vui lòng chọn khóa học trong bộ lọc để sử dụng chức năng!");
+      return;
+    }
+    const res = await fetch(`${URL_API_CTDT}/course/export-multi-word`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ id_key_year_semester: Number(optionFilter.id_key_year_semester) })
+    });
+    const blob = await res.blob();
+    saveAs(blob, `All_Syllabus.zip`);
+  };
+
+
+
   useEffect(() => {
     if (!didFetch.current) {
       GetListCTDTByDonVi();
@@ -634,6 +661,12 @@ function CourseInterfaceCtdt() {
   useEffect(() => {
     ShowData();
   }, [page, pageSize]);
+  const palette = ['#ffc107', '#28a745'];
+  const platforms = [
+    { id: 0, value: totalCount, label: "Tống số học phần trong khóa học" },
+    { id: 1, value: totalCountIsSyllabus, label: "Tống số học phần đã hoàn thành đề cương" },
+  ];
+
   return (
     <div className="main-content">
       <Loading isOpen={loading} />
@@ -759,6 +792,7 @@ function CourseInterfaceCtdt() {
                 </div>
               </div>
 
+
               {/* KEY YEAR BUTTONS */}
               {checkClickFilter && filteredData.length > 0 && (
                 <>
@@ -778,7 +812,52 @@ function CourseInterfaceCtdt() {
                   </div>
                 </>
               )}
+              <hr />
+              {listCourseByKeyYear.length > 0 && (
+                <>
+                  <Stack direction="row" width="100%" textAlign="center" spacing={2}>
+                    <Box flexGrow={1}>
+                      <Typography fontWeight={600} mb={1}>Tỷ lệ tổng số học phần trong khóa học và tổng số học phần đã hoàn thành đề cương</Typography>
 
+                      <PieChart
+                        series={[
+                          {
+                            data: platforms,
+                            arcLabel: (item) => `${item.value}`,
+                            arcLabelMinAngle: 10,
+                          },
+                        ]}
+                        colors={palette}
+                        {...pieParams}
+                      />
+                    </Box>
+                  </Stack>
+                  <p className="text-danger text-center">Tỷ lệ đề cương hoàn thành: {(totalCountIsSyllabus / totalCount * 100).toFixed(2)}%</p>
+                  <Stack direction="row" spacing={3} mt={2}>
+                    <Box sx={{
+                      flex: 1,
+                      p: 2,
+                      borderRadius: 2,
+                      bgcolor: "#f4f7ff",
+                      borderLeft: "5px solid #3f73ff"
+                    }}>
+                      <Typography variant="body2" color="text.secondary">Tổng số học phần</Typography>
+                      <Typography variant="h5" fontWeight={700}>{totalCount}</Typography>
+                    </Box>
+
+                    <Box sx={{
+                      flex: 1,
+                      p: 2,
+                      borderRadius: 2,
+                      bgcolor: "#f9fff4",
+                      borderLeft: "5px solid #2ecc71"
+                    }}>
+                      <Typography variant="body2" color="text.secondary">Đã hoàn thành đề cương</Typography>
+                      <Typography variant="h5" fontWeight={700}>{totalCountIsSyllabus}</Typography>
+                    </Box>
+                  </Stack>
+                </>
+              )}
             </fieldset>
 
           </div>
@@ -827,7 +906,7 @@ function CourseInterfaceCtdt() {
                             <td >{course.time_close == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-primary">{unixTimestampToDate(course.time_close)}</span>}</td>
                             <td>{course.time_close == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-success">{formatCountdown(course.time_close * 1000 - Date.now())}</span>}</td>
                             <td className="formatSo">{course.count_syllabus}</td>
-                            <td>{course.is_syllabus == true ? <span className="text-success">Môn học này đã hoàn thành đề cương</span> : <span className="text-danger">Môn học này chưa hoàn thành đề cương</span>}</td>
+                            <td>{course.is_syllabus == true ? <span className="text-success">Đã hoàn thiện đề cương</span> : <span className="text-danger">Chưa hoàn thiện đề cương</span>}</td>
                             <td>
                               <button
                                 className="btn btn-sm btn-function-ceo"
@@ -891,7 +970,7 @@ function CourseInterfaceCtdt() {
                             {item.time_close == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-success">{formatCountdown(item.time_close * 1000 - Date.now())}</span>}
                           </td>
                           <td className="formatSo">{item.count_syllabus}</td>
-                          <td>{item.is_syllabus == true ? <span className="text-success">Môn học này đã hoàn thành đề cương</span> : <span className="text-danger">Môn học này chưa hoàn thành đề cương</span>}</td>
+                          <td>{item.is_syllabus == true ? <span className="text-success">Đã hoàn thiện đề cương</span> : <span className="text-danger">Chưa hoàn thiện đề cương</span>}</td>
                           <td>
                             <button
                               className="btn btn-sm btn-function-ceo"
@@ -1310,8 +1389,6 @@ function CourseInterfaceCtdt() {
         </div>
       </Modal>
 
-
-
       <Modal
         isOpen={showLogData}
         onClose={() => setShowLogData(false)}
@@ -1403,7 +1480,22 @@ function CourseInterfaceCtdt() {
               <p>Xuất Excel môn học chưa tồn tại đề cương</p>
             </div>
           </div>
-          {/* Phân quyền */}
+          {/* Xuất Word tất cả đề cương */}
+          <div
+            className="action-card permission"
+            onClick={() => {
+              handleExportMultipleWord();
+              setOpenOptionFilter(false);
+            }}
+          >
+            <div className="icon-area permission">
+              <i className="fas fa-file-word"></i>
+            </div>
+            <div className="text-area">
+              <h5>Xuất Word tất cả đề cương</h5>
+              <p>Xuất Word tất cả đề cương thuộc khóa</p>
+            </div>
+          </div>
           <div
             className="action-card"
             onClick={() => {
@@ -1425,3 +1517,8 @@ function CourseInterfaceCtdt() {
   );
 }
 export default CourseInterfaceCtdt;
+const pieParams = {
+  height: 200,
+  margin: { right: 5 },
+  hideLegend: true,
+};
