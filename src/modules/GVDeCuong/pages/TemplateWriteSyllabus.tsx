@@ -871,7 +871,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         tempContent.current[section.section_code] ??
         draftData[section.section_code] ??
         section.value ??
-        "(không có nội dung)";
+        "";
 
       const HeadingTag = getHeadingTag(section.section_code);
 

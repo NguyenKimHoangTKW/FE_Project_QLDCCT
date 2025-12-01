@@ -6,6 +6,7 @@ import BrowseOutlineInterfaceCTDT from "../pages/BrowseOutline";
 import IndexCTDTinterface from "../pages/indexCTDTinterface";
 import ViewAllNotificationCTDT from "../pages/ViewAllNotification";
 import ClassInterfaceCtdt from "../pages/Class";
+import StudentInterfaceCtdt from "../pages/Student";
 function CTDTRoutes() {
   return (
     <Routes>
@@ -16,6 +17,7 @@ function CTDTRoutes() {
       <Route path="danh-sach-de-cuong-can-duyet" element={<BrowseOutlineInterfaceCTDT />} />
       <Route path="xem-tat-ca-thong-bao" element={<ViewAllNotificationCTDT />} />
       <Route path="danh-sach-lop" element={<ClassInterfaceCtdt />} />
+      <Route path="danh-sach-sinh-vien" element={<StudentInterfaceCtdt />} />
     </Routes>
   );
 }

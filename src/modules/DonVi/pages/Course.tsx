@@ -659,7 +659,7 @@ function CourseInterfaceDonVi() {
                             <td className="text-center">{course.totalTheory}</td>
                             <td className="text-center">{course.totalPractice}</td>
                             <td className="text-center">{course.credits}</td>
-                            <td>{course.is_syllabus == true ? <span className="text-success">Môn học này đã hoàn thành đề cương</span> : <span className="text-danger">Môn học này chưa hoàn thành đề cương</span>}</td>
+                            <td>{course.is_syllabus == true ? <span className="text-success">Đã hoàn thiện</span> : <span className="text-danger">Chưa hoàn thiện</span>}</td>
                             <td>
                               <button
                                 className="btn btn-sm btn-function-ceo"

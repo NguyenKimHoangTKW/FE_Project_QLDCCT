@@ -12,33 +12,41 @@ import DonViRoutes from "./modules/DonVi/routes/DonViRoutes";
 import GVDeCuongRoutes from "./modules/GVDeCuong/routes/GVDeCuongRoutes";
 
 import ProtectedRoute from "./components/ProtectedRoute";
-
+import ClientRoutes from "./modules/Client/routes/ClientRoutes";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<ClientLayout />} />
+
+        <Route path="/" element={<ClientLayout />}>
+          <Route index element={<ClientRoutes />} />
+        </Route>
+
         <Route element={<ProtectedRoute allowedRoles={[5]} />}>
           <Route path="/admin/*" element={<AdminLayout />}>
             <Route path="*" element={<AdminRoutes />} />
           </Route>
         </Route>
+
         <Route element={<ProtectedRoute allowedRoles={[2]} />}>
           <Route path="/ctdt/*" element={<CTDTLayout />}>
             <Route path="*" element={<CTDTRoutes />} />
           </Route>
         </Route>
+
         <Route element={<ProtectedRoute allowedRoles={[3]} />}>
           <Route path="/donvi/*" element={<DonViLayout />}>
             <Route path="*" element={<DonViRoutes />} />
           </Route>
         </Route>
+
         <Route element={<ProtectedRoute allowedRoles={[4]} />}>
           <Route path="/gv-de-cuong/*" element={<GVDeCuongLayout />}>
             <Route path="*" element={<GVDeCuongRoutes />} />
           </Route>
         </Route>
+
       </Routes>
     </BrowserRouter>
   );

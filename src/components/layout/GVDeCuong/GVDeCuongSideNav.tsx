@@ -14,11 +14,11 @@ function GVDeCuongSideNav() {
             </Link>
           </li>
           <li>
-            <Link className="dropdown-toggle" onClick={Logout}>
+            <Link className="dropdown-toggle" to="#" onClick={Logout}>
               <span className="icon-holder">
                 <i className="anticon anticon-logout" />
               </span>
-              <span className="title">Đăng xuất</span>
+              <span className="title">🔒 Đăng xuất</span>
             </Link>
           </li>
         </ul>

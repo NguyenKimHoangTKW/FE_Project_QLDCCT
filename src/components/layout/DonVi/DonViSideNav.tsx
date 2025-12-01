@@ -141,7 +141,7 @@ function DonViSideNav() {
               onClick={Logout}
               to="#"
             >
-              <span className="title">Đăng xuất</span>
+           <span className="title">🔒 Đăng xuất</span>
             </NavLink>
           </li>
 

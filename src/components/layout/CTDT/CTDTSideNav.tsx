@@ -40,6 +40,16 @@ function CTDTSideNav() {
           </li>
           <li>
             <NavLink
+              to="/ctdt/danh-sach-sinh-vien"
+              className={({ isActive }) => isActive ? "active-menu" : ""}
+            >
+              <span className="title">
+                👨‍🎓 Quản lý danh sách sinh viên
+              </span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
               to="/ctdt/danh-sach-de-cuong-can-duyet"
               className={({ isActive }) => isActive ? "active-menu" : ""}
             >
