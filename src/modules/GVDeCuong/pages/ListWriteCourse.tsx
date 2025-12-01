@@ -1,6 +1,6 @@
 import { WriteCourseAPI } from "../../../api/GVDeCuong/WriteCourse";
 import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { unixTimestampToDate } from "../../../URL_Config";
 import Modal from "../../../components/ui/Modal";
 import Swal from "sweetalert2";
@@ -19,6 +19,8 @@ function ListWriteCourseDVDC() {
     const [showModalRequestEditSyllabus, setShowModalRequestEditSyllabus] = useState(false);
     const [contentRequestEditSyllabus, setContentRequestEditSyllabus] = useState<string>("");
     const [code_civilSer, setCode_civilSer] = useState<string>("");
+    const idCourseRef = useRef<number | null>(null);
+    const [isOpen, setIsOpen] = useState(Number);
     const [listTeacher, setListTeacher] = useState<{
         success?: boolean;
         data?: any[];
@@ -171,8 +173,26 @@ function ListWriteCourseDVDC() {
 
     }
     const getListTeacherbyWriteCourse = async (id_course: number) => {
-        setFormData((prev) => ({ ...prev, id_course: id_course }));
+        setFormData((prev) => ({ ...prev, id_course }));
+    
         const res = await WriteCourseAPI.GetListTeacherbyWriteCourse({ id_course });
+    
+        const closeTimeUnix =
+            res.success
+                ? res.data[0]?.time_close
+                : res.data?.time_close;
+    
+        const closeTime = (closeTimeUnix ?? 0) * 1000; 
+    
+        if (window.countdownInterval) clearInterval(window.countdownInterval);
+    
+        window.countdownInterval = setInterval(() => {
+            const now = Date.now();
+            const diff = Math.max(closeTime - now, 0); 
+    
+            setCountdown(formatCountdown(diff));
+        }, 1000);
+        setIsOpen(Number(res.data?.is_open));
         if (res.success) {
             setListTeacher({
                 success: true,
@@ -180,36 +200,18 @@ function ListWriteCourseDVDC() {
                 message: res.message,
                 is_open: res.data[0].is_open,
             });
-            setNameCourse(res.name_course);
-            setIs_write(res.is_write);
-            const closeTime = res.data[0].time_close * 1000;
-
-            if (window.countdownInterval) clearInterval(window.countdownInterval);
-
-            window.countdownInterval = setInterval(() => {
-                const now = Date.now();
-                const diff = closeTime - now;
-                setCountdown(formatCountdown(diff));
-            }, 1000);
         } else {
             setListTeacher({
                 success: false,
                 data: [],
                 message: res.message,
             });
-            setNameCourse(res.name_course);
-            setIs_write(res.is_write);
-            const closeTime = res.data.time_close * 1000;
-
-            if (window.countdownInterval) clearInterval(window.countdownInterval);
-
-            window.countdownInterval = setInterval(() => {
-                const now = Date.now();
-                const diff = closeTime - now;
-                setCountdown(formatCountdown(diff));
-            }, 1000);
         }
+    
+        setNameCourse(res.name_course);
+        setIs_write(res.is_write);
     };
+    
 
     useEffect(() => {
         if (!showModal) {
@@ -323,9 +325,16 @@ function ListWriteCourseDVDC() {
         GetListCourse();
     }, []);
     useEffect(() => {
+        idCourseRef.current = formData.id_course;
+    }, [formData.id_course]);
+    
+    useEffect(() => {
         const handleReload = (e: StorageEvent) => {
             if (e.key === "reload_syllabus_final" && e.newValue) {
-                getListTeacherbyWriteCourse(Number(formData.id_course));
+    
+                if (idCourseRef.current) {
+                    getListTeacherbyWriteCourse(Number(idCourseRef.current));
+                }
     
                 localStorage.removeItem("reload_syllabus_final");
             }
@@ -334,6 +343,7 @@ function ListWriteCourseDVDC() {
         window.addEventListener("storage", handleReload);
         return () => window.removeEventListener("storage", handleReload);
     }, []);
+    
     
     return (
         <div className="main-content">
@@ -404,7 +414,7 @@ function ListWriteCourseDVDC() {
                 onClose={() => setShowModal(false)}
             >
                 <div className="modal-footer">
-                    <button type="button" className="btn btn-ceo-green" onClick={CreateTemplateWriteCourse} disabled={listTeacher.is_open === 0 || is_write === false}>
+                    <button type="button" className="btn btn-ceo-green" onClick={CreateTemplateWriteCourse} disabled={isOpen === 0 || is_write === false}>
                         <i className="fas fa-plus me-2"></i>  Tạo mới mẫu soạn đề cương
                     </button>
                     {showButton && (

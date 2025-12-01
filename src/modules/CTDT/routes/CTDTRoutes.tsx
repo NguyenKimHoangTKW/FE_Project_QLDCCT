@@ -4,6 +4,8 @@ import CourseInterfaceCtdt from "../pages/Course";
 import PreviewTemplateSyllabus from "../pages/PreviewTemplateSyllabus";
 import BrowseOutlineInterfaceCTDT from "../pages/BrowseOutline";
 import IndexCTDTinterface from "../pages/indexCTDTinterface";
+import ViewAllNotificationCTDT from "../pages/ViewAllNotification";
+import ClassInterfaceCtdt from "../pages/Class";
 function CTDTRoutes() {
   return (
     <Routes>
@@ -12,6 +14,8 @@ function CTDTRoutes() {
       <Route path="danh-sach-mon-hoc" element={<CourseInterfaceCtdt />} />
       <Route path="preview-syllabus/:id_syllabus/:check_view" element={<PreviewTemplateSyllabus />} />
       <Route path="danh-sach-de-cuong-can-duyet" element={<BrowseOutlineInterfaceCTDT />} />
+      <Route path="xem-tat-ca-thong-bao" element={<ViewAllNotificationCTDT />} />
+      <Route path="danh-sach-lop" element={<ClassInterfaceCtdt />} />
     </Routes>
   );
 }

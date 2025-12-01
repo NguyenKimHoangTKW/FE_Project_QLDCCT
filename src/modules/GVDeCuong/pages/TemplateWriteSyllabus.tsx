@@ -52,10 +52,10 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
       });
       if (res.success) {
         if (res.data?.syllabus_section_json === null) {
-          const jsonString = res.data?.syllabus_json || "[]";
+          const jsonString = res.data?.syllabus_json;
           setTemplateSections(JSON.parse(jsonString));
         } else {
-          const jsonString = res.data?.syllabus_section_json || "[]";
+          const jsonString = res.data?.syllabus_section_json;
           setTemplateSections(JSON.parse(jsonString));
         }
         setCheckCreate(res.is_create);
@@ -256,13 +256,8 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
           return copy;
         });
       });
-
-
-
-
       await conn.start();
       await conn.invoke("JoinSyllabusGroup", Number(id_syllabus));
-
       setHubConnection(conn);
     };
 
@@ -873,7 +868,9 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
     templateSections.forEach(section => {
       const binding = section.dataBinding?.split(" - ")[0] ?? "";
       const content =
-        section.value ||
+        tempContent.current[section.section_code] ??
+        draftData[section.section_code] ??
+        section.value ??
         "(không có nội dung)";
 
       const HeadingTag = getHeadingTag(section.section_code);
@@ -996,14 +993,14 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   };
   const saveFinalSyllabus = async () => {
     const confirm = await Swal.fire({
-        title: "Bạn có chắc chắn muốn lưu đề cương này không?",
-        text: "Bạn sẽ không thể hoàn tác lại!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Có, lưu ngay!",
-        cancelButtonText: "Hủy"
+      title: "Bạn có chắc chắn muốn lưu đề cương này không?",
+      text: "Bạn sẽ không thể hoàn tác lại!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Có, lưu ngay!",
+      cancelButtonText: "Hủy"
     });
 
     if (!confirm.isConfirmed) return;
@@ -1011,25 +1008,25 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
     const html = buildFullHTML();
 
     const res = await TemplateWriteCourseAPI.SaveFinalFromDraft({
-        id_syllabus: Number(id_syllabus),
-        html_export_word: html,
+      id_syllabus: Number(id_syllabus),
+      html_export_word: html,
     });
 
     if (res.success) {
-        Swal.fire({
-            title: "Đã lưu!",
-            text: res.message || "Đề cương đã được lưu hoàn chỉnh.",
-            icon: "success"
-        });
-        localStorage.setItem("reload_syllabus_final", Date.now().toString());
-        setTimeout(() => {
-            window.close();
-        }, 1200);
+      Swal.fire({
+        title: "Đã lưu!",
+        text: res.message || "Đề cương đã được lưu hoàn chỉnh.",
+        icon: "success"
+      });
+      localStorage.setItem("reload_syllabus_final", Date.now().toString());
+      setTimeout(() => {
+        window.close();
+      }, 1200);
 
     } else {
-        SweetAlert("error", res.message || "Lưu đề cương thất bại!");
+      SweetAlert("error", res.message || "Lưu đề cương thất bại!");
     }
-};
+  };
 
 
 
@@ -1238,11 +1235,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
 
     const updated = sortSectionCodes([...templateSections, newSection]);
     setTemplateSections(updated);
-
-    localStorage.setItem(
-      `syllabus_draft_${id_syllabus}_sections`,
-      JSON.stringify(updated)
-    );
+    handleSaveAllContentDraft(JSON.stringify(updated));
   };
 
   const runAISuggestStream = async () => {
@@ -1292,10 +1285,6 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
       setAILoading(false);
     }
   };
-
-
-
-
   if (loading)
     return (
       <div className="p-4 text-center">

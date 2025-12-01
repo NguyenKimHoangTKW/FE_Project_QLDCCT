@@ -278,7 +278,7 @@ export default function ContributionMatrixInterfaceDonVi() {
                                     />
                                 </div>
                                 <div className="col-md-6">
-                                     <CeoSelect2
+                                    <CeoSelect2
                                         label="Lọc theo Khóa học"
                                         name="id_key_year_semester"
                                         value={formData.id_key_year_semester}
@@ -322,9 +322,6 @@ export default function ContributionMatrixInterfaceDonVi() {
                             <hr />
                             <div className="row">
                                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-                                    <button className="btn btn-ceo-butterfly" onClick={handleSaveMatrix}>
-                                        <i className="fas fa-save mr-1" /> Lưu ma trận đóng góp
-                                    </button>
                                     <button className="btn btn-ceo-blue" onClick={handleFilterData}>
                                         <i className="fas fa-filter mr-1" /> Lọc dữ liệu
                                     </button>
@@ -450,41 +447,102 @@ export default function ContributionMatrixInterfaceDonVi() {
                 </div>
             </div>
             <div
-                className="d-flex justify-content-center gap-3 flex-wrap mt-4 p-3"
+                className="shadow-lg d-flex flex-wrap justify-content-center align-items-center gap-3 p-3 mt-4"
                 style={{
                     position: "sticky",
-                    bottom: "0",
-                    background: "rgba(255,255,255,0.95)",
-                    backdropFilter: "blur(6px)",
-                    borderRadius: "14px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+                    bottom: 0,
+                    background: "rgba(245, 247, 250, 0.92)",
+                    backdropFilter: "blur(8px)",
+                    borderTop: "1px solid #e5e7eb",
+                    zIndex: 100,
                 }}
             >
+                {/* Ô tìm kiếm */}
                 <div className="col-md-4">
-                    <label className="ceo-label">Tìm kiếm</label>
-                    <input
-                        type="text"
-                        className="form-control ceo-input"
-                        placeholder="🔍 Nhập từ khóa bất kỳ để tìm..."
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                    />
+                    <label className="ceo-label" style={{ fontWeight: 600, opacity: 0.8 }}>
+                        Tìm kiếm
+                    </label>
+
+                    <div className="input-group">
+                        <span
+                            className="input-group-text"
+                            style={{
+                                background: "#fff",
+                                borderRight: "none",
+                                borderRadius: "10px 0 0 10px",
+                            }}
+                        >
+                            🔍
+                        </span>
+                        <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Nhập từ khóa để tìm kiếm..."
+                            value={searchText}
+                            onChange={(e) => setSearchText(e.target.value)}
+                            style={{
+                                borderLeft: "none",
+                                borderRadius: "0 10px 10px 0",
+                                padding: "10px 12px",
+                            }}
+                        />
+                    </div>
                 </div>
 
+                {/* Nút Export */}
                 <button
                     className="btn btn-lg px-4"
                     onClick={handleExportExcel}
                     style={{
-                        background: "linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(236, 72, 153, 0.9))",
+                        background:
+                            "linear-gradient(135deg, #7C3AED 0%, #EC4899 100%)",
                         color: "#fff",
-                        fontWeight: 300,
-                        borderRadius: "14px",
-                        boxShadow: "0 4px 14px rgba(168, 85, 247, 0.5)"
+                        fontWeight: 600,
+                        letterSpacing: "0.2px",
+                        borderRadius: "12px",
+                        padding: "10px 22px",
+                        boxShadow: "0 4px 14px rgba(124, 58, 237, 0.35)",
+                        border: "none",
+                        transition: "0.25s",
+                        marginTop: "27px"
                     }}
+                    onMouseEnter={(e) =>
+                        (e.currentTarget.style.transform = "translateY(-3px)")
+                    }
+                    onMouseLeave={(e) =>
+                        (e.currentTarget.style.transform = "translateY(0)")
+                    }
                 >
-                    📝  Xuất dữ liệu ra file Excel
+                    📝 Xuất Excel
+                </button>
+
+                {/* Nút Lưu */}
+                <button
+                    className="btn btn-lg px-4 btn-primary"
+                    onClick={handleSaveMatrix}
+                    style={{
+                        background: "linear-gradient(135deg, #14b8a6, #0ea5e9)",
+                        borderRadius: "12px",
+                        border: "none",
+                        padding: "10px 22px",
+                        color: "#fff",
+                        fontWeight: 600,
+                        letterSpacing: "0.2px",
+                        boxShadow: "0 4px 14px rgba(20, 184, 166, 0.35)",
+                        transition: "0.25s",
+                        marginTop: "27px"
+                    }}
+                    onMouseEnter={(e) =>
+                        (e.currentTarget.style.transform = "translateY(-3px)")
+                    }
+                    onMouseLeave={(e) =>
+                        (e.currentTarget.style.transform = "translateY(0)")
+                    }
+                >
+                    💾 Lưu dữ liệu
                 </button>
             </div>
+
         </div>
     )
 }

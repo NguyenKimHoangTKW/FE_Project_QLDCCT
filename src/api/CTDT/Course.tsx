@@ -83,8 +83,6 @@ export const CourseCTDTAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
-
-
     UploadExcel: async (file: File, idProgram: number) => {
         const formData = new FormData();
         formData.append("file", file);

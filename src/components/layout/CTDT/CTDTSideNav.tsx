@@ -13,7 +13,7 @@ function CTDTSideNav() {
               className={({ isActive }) => isActive ? "active-menu" : ""}
             >
               <span className="title">
-                Quản lý danh sách cán bộ viên chức thuộc CTĐT
+                👨‍🏫 Quản lý danh sách cán bộ viên chức thuộc CTĐT
               </span>
             </NavLink>
           </li>
@@ -24,28 +24,36 @@ function CTDTSideNav() {
               className={({ isActive }) => isActive ? "active-menu" : ""}
             >
               <span className="title">
-                Quản lý danh sách môn học thuộc CTĐT
+                📚 Quản lý danh sách môn học thuộc CTĐT
               </span>
             </NavLink>
           </li>
-
+          <li>
+            <NavLink
+              to="/ctdt/danh-sach-lop"
+              className={({ isActive }) => isActive ? "active-menu" : ""}
+            >
+              <span className="title">
+                🏫 Quản lý danh sách lớp
+              </span>
+            </NavLink>
+          </li>
           <li>
             <NavLink
               to="/ctdt/danh-sach-de-cuong-can-duyet"
               className={({ isActive }) => isActive ? "active-menu" : ""}
             >
               <span className="title">
-                Quản lý danh sách đề cương cần duyệt
+                📝 Quản lý danh sách đề cương cần duyệt
               </span>
             </NavLink>
           </li>
-
           <li>
             <NavLink
               to="#"
               onClick={Logout}
             >
-              <span className="title">Đăng xuất</span>
+              <span className="title">🔒 Đăng xuất</span>
             </NavLink>
           </li>
 
