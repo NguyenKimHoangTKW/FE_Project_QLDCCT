@@ -257,7 +257,7 @@ export default function StudentCTDTInterface() {
                         <fieldset className="border rounded-3 p-3">
                             <legend className="float-none w-auto px-3">Chức năng</legend>
                             <div className="row mb-3">
-                                <div className="col-md-6">
+                                <div className="col-md-4">
                                     <CeoSelect2
                                         label="Lọc theo CTĐT"
                                         name="id_program"
@@ -269,9 +269,7 @@ export default function StudentCTDTInterface() {
                                         }))}
                                     />
                                 </div>
-                            </div>
-                            <div className="row mb-3">
-                                <div className="col-md-6">
+                                <div className="col-md-4">
                                     <CeoSelect2
                                         label="Lọc theo lớp"
                                         name="id_class_value"
@@ -286,9 +284,7 @@ export default function StudentCTDTInterface() {
                                         ]}
                                     />
                                 </div>
-                            </div>
-                            <div className="row mb-3">
-                                <div className="col-md-6">
+                                <div className="col-md-4">
                                     <label className="ceo-label">Tìm kiếm</label>
                                     <input
                                         type="text"

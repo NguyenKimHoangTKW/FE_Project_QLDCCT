@@ -2,15 +2,11 @@ import { useState } from "react";
 import { ViewSyllabusAPI } from "../../../api/Clients/ViewSyllabus";
 import { SweetAlert } from "../../../components/ui/SweetAlert";
 import Loading from "../../../components/ui/Loading";
-import Modal from "../../../components/ui/Modal";
-import html2pdf from "html2pdf.js";
 import { URL_USER } from "../../../URL_Config";
 export default function IndexClient() {
     const [loading, setLoading] = useState(false);
     const [mssv, setMssv] = useState("");
     const [listSyllabus, setListSyllabus] = useState<any[]>([]);
-    const [pdfSyllabus, setPdfSyllabus] = useState<string>("");
-    const [showModalPreviewSyllabus, setShowModalPreviewSyllabus] = useState(false);
     const GetListCourseByKeyYear = async () => {
         setLoading(true);
         try {
@@ -54,12 +50,6 @@ export default function IndexClient() {
 
 
 
-    const handleDownloadPDF = async () => {
-        const link = document.createElement("a");
-        link.href = pdfSyllabus;
-        link.download = "DeCuongChiTiet.pdf";
-        link.click();
-    };
 
     return (
         <div className="main-content">

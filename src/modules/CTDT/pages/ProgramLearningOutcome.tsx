@@ -5,8 +5,10 @@ import { unixTimestampToDate } from "../../../URL_Config";
 import Modal from "../../../components/ui/Modal";
 import Loading from "../../../components/ui/Loading";
 import CeoSelect2 from "../../../components/ui/CeoSelect2";
+import { ListCTDTPermissionAPI } from "../../../api/CTDT/ListCTDTPermissionAPI";
+import { ProgramLearningOutcomeCTDTAPI } from "../../../api/CTDT/ProgramLearningOutcome";
 
-export default function ProgramLearningOutcomeInterfaceDonVi() {
+export default function ProgramLearningOutcomeInterfaceCTDT() {
     // Program Learning Outcome
     const [totalRecords, setTotalRecords] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
@@ -61,15 +63,18 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
         setModalOpen(true);
         setModalMode("create");
     }
-    const LoadSelectProgramLearningOutcome = async () => {
-        setLoading(true);
-        const res = await ProgramLearningOutcomeAPI.LoadSelectProgramLearningOutcome();
-        const formattedData = res.ctdt.map((item: any) => ({
-            value: item.id_program,
-            label: item.name_program,
+    const LoadCTDT = async () => {
+        const res = await ListCTDTPermissionAPI.GetListCTDTPermission();
+        const formattedData = res.map((item: any) => ({
+            value: item.value,
+            label: item.text,
         }));
         setSelectProgram(formattedData);
         setFormData((prev) => ({ ...prev, Id_Program: Number(formattedData[0].value) }));
+    }
+    const LoadSelectProgramLearningOutcome = async () => {
+        setLoading(true);
+        const res = await ProgramLearningOutcomeCTDTAPI.LoadSelectProgramLearningOutcome({ Id_Program: Number(formData.Id_Program) });
         const formattedKeyYear = res.keySemester.map((item: any) => ({
             value: item.id_key_year_semester,
             label: item.name_key_year_semester,
@@ -80,7 +85,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
     }
     const handleEditProgramLearningOutcome = async (id: number) => {
         setLoading(true);
-        const res = await ProgramLearningOutcomeAPI.InfoProgramLearningOutcome({ Id_Plo: id });
+        const res = await ProgramLearningOutcomeCTDTAPI.InfoProgramLearningOutcome({ Id_Plo: id });
         if (res.success) {
             setFormData({
                 id: Number(res.data.id_Plo),
@@ -104,7 +109,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
         if (confirm) {
             setLoading(true);
             try {
-                const res = await ProgramLearningOutcomeAPI.DeleteProgramLearningOutcome({ Id_Plo: id });
+                const res = await ProgramLearningOutcomeCTDTAPI.DeleteProgramLearningOutcome({ Id_Plo: id });
                 if (res.success) {
                     SweetAlert("success", res.message);
                     LoadData();
@@ -121,7 +126,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
     const handleSaveProgramLearningOutcome = async () => {
         if (modalMode === "create") {
             setLoading(true);
-            const res = await ProgramLearningOutcomeAPI.AddProgramLearningOutcome(
+            const res = await ProgramLearningOutcomeCTDTAPI.AddProgramLearningOutcome(
                 { code: formData.code, Description: formData.Description, Id_Program: Number(formData.Id_Program), order_index: Number(formData.order_index), id_key_semester: Number(formData.Id_Key_Year_Semester) });
             if (res.success) {
                 SweetAlert("success", res.message);
@@ -136,7 +141,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
         }
         else {
             setLoading(true);
-            const res = await ProgramLearningOutcomeAPI.UpdateProgramLearningOutcome(
+            const res = await ProgramLearningOutcomeCTDTAPI.UpdateProgramLearningOutcome(
                 { Id_Plo: Number(formData.id), Code: formData.code, Description: formData.Description, Id_Program: Number(formData.Id_Program), order_index: Number(formData.order_index) });
             if (res.success) {
                 SweetAlert("success", res.message);
@@ -153,7 +158,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
     const LoadData = async () => {
         setLoading(true);
         try {
-            const res = await ProgramLearningOutcomeAPI.GetListProgramLearningOutcome({ Id_Program: Number(formData.Id_Program), id_key_semester: Number(formData.Id_Key_Year_Semester), Page: page, PageSize: pageSize });
+            const res = await ProgramLearningOutcomeCTDTAPI.GetListProgramLearningOutcome({ Id_Program: Number(formData.Id_Program), id_key_semester: Number(formData.Id_Key_Year_Semester), Page: page, PageSize: pageSize });
             if (res.success) {
                 setAllData(res.data);
                 setPage(Number(res.currentPage) || 1);
@@ -194,11 +199,16 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
             ({ ...prev, code: "", Description: "" }));
     }
     useEffect(() => {
-        LoadSelectProgramLearningOutcome();
+        LoadCTDT();
     }, []);
     useEffect(() => {
+        if (formData.Id_Program) {
+            LoadSelectProgramLearningOutcome();
+        }
+    }, [formData.Id_Program]);
+    useEffect(() => {
         LoadData();
-    }, [page, pageSize]);
+    }, [formData.Id_Program, formData.Id_Key_Year_Semester, page, pageSize]);
     // Performance Indicators
     const [performanceIndicatorsData, setPerformanceIndicatorsData] = useState<any[]>([]);
     const [performanceIndicatorsTotalRecords, setPerformanceIndicatorsTotalRecords] = useState(0);
@@ -239,7 +249,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
             setModalOpen(false);
             setModalMode("create");
             setPerformanceIndicatorsModalOpen(true);
-            const res = await ProgramLearningOutcomeAPI.LoadListPerformanceIndicators({ id_Plo: id_Plo });
+            const res = await ProgramLearningOutcomeCTDTAPI.LoadListPerformanceIndicators({ id_Plo: id_Plo });
             if (res.success) {
                 setPerformanceIndicatorsData(res.data);
                 setPerformanceIndicatorsTotalRecords(res.totalRecords);
@@ -271,7 +281,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
     const handleAddNewPerformanceIndicators = async () => {
         setLoading(true);
         try {
-            const res = await ProgramLearningOutcomeAPI.AddPerformanceIndicators({
+            const res = await ProgramLearningOutcomeCTDTAPI.AddPerformanceIndicators({
                 id_Plo: Number(performanceIndicatorsFormData.id_Plo),
                 code_pi: performanceIndicatorsFormData.code_pi,
                 description_pi: performanceIndicatorsFormData.description_pi,
@@ -290,7 +300,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
         }
     }
     const handleEditPerformanceIndicators = async (id_PI: number) => {
-        const res = await ProgramLearningOutcomeAPI.InfoPerformanceIndicators({ id_PI: id_PI });
+        const res = await ProgramLearningOutcomeCTDTAPI.InfoPerformanceIndicators({ id_PI: id_PI });
         if (res.success) {
             setPerformanceIndicatorsFormData((prev) => ({ ...prev, id_PI: id_PI, code_pi: res.data.code, description_pi: res.data.description, order_index: Number(res.data.order_index) }));
             setPerformanceIndicatorsModalOpen(true);
@@ -303,7 +313,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
     const handleUpdatePerformanceIndicators = async () => {
         setLoading(true);
         try {
-            const res = await ProgramLearningOutcomeAPI.UpdatePerformanceIndicators({ id_PI: Number(performanceIndicatorsFormData.id_PI), code_pi: performanceIndicatorsFormData.code_pi, description_pi: performanceIndicatorsFormData.description_pi, order_index_pi: Number(performanceIndicatorsFormData.order_index_pi) });
+            const res = await ProgramLearningOutcomeCTDTAPI.UpdatePerformanceIndicators({ id_PI: Number(performanceIndicatorsFormData.id_PI), code_pi: performanceIndicatorsFormData.code_pi, description_pi: performanceIndicatorsFormData.description_pi, order_index_pi: Number(performanceIndicatorsFormData.order_index_pi) });
             if (res.success) {
                 SweetAlert("success", res.message);
                 handleViewPerformanceIndicators(Number(performanceIndicatorsFormData.id_Plo), performanceIndicatorsFormData.code_pi);
@@ -321,7 +331,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
         if (confirm) {
             setLoading(true);
             try {
-                const res = await ProgramLearningOutcomeAPI.DeletePerformanceIndicators({ id_PI: id_PI });
+                const res = await ProgramLearningOutcomeCTDTAPI.DeletePerformanceIndicators({ id_PI: id_PI });
                 if (res.success) {
                     SweetAlert("success", res.message);
                     handleViewPerformanceIndicators(Number(performanceIndicatorsFormData.id_Plo), performanceIndicatorsFormData.code_pi);

@@ -7,7 +7,8 @@ import { unixTimestampToDate } from "../../../URL_Config";
 import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import Swal from "sweetalert2";
 import Modal from "../../../components/ui/Modal";
-export default function ClassInterfaceCtdt() {
+import { ClassDVAPI } from "../../../api/DonVi/Class";
+export default function ClassInterfaceDonVi() {
     const [loading, setLoading] = useState(false);
     const [listClass, setListClass] = useState<any[]>([]);
     const [modalOpen, setModalOpen] = useState(false);
@@ -39,15 +40,15 @@ export default function ClassInterfaceCtdt() {
         const { name, value } = e.target;
         setOptionData((prev) => ({ ...prev, [name]: value }));
     }
-    const LoadListCTDT = async () => {
-        const res = await ListCTDTPermissionAPI.GetListCTDTPermission();
+    const LoadListCTDTByDonVi = async () => {
+        const res = await ClassDVAPI.GetListCTDTByDonVi();
         setListCTDT(res);
-        setOptionData((prev) => ({ ...prev, id_program: res[0].value }));
+        setOptionData((prev) => ({ ...prev, id_program: res[0].id_program }));
     }
     const loadDataClass = async () => {
         setLoading(true);
         try {
-            const res = await ClassCTDTAPI.GetListClass({ id_program: Number(optionData.id_program), Page: page, PageSize: pageSize });
+            const res = await ClassDVAPI.GetListClass({ id_program: Number(optionData.id_program), Page: page, PageSize: pageSize });
             if (res.success) {
                 setListClass(res.loadClass);
                 setPage(Number(res.currentPage) || 1);
@@ -73,7 +74,7 @@ export default function ClassInterfaceCtdt() {
     const handleEditClass = async (id: number) => {
         setModalOpen(true);
         setModalMode("edit");
-        const res = await ClassCTDTAPI.InfoClass({ id_class: id });
+        const res = await ClassDVAPI.InfoClass({ id_class: id });
         if (res.success) {
             setFormData({
                 id_class: res.data.id_class,
@@ -87,7 +88,7 @@ export default function ClassInterfaceCtdt() {
     const handleDeleteClass = async (id: number) => {
         const confirmDel = await SweetAlertDel("Bằng việc đồng ý, bạn sẽ xóa Lớp này và các dữ liệu liên quan, bạn muốn xóa?");
         if (confirmDel) {
-            const res = await ClassCTDTAPI.DeleteClass({ id_class: id });
+            const res = await ClassDVAPI.DeleteClass({ id_class: id });
             if (res.success) {
                 SweetAlert("success", res.message);
                 loadDataClass();
@@ -101,7 +102,7 @@ export default function ClassInterfaceCtdt() {
         setLoading(true);
         try {
             if (modalMode === "create") {
-                const res = await ClassCTDTAPI.AddNewClass({ name_class: formData.name_class, id_program: Number(optionData.id_program) });
+                const res = await ClassDVAPI.AddNewClass({ name_class: formData.name_class, id_program: Number(optionData.id_program) });
                 if (res.success) {
                     SweetAlert("success", res.message);
                     loadDataClass();
@@ -111,7 +112,7 @@ export default function ClassInterfaceCtdt() {
                 }
             }
             else {
-                const res = await ClassCTDTAPI.UpdateClass({ id_class: formData.id_class, name_class: formData.name_class });
+                const res = await ClassDVAPI.UpdateClass({ id_class: formData.id_class, name_class: formData.name_class });
                 if (res.success) {
                     SweetAlert("success", res.message);
                     loadDataClass();
@@ -134,7 +135,7 @@ export default function ClassInterfaceCtdt() {
                 return;
             }
             setLoading(true);
-            const res = await ClassCTDTAPI.UploadExcel(selectedFile, Number(optionData.id_program));
+            const res = await ClassDVAPI.UploadExcel(selectedFile, Number(optionData.id_program));
 
             setLoading(false);
             if (res.success) {
@@ -154,7 +155,7 @@ export default function ClassInterfaceCtdt() {
         setLoading(true);
 
         try {
-            const res = await ClassCTDTAPI.ExportExcel({ id_program: Number(optionData.id_program) });
+            const res = await ClassDVAPI.ExportExcel({ id_program: Number(optionData.id_program) });
             const blob = new Blob([res.data], {
                 type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             });
@@ -188,7 +189,7 @@ export default function ClassInterfaceCtdt() {
         }
     };
     useEffect(() => {
-        LoadListCTDT();
+        LoadListCTDTByDonVi();
     }, []);
     useEffect(() => {
         loadDataClass();
@@ -213,8 +214,8 @@ export default function ClassInterfaceCtdt() {
                                         value={optionData.id_program}
                                         onChange={handleInputChange}
                                         options={listCTDT.map(item => ({
-                                            value: item.value,
-                                            text: item.text
+                                            value: item.id_program,
+                                            text: item.name_program
                                         }))}
                                     />
                                 </div>

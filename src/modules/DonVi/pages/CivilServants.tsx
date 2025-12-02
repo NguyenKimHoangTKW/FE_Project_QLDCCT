@@ -31,7 +31,7 @@ export default function CivilServantsInterfaceDonVi() {
         id_program: number | null;
     }
     interface OptionFilter {
-        id_program: number | null;
+        id_program: number ;
     }
     interface Permission {
         id_civilSer: number | null;
@@ -46,7 +46,7 @@ export default function CivilServantsInterfaceDonVi() {
         id_program: null,
     });
     const [optionFilter, setOptionFilter] = useState<OptionFilter>({
-        id_program: null,
+        id_program: 0,
     });
     const [formData, setFormData] = useState<FormData>({
         id_civilSer: null,

@@ -81,18 +81,18 @@ function CourseInterfaceCtdt() {
   });
 
   interface OptionFilter {
-    id_ctdt: number | null;
-    id_gr_course: number | null;
-    id_isCourse: number | null;
-    id_key_year_semester: number | null;
-    id_semester: number | null;
+    id_ctdt: number;
+    id_gr_course: number ;
+    id_isCourse: number ;
+    id_key_year_semester: number ;
+    id_semester: number ;
   }
   const [optionFilter, setOptionFilter] = useState<OptionFilter>({
-    id_ctdt: null,
-    id_gr_course: null,
-    id_isCourse: null,
-    id_key_year_semester: null,
-    id_semester: null,
+    id_ctdt: 0,
+    id_gr_course: 0,
+    id_isCourse: 0,
+    id_key_year_semester: 0,
+    id_semester: 0,
   });
 
   interface PermissionData {
@@ -660,7 +660,8 @@ function CourseInterfaceCtdt() {
   }, [optionFilter.id_ctdt]);
   useEffect(() => {
     ShowData();
-  }, [page, pageSize]);
+    setCheckClickFilter(true);
+  }, [optionFilter.id_ctdt,page, pageSize]);
   const palette = ['#ffc107', '#28a745'];
   const platforms = [
     { id: 0, value: totalCount, label: "Tống số học phần trong khóa học" },

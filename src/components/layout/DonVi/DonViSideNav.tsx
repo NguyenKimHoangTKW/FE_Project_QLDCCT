@@ -104,16 +104,6 @@ function DonViSideNav() {
                   <span className="title">Quản lý học kỳ thuộc Đơn vị</span>
                 </NavLink>
               </li>
-
-              <li className="nav-item">
-                <NavLink
-                  to="/donvi/quan-li-danh-sach-can-bo-vien-chuc"
-                  className={({ isActive }) => isActive ? "active-menu" : ""}
-                >
-                  <span className="title">Quản lý danh sách cán bộ viên chức</span>
-                </NavLink>
-              </li>
-
               <li className="nav-item">
                 <NavLink
                   to="/donvi/danh-sach-khoa-hoc-thuoc-donvi"
@@ -123,8 +113,6 @@ function DonViSideNav() {
                 </NavLink>
               </li>
 
-
-
               <li className="nav-item">
                 <NavLink
                   to="/donvi/quan-li-danh-sach-chuong-trinh-dao-tao"
@@ -133,7 +121,37 @@ function DonViSideNav() {
                   <span className="title">Quản lý danh sách CTĐT</span>
                 </NavLink>
               </li>
-
+              <li className="nav-item">
+                <NavLink
+                  to="/donvi/quan-li-danh-sach-lop"
+                  className={({ isActive }) => isActive ? "active-menu" : ""}
+                >
+                  <span className="title">Quản lý danh sách lớp</span>
+                </NavLink>
+              </li>
+            </ul>
+          </li>
+          <li className="nav-item dropdown">
+            <a className="dropdown-toggle" href="#">
+            <span className="title">🎓🧑‍💼 Quản lý đào tạo & nhân sự</span>
+            </a>
+            <ul className="dropdown-menu">
+              <li className="nav-item">
+                <NavLink
+                  to="/donvi/quan-li-danh-sach-can-bo-vien-chuc"
+                  className={({ isActive }) => isActive ? "active-menu" : ""}
+                >
+                  <span className="title">Quản lý danh sách cán bộ viên chức</span>
+                </NavLink>
+              </li>
+              <li className="nav-item">
+                <NavLink
+                  to="/donvi/quan-li-danh-sach-sinh-vien"
+                  className={({ isActive }) => isActive ? "active-menu" : ""}
+                >
+                  <span className="title">Quản lý danh sách sinh viên</span>
+                </NavLink>
+              </li>
             </ul>
           </li>
           <li className="nav-item">
@@ -141,7 +159,7 @@ function DonViSideNav() {
               onClick={Logout}
               to="#"
             >
-           <span className="title">🔒 Đăng xuất</span>
+              <span className="title">🔒 Đăng xuất</span>
             </NavLink>
           </li>
 

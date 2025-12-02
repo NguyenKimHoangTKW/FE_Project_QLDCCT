@@ -13,6 +13,8 @@ import LevelContributionInterfaceDonVi from "../pages/LevelContribution";
 import ContributionMatrixInterfaceDonVi from "../pages/ContributionMatrix";
 import TrainingProgramInterfaceDonVi from "../pages/TrainingProgram";
 import IndexDVInterface from "../pages/indexDVInterface";
+import ClassInterfaceDonVi from "../pages/Class";
+import StudentInterfaceDonVi from "../pages/Student";
 function DonViRoutes() {
   return (
     <Routes>
@@ -30,6 +32,8 @@ function DonViRoutes() {
       <Route path="quan-li-danh-sach-muc-do-dong-gop" element={<LevelContributionInterfaceDonVi />} />
       <Route path="quan-li-danh-sach-ma-tran-dong-gop" element={<ContributionMatrixInterfaceDonVi />} />
       <Route path="quan-li-danh-sach-chuong-trinh-dao-tao" element={<TrainingProgramInterfaceDonVi />} />
+      <Route path="quan-li-danh-sach-lop" element={<ClassInterfaceDonVi />} />
+      <Route path="quan-li-danh-sach-sinh-vien" element={<StudentInterfaceDonVi />} />
     </Routes>
   );
 }

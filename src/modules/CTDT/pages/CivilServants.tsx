@@ -177,7 +177,7 @@ export default function CivilServantsInterfaceDonVi() {
       }
     useEffect(() => {
         ShowData();
-    }, [page, pageSize]);
+    }, [formData.id_program,page, pageSize]);
     useEffect(() => {
         LoadListCTDTByDonVi();
     }, []);

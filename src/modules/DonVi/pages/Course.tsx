@@ -7,6 +7,10 @@ import Swal from "sweetalert2";
 import Loading from "../../../components/ui/Loading";
 import CeoCombobox from "../../../components/ui/Combobox";
 import CeoSelect2 from "../../../components/ui/CeoSelect2";
+import Stack from "@mui/material/Stack";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import { PieChart } from "@mui/x-charts";
 function CourseInterfaceDonVi() {
   const didFetch = useRef(false);
   const [listKiemTraHocPhanBatBuoc, setListKiemTraHocPhanBatBuoc] = useState<any[]>([]);
@@ -37,6 +41,8 @@ function CourseInterfaceDonVi() {
   const [listKeyYearSemesterFilter, setListKeyYearSemesterFilter] = useState<any[]>([]);
   const [openOptionFilter, setOpenOptionFilter] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalCountIsSyllabus, setTotalCountIsSyllabus] = useState(0);
   const [listSemesterFilter, setListSemesterFilter] = useState<any[]>([]);
   interface FormData {
     id_course: number | null;
@@ -64,18 +70,18 @@ function CourseInterfaceDonVi() {
   });
 
   interface OptionFilter {
-    id_ctdt: number | null;
-    id_gr_course: number | null;
-    id_isCourse: number | null;
-    id_key_year_semester: number | null;
-    id_semester: number | null;
+    id_ctdt: number;
+    id_gr_course: number;
+    id_isCourse: number;
+    id_key_year_semester: number;
+    id_semester: number;
   }
   const [optionFilter, setOptionFilter] = useState<OptionFilter>({
-    id_ctdt: null,
-    id_gr_course: null,
-    id_isCourse: null,
-    id_key_year_semester: null,
-    id_semester: null,
+    id_ctdt: 0,
+    id_gr_course: 0,
+    id_isCourse: 0,
+    id_key_year_semester: 0,
+    id_semester: 0,
   });
   const GetDataListOptionCourse = async () => {
     const res = await CourseDonViAPI.GetListOptionCourse();
@@ -197,6 +203,8 @@ function CourseInterfaceDonVi() {
       if (res.success) {
         setListCourseByKeyYear(res.data);
         SweetAlert("success", res.message);
+        setTotalCount(res.total_course);
+        setTotalCountIsSyllabus(res.total_syllabus);
       }
       else {
         SweetAlert("error", res.message);
@@ -454,6 +462,12 @@ function CourseInterfaceDonVi() {
   useEffect(() => {
     GetListCTDTByDonVi();
   }, []);
+  const palette = ['#ffc107', '#28a745'];
+  const platforms = [
+    { id: 0, value: totalCount, label: "Tống số học phần trong khóa học" },
+    { id: 1, value: totalCountIsSyllabus, label: "Tống số học phần đã hoàn thành đề cương" },
+  ];
+
   return (
     <div className="main-content">
       <Loading isOpen={loading} />
@@ -585,6 +599,52 @@ function CourseInterfaceDonVi() {
                   </div>
                 </>
               )}
+              <hr />
+              {listCourseByKeyYear.length > 0 && (
+                <>
+                  <Stack direction="row" width="100%" textAlign="center" spacing={2}>
+                    <Box flexGrow={1}>
+                      <Typography fontWeight={600} mb={1}>Tỷ lệ tổng số học phần trong khóa học và tổng số học phần đã hoàn thành đề cương</Typography>
+
+                      <PieChart
+                        series={[
+                          {
+                            data: platforms,
+                            arcLabel: (item) => `${item.value}`,
+                            arcLabelMinAngle: 10,
+                          },
+                        ]}
+                        colors={palette}
+                        {...pieParams}
+                      />
+                    </Box>
+                  </Stack>
+                  <p className="text-danger text-center">Tỷ lệ đề cương hoàn thành: {(totalCountIsSyllabus / totalCount * 100).toFixed(2)}%</p>
+                  <Stack direction="row" spacing={3} mt={2}>
+                    <Box sx={{
+                      flex: 1,
+                      p: 2,
+                      borderRadius: 2,
+                      bgcolor: "#f4f7ff",
+                      borderLeft: "5px solid #3f73ff"
+                    }}>
+                      <Typography variant="body2" color="text.secondary">Tổng số học phần</Typography>
+                      <Typography variant="h5" fontWeight={700}>{totalCount}</Typography>
+                    </Box>
+
+                    <Box sx={{
+                      flex: 1,
+                      p: 2,
+                      borderRadius: 2,
+                      bgcolor: "#f9fff4",
+                      borderLeft: "5px solid #2ecc71"
+                    }}>
+                      <Typography variant="body2" color="text.secondary">Đã hoàn thành đề cương</Typography>
+                      <Typography variant="h5" fontWeight={700}>{totalCountIsSyllabus}</Typography>
+                    </Box>
+                  </Stack>
+                </>
+              )}
             </fieldset>
           </div>
           {/*Modal Import*/}
@@ -629,13 +689,13 @@ function CourseInterfaceDonVi() {
                 <thead className="table-light">
                   <tr>
                     <th style={{ width: "8%" }}>Mã môn học</th>
-                    <th style={{ width: "25%" }}>Tên học phần</th>
-                    <th style={{ width: "15%" }}>Kiểm tra học phần bắt buộc</th>
+                    <th style={{ width: "25%" }}>Tên môn học</th>
+                    <th style={{ width: "15%" }}>Môn bắt buộc</th>
                     <th style={{ width: "15%" }}>Nhóm học phần</th>
-                    <th style={{ width: "10%" }}>Số giờ lý thuyết</th>
-                    <th style={{ width: "10%" }}>Số giờ thực hành</th>
-                    <th style={{ width: "8%" }}>Số tín chỉ</th>
-                    <th style={{ width: "10%" }}>Trạng thái đề cương</th>
+                    <th style={{ width: "10%" }}>Lý thuyết</th>
+                    <th style={{ width: "10%" }}>Thực hành</th>
+                    <th style={{ width: "8%" }}>Tín chỉ</th>
+                    <th style={{ width: "10%" }}>Trạng thái</th>
                     <th style={{ width: "10%" }}>Hành động</th>
                   </tr>
                 </thead>
@@ -654,12 +714,12 @@ function CourseInterfaceDonVi() {
                           <tr key={course.id_course} style={{ backgroundColor: "white" }}>
                             <td className="text-center">{course.code_course}</td>
                             <td>{course.name_course}</td>
-                            <td >{course.name_isCourse}</td>
+                            <td className="text-center">{course.name_isCourse == "Bắt buộc" ? <span className="text-success">X</span> : <span className="text-danger">O</span>}</td>
                             <td >{course.name_gr_course}</td>
                             <td className="text-center">{course.totalTheory}</td>
                             <td className="text-center">{course.totalPractice}</td>
                             <td className="text-center">{course.credits}</td>
-                            <td>{course.is_syllabus == true ? <span className="text-success">Đã hoàn thiện</span> : <span className="text-danger">Chưa hoàn thiện</span>}</td>
+                            <td>{course.is_syllabus == true ? <span className="text-success">Đã có đề cương</span> : <span className="text-danger">Chưa có đề cương</span>}</td>
                             <td>
                               <button
                                 className="btn btn-sm btn-function-ceo"
@@ -1105,3 +1165,8 @@ function CourseInterfaceDonVi() {
   );
 }
 export default CourseInterfaceDonVi;
+const pieParams = {
+  height: 200,
+  margin: { right: 5 },
+  hideLegend: true,
+};

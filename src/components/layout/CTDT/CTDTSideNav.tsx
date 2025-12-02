@@ -17,7 +17,16 @@ function CTDTSideNav() {
               </span>
             </NavLink>
           </li>
-
+          <li>
+            <NavLink
+              to="/ctdt/chuan-dau-ra-ctdt"
+              className={({ isActive }) => isActive ? "active-menu" : ""}
+            >
+              <span className="title">
+                🎯 Quản lý chuẩn đầu ra CTĐT
+              </span>
+            </NavLink>
+          </li>
           <li>
             <NavLink
               to="/ctdt/danh-sach-mon-hoc"
@@ -55,6 +64,16 @@ function CTDTSideNav() {
             >
               <span className="title">
                 📝 Quản lý danh sách đề cương cần duyệt
+              </span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/ctdt/thong-ke-nhap-lieu-plo-ctdt"
+              className={({ isActive }) => isActive ? "active-menu" : ""}
+            >
+              <span className="title">
+                📊 Thống kê nhập liệu PLO CTĐT
               </span>
             </NavLink>
           </li>
