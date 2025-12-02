@@ -555,7 +555,7 @@ function CourseInterfaceDonVi() {
                     ]}
                   />
                 </div>
-                <div className="col-md-4">
+                <div className="col-md-6">
                   <label className="ceo-label">Tìm kiếm</label>
                   <input
                     type="text"

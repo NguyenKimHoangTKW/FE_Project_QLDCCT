@@ -174,22 +174,22 @@ function ListWriteCourseDVDC() {
     }
     const getListTeacherbyWriteCourse = async (id_course: number) => {
         setFormData((prev) => ({ ...prev, id_course }));
-    
+
         const res = await WriteCourseAPI.GetListTeacherbyWriteCourse({ id_course });
-    
+
         const closeTimeUnix =
             res.success
                 ? res.data[0]?.time_close
                 : res.data?.time_close;
-    
-        const closeTime = (closeTimeUnix ?? 0) * 1000; 
-    
+
+        const closeTime = (closeTimeUnix ?? 0) * 1000;
+
         if (window.countdownInterval) clearInterval(window.countdownInterval);
-    
+
         window.countdownInterval = setInterval(() => {
             const now = Date.now();
-            const diff = Math.max(closeTime - now, 0); 
-    
+            const diff = Math.max(closeTime - now, 0);
+
             setCountdown(formatCountdown(diff));
         }, 1000);
         setIsOpen(Number(res.data?.is_open));
@@ -207,11 +207,11 @@ function ListWriteCourseDVDC() {
                 message: res.message,
             });
         }
-    
+
         setNameCourse(res.name_course);
         setIs_write(res.is_write);
     };
-    
+
 
     useEffect(() => {
         if (!showModal) {
@@ -321,30 +321,39 @@ function ListWriteCourseDVDC() {
             SweetAlert("error", res.message);
         }
     }
+    const handleCloneSyllabus = async (id_syllabus: number) => {
+        const res = await WriteCourseAPI.CloneSyllabus({ id_teacherbysubject: Number(formData.id_teacherbysubject), id_syllabus: Number(id_syllabus) });
+        if (res.success) {
+            SweetAlert("success", res.message);
+            getListTeacherbyWriteCourse(Number(formData.id_course));
+        } else {
+            SweetAlert("error", res.message);
+        }
+    }
     useEffect(() => {
         GetListCourse();
     }, []);
     useEffect(() => {
         idCourseRef.current = formData.id_course;
     }, [formData.id_course]);
-    
+
     useEffect(() => {
         const handleReload = (e: StorageEvent) => {
             if (e.key === "reload_syllabus_final" && e.newValue) {
-    
+
                 if (idCourseRef.current) {
                     getListTeacherbyWriteCourse(Number(idCourseRef.current));
                 }
-    
+
                 localStorage.removeItem("reload_syllabus_final");
             }
         };
-    
+
         window.addEventListener("storage", handleReload);
         return () => window.removeEventListener("storage", handleReload);
     }, []);
-    
-    
+
+
     return (
         <div className="main-content">
             <div className="card">
@@ -471,6 +480,8 @@ function ListWriteCourseDVDC() {
                                                     <span className="badge badge-pill badge-danger">{teacher.status}</span>
                                                 ) : teacher.code_status === 4 ? (
                                                     <span className="badge badge-pill badge-success">{teacher.status}</span>
+                                                ) : teacher.code_status === 8 ? (
+                                                    <span className="badge badge-pill badge-secondary">{teacher.status}</span>
                                                 ) : (
                                                     <span className="badge badge-pill badge-secondary">{teacher.status}</span>
                                                 )}
@@ -540,6 +551,12 @@ function ListWriteCourseDVDC() {
                                                                             {is_write === true ? (
                                                                                 <>
                                                                                     <button
+                                                                                        className="btn btn-sm btn-ceo-green w-100 mb-2"
+                                                                                        onClick={() => handleShowModalRequestWriteCourse(teacher.id_syllabus)}
+                                                                                    >
+                                                                                        📄 Xem danh sách yêu cầu tham gia viết đề cương
+                                                                                    </button>
+                                                                                    <button
                                                                                         className="btn btn-sm btn-warning w-100 mb-2"
                                                                                         onClick={() => handleRollbackSyllabus(teacher.id_syllabus)}
                                                                                     >
@@ -566,6 +583,16 @@ function ListWriteCourseDVDC() {
                                                                             >
                                                                                 ❗ Xem lý do hoàn trả
                                                                             </button>
+                                                                            {is_write === true ? (
+                                                                                <>
+                                                                                    <button
+                                                                                        className="btn btn-sm btn-ceo-green w-100 mb-2"
+                                                                                        onClick={() => handleShowModalRequestWriteCourse(teacher.id_syllabus)}
+                                                                                    >
+                                                                                        📄 Xem danh sách yêu cầu tham gia viết đề cương
+                                                                                    </button>
+                                                                                </>
+                                                                            ) : null}
                                                                         </div>
                                                                     )}
 
@@ -579,13 +606,21 @@ function ListWriteCourseDVDC() {
                                                                             </button>
                                                                             {is_write === true ? (
                                                                                 <>
+                                                                                    <button
+                                                                                        className="btn btn-sm btn-ceo-green w-100 mb-2"
+                                                                                        onClick={() => handleShowModalRequestWriteCourse(teacher.id_syllabus)}
+                                                                                    >
+                                                                                        📄 Xem danh sách yêu cầu tham gia viết đề cương
+                                                                                    </button>
                                                                                     {teacher.is_open_edit_final === 0 && (
-                                                                                        <button
-                                                                                            className="btn btn-sm btn-info text-white fw-bold w-100 mb-2"
-                                                                                            onClick={() => handleShowModalRequestEditSyllabus(teacher.id_syllabus)}
-                                                                                        >
-                                                                                            ✉️ Gửi yêu cầu mở chỉnh sửa
-                                                                                        </button>
+                                                                                        <>
+                                                                                            <button
+                                                                                                className="btn btn-sm btn-info text-white fw-bold w-100 mb-2"
+                                                                                                onClick={() => handleShowModalRequestEditSyllabus(teacher.id_syllabus)}
+                                                                                            >
+                                                                                                ✉️ Gửi yêu cầu mở chỉnh sửa
+                                                                                            </button>
+                                                                                        </>
                                                                                     )}
 
                                                                                     {teacher.is_open_edit_final === 1 && (
@@ -635,11 +670,61 @@ function ListWriteCourseDVDC() {
                                                                     {teacher.code_status === 7 && (
                                                                         <div>
                                                                             <button
-                                                                                className="btn btn-sm btn-primary w-100 mb-2"
+                                                                                className="btn btn-sm btn-ceo-blue w-100 mb-2"
                                                                                 onClick={() => handleViewDetailTemplateWriteCourse(teacher.id_syllabus)}
                                                                             >
                                                                                 ✏️ Chỉnh sửa bổ sung nội dung đã nộp sau duyệt
                                                                             </button>
+                                                                            {is_write === true ? (
+                                                                                <>
+                                                                                    <button
+                                                                                        className="btn btn-sm btn-ceo-butterfly w-100 mb-2"
+                                                                                        onClick={() => handleCloneSyllabus(teacher.id_syllabus)}
+                                                                                    >
+                                                                                        📄 Clone ra bản mới
+                                                                                    </button>
+                                                                                    <button
+                                                                                        className="btn btn-sm btn-ceo-green w-100 mb-2"
+                                                                                        onClick={() => handleShowModalRequestWriteCourse(teacher.id_syllabus)}
+                                                                                    >
+                                                                                        📄 Xem danh sách yêu cầu tham gia viết đề cương
+                                                                                    </button>
+
+                                                                                    <button
+                                                                                        className="btn btn-sm btn-ceo-red w-100 mb-2"
+                                                                                        onClick={() => handleDeleteSyllabus(teacher.id_syllabus)}
+                                                                                    >
+                                                                                        🗑️ Xóa mẫu
+                                                                                    </button>
+                                                                                </>
+                                                                            ) : null}
+                                                                        </div>
+                                                                    )}
+                                                                     {teacher.code_status === 8 && (
+                                                                        <div>
+                                                                            <button
+                                                                                className="btn btn-sm btn-ceo-blue w-100 mb-2"
+                                                                                onClick={() => handleViewDetailTemplateWriteCourse(teacher.id_syllabus)}
+                                                                            >
+                                                                                ✏️ Tiếp tục viết
+                                                                            </button>
+                                                                            {is_write === true ? (
+                                                                                <>
+                                                                                    <button
+                                                                                        className="btn btn-sm btn-ceo-green w-100 mb-2"
+                                                                                        onClick={() => handleShowModalRequestWriteCourse(teacher.id_syllabus)}
+                                                                                    >
+                                                                                        📄 Xem danh sách yêu cầu tham gia viết đề cương
+                                                                                    </button>
+                                                                                    <button
+                                                                                        className="btn btn-sm btn-ceo-red w-100 mb-2"
+                                                                                        onClick={() => handleDeleteSyllabus(teacher.id_syllabus)}
+                                                                                    >
+                                                                                        🗑️ Xóa mẫu
+                                                                                    </button>
+                                                                                </>
+                                                                            ) : null}
+
                                                                         </div>
                                                                     )}
 
@@ -712,7 +797,7 @@ function ListWriteCourseDVDC() {
                         </div>
                         <button className="btn btn-ceo-blue" onClick={handleSearchRequestWriteCourse}>Kiểm tra và phân quyền</button>
                         <hr />
-                        
+
                         {listRequestWriteCourse.length > 0 ? (
                             <table className="table table-bordered">
                                 <thead>

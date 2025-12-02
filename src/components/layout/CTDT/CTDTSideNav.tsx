@@ -59,21 +59,21 @@ function CTDTSideNav() {
           </li>
           <li>
             <NavLink
-              to="/ctdt/danh-sach-de-cuong-can-duyet"
+              to="/ctdt/thong-ke-nhap-lieu-plo-ctdt"
               className={({ isActive }) => isActive ? "active-menu" : ""}
             >
               <span className="title">
-                📝 Quản lý danh sách đề cương cần duyệt
+                📊 Thống kê nhập liệu CLO CTĐT
               </span>
             </NavLink>
           </li>
           <li>
             <NavLink
-              to="/ctdt/thong-ke-nhap-lieu-plo-ctdt"
+              to="/ctdt/danh-sach-de-cuong-can-duyet"
               className={({ isActive }) => isActive ? "active-menu" : ""}
             >
               <span className="title">
-                📊 Thống kê nhập liệu PLO CTĐT
+                📝 Quản lý danh sách đề cương cần duyệt
               </span>
             </NavLink>
           </li>

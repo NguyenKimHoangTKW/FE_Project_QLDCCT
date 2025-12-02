@@ -15,8 +15,10 @@ function UsersList() {
   const [showModal, setShowModal] = useState(false);
   const [listType, setListType] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
-  const [perPage, setPerPage] = useState(10);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<any>(null);
   const [selectedValue, setSelectedValue] = useState<any>(null);
@@ -36,105 +38,44 @@ function UsersList() {
   const [formData, setFormData] = useState<UserInput>({
     Username: "",
     email: "",
+    id_users: null,
+    id_type_users: null,
+    status: null,
   });
-  const Columns = [
-    {
-      name: "STT",
-      selector: (_row: any, index: number) => index + 1,
-      width: "80px",
-      cell: (row: any, index: number) => (
-        <div className="text-center w-full">{index + 1}</div>
-      ),
-    },
-    {
-      name: "ID Users",
-      selector: (row: any) => row.id_users,
-      sortable: true,
-      cell: (row: any) => <div className="px-2">{row.id_users}</div>,
-    },
-    {
-      name: "Tên tài khoản",
-      selector: (row: any) => row.username,
-      sortable: true,
-      cell: (row: any) => <div className="px-2">{row.username}</div>,
-    },
-    {
-      name: "Email",
-      selector: (row: any) => row.email,
-      sortable: true,
-      cell: (row: any) => <div className="px-2">{row.email}</div>,
-    },
-    {
-      name: "Tên Quyền",
-      selector: (row: any) => row.name_type_users,
-      sortable: true,
-      cell: (row: any) => <div className="px-2">{row.name_type_users}</div>,
-    },
-    {
-      name: "Ngày tạo",
-      selector: (row: any) => unixTimestampToDate(row.time_cre),
-      sortable: true,
-      cell: (row: any) => (
-        <div className="px-2">{unixTimestampToDate(row.time_cre)}</div>
-      ),
-    },
-    {
-      name: "Cập nhật lần cuối",
-      selector: (row: any) => unixTimestampToDate(row.time_up),
-      sortable: true,
-      cell: (row: any) => (
-        <div className="px-2">{unixTimestampToDate(row.time_up)}</div>
-      ),
-    },
-    {
-      name: "Trạng thái hoạt động",
-      selector: (row: any) => row.status,
-      sortable: true,
-      cell: (row: any) => <div className="px-2">{row.status}</div>,
-    },
-    {
-      name: "Hành động",
-      width: "120px",
-      cell: (row: any) => (
-        <div className="d-flex justify-content-center gap-2">
-          <button
-            className="btn btn-icon btn-hover btn-sm btn-rounded"
-            onClick={() =>
-              navigate(
-                `/admin/quan-li-danh-sach-user/phan-quyen/${row.id_users}`
-              )
-            }
-          >
-            <i className="anticon anticon-edit text-primary" />
-          </button>
-          <button
-            className="btn btn-icon btn-hover btn-sm btn-rounded"
-            onClick={() => handleDelete(row.id_users)}
-          >
-            <i className="anticon anticon-delete text-danger" />
-          </button>
-        </div>
-      ),
-    },
-  ];
+
   const showData = async () => {
     try {
       setLoading(true);
-      const res = await UsersAPI.getLoadDanhSachUser(idTypeSelected, {
-        page,
-        perPage,
+      const res = await UsersAPI.getLoadDanhSachUser({
+        id_type_users: Number(idTypeSelected),
+        Page: page,
+        PageSize: pageSize,
       });
       if (res.success) {
         setAllData(res.data);
-        setTotalRows(res.totalRecords);
+        setTotalRecords(Number(res.totalRecords) || 0);
+        setTotalPages(Number(res.totalPages) || 1);
+        setPageSize(Number(res.pageSize) || 10);
       } else {
         setAllData([]);
-        setTotalRows(0);
+        setTotalRecords(0);
+        setTotalPages(1);
+        setPageSize(10);
       }
     } finally {
       setLoading(false);
     }
   };
+  const headers = [
+    { label: "STT", key: "" },
+    { label: "Tên tài khoản", key: "Username" },
+    { label: "Email", key: "email" },
+    { label: "Quyền tài khoản", key: "name_type_users" },
+    { label: "Trạng thái", key: "status" },
+    { label: "Ngày tạo", key: "time_cre" },
+    { label: "Cập nhật lần cuối", key: "time_up" },
+    { label: "*", key: "*" },
+  ];
   const GetListTypeUser = async () => {
     const res = await UsersAPI.getListTypeUsers();
     if (res.success) {
@@ -165,24 +106,6 @@ function UsersList() {
     setModalMode("create");
     setShowModal(true);
   };
-  const handleFilterChange = (key: string, value: string) => {
-    const newFilters = { ...filters, [key]: value };
-    setFilters(newFilters);
-
-    let temp = [...allData];
-    Object.keys(newFilters).forEach((fKey) => {
-      const fValue = newFilters[fKey].toLowerCase();
-      if (fValue) {
-        temp = temp.filter((item) =>
-          String(item[fKey] || "")
-            .toLowerCase()
-            .includes(fValue)
-        );
-      }
-    });
-    setFilteredData(temp);
-    setPage(1);
-  };
   useEffect(() => {
     if (!didFetch.current) {
       GetListTypeUser();
@@ -208,7 +131,6 @@ function UsersList() {
         showData();
         SweetAlert("success", res.message);
         setShowModal(false);
-        setFormData({ email: "" });
       } else {
         SweetAlert("error", res.message);
       }
@@ -229,12 +151,6 @@ function UsersList() {
     }
   };
 
-  const handleEditPermission = async (id_users: number) => {
-    const res = await UsersAPI.GetInfo({ id_users });
-    GetListTypeUserPermission();
-    setShowModalType(true);
-    setUserInfo(res);
-  };
 
   return (
     <div className="main-content">
@@ -260,10 +176,10 @@ function UsersList() {
               </div>
               <div className="row">
                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-                  <button className="btn btn-success" onClick={handleAdd}>
+                  <button className="btn btn-ceo-butterfly" onClick={handleAdd}>
                     <i className="fas fa-plus-circle mr-1" /> Thêm mới
                   </button>
-                  <button className="btn btn-primary" onClick={showData}>
+                  <button className="btn btn-ceo-blue" onClick={showData}>
                     <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
                   </button>
                 </div>
@@ -272,23 +188,52 @@ function UsersList() {
           </div>
           <div className="m-t-25">
             <div className="table-responsive">
-              <DataTable
-                title="Danh sách người dùng"
-                columns={Columns}
-                data={allData}
-                progressPending={loading}
-                pagination
-                paginationServer
-                paginationTotalRows={totalRows}
-                paginationPerPage={perPage}
-                onChangePage={setPage}
-                onChangeRowsPerPage={(newPerPage, newPage) => {
-                  setPerPage(newPerPage);
-                  setPage(newPage);
-                }}
-                highlightOnHover
-                dense
-              />
+              <table className="table table-bordered">
+                <thead>
+                  <tr>
+                    {headers.map((h, idx) => (
+                      <th key={idx}>{h.label}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {allData.length > 0 ? (
+                    allData.map((item, index) => (
+                      <tr key={item.id_users}>
+                        <td data-label="STT" className="formatSo">{(page - 1) * pageSize + index + 1}</td>
+                        <td data-label="Tên tài khoản" className="formatSo">{item.username}</td>
+                        <td data-label="Email">{item.email}</td>
+                        <td data-label="Quyền tài khoản">{item.name_type_users}</td>
+                        <td data-label="Trạng thái" className="formatSo">{item.status}</td>
+                        <td data-label="Ngày tạo" className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
+                        <td data-label="Cập nhật lần cuối" className="formatSo">{unixTimestampToDate(item.time_up)}</td>
+                        <td data-label="*" className="formatSo">
+                          <div className="d-flex justify-content-center flex-wrap gap-3">
+                            <button className="btn btn-sm btn-ceo-butterfly" onClick={() =>
+                              navigate(
+                                `/admin/quan-li-danh-sach-user/phan-quyen/${item.id_users}`
+                              )
+                            }>
+                              <i className="anticon anticon-edit me-1" /> Chỉnh sửa
+                            </button>
+                            <button className="btn btn-sm btn-ceo-red" onClick={() => handleDelete(item.id_users)}>
+                              <i className="anticon anticon-delete me-1" /> Xóa bỏ
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={headers.length}
+                        className="text-center text-danger">
+                        Không có dữ liệu
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

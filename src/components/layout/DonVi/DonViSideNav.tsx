@@ -77,7 +77,14 @@ function DonViSideNav() {
                   <span className="title">Quản lý ma trận đóng góp</span>
                 </NavLink>
               </li>
-
+              <li className="nav-item">
+                <NavLink
+                  to="/donvi/thong-ke-nhap-lieu-clo-donvi"
+                  className={({ isActive }) => isActive ? "active-menu" : ""}
+                >
+                  <span className="title">Thống kê nhập liệu CLO</span>
+                </NavLink>
+              </li>
             </ul>
           </li>
 

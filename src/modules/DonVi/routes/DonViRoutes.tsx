@@ -15,6 +15,7 @@ import TrainingProgramInterfaceDonVi from "../pages/TrainingProgram";
 import IndexDVInterface from "../pages/indexDVInterface";
 import ClassInterfaceDonVi from "../pages/Class";
 import StudentInterfaceDonVi from "../pages/Student";
+import StatisticalCLOInterfaceDonVi from "../pages/StatisticalCLO";
 function DonViRoutes() {
   return (
     <Routes>
@@ -34,6 +35,7 @@ function DonViRoutes() {
       <Route path="quan-li-danh-sach-chuong-trinh-dao-tao" element={<TrainingProgramInterfaceDonVi />} />
       <Route path="quan-li-danh-sach-lop" element={<ClassInterfaceDonVi />} />
       <Route path="quan-li-danh-sach-sinh-vien" element={<StudentInterfaceDonVi />} />
+      <Route path="thong-ke-nhap-lieu-clo-donvi" element={<StatisticalCLOInterfaceDonVi />} />
     </Routes>
   );
 }

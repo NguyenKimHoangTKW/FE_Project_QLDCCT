@@ -24,17 +24,13 @@ function UserPermissionPage() {
     if (opt.label === "CTĐT") {
       GetListCTDT();
     }
+    if (opt.label === "Đơn vị") {
+      GetListDonVi();
+    }
   };
   const [listDonVi, setListDonVi] = useState<any[]>([]);
   const [selectedValueYear, setSelectedValueYear] = useState<any>(null);
-  const handleSelectedChangeYearValue = (opt: any) => {
-    setSelectedValueYear(opt);
-    if (opt) {
-      GetListDonVi(opt.value);
-    } else {
-      setListDonVi([]);
-    }
-  };
+
   const [selectedRows, setSelectedRows] = useState<any[]>([]);
   const filteredDataDonVi = useMemo(() => {
     return listDonVi.filter(
@@ -69,8 +65,8 @@ function UserPermissionPage() {
     }));
     setListYear(formatted);
   };
-  const GetListDonVi = async (id_year: number) => {
-    const res = await UsersAPI.GetListDonVi({ id_year, id_users });
+  const GetListDonVi = async () => {
+    const res = await UsersAPI.GetListDonVi({ id_users: Number(id_users) });
     setListDonVi(res);
   };
 
@@ -100,7 +96,7 @@ function UserPermissionPage() {
   ];
 
   const GetListCTDT = async () => {
-    const res = await UsersAPI.GetListCTDT({ id_users: id_users });
+    const res = await UsersAPI.GetListCTDT({ id_users: Number(id_users) });
     setListCTDT(res);
   };
   useEffect(() => {
@@ -133,7 +129,6 @@ function UserPermissionPage() {
     };
 
     fetchData();
-    GetListYear();
   }, [id_users]);
   const isRowSelected = useCallback(
     (row: any) => row.checkedPermission === true,
@@ -143,7 +138,7 @@ function UserPermissionPage() {
     const listIdFac = selectedRows.map((item) => item.id_faculty);
     const listIDPro = selectedRows.map((item) => item.id_program);
     const res = await UsersAPI.SavePermission({
-      id_user: id_users,
+      id_user: Number(id_users),
       id_FacPro: selectedValue.label === "CTĐT" ? listIDPro : listIdFac,
       name_permission: selectedValue.label,
       id_type_users: selectedValue.value,
@@ -272,21 +267,6 @@ function UserPermissionPage() {
         {nameType === "Đơn vị" ? (
           <div className="w-full p-4">
             <div className="bg-white shadow-md rounded-2xl p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h5 className="text-lg font-semibold text-gray-700">
-                  Danh sách năm
-                </h5>
-                <div className="w-64">
-                  <Select
-                    options={listYear}
-                    value={selectedValueYear}
-                    onChange={handleSelectedChangeYearValue}
-                    placeholder="Chọn năm..."
-                    isClearable
-                  />
-                </div>
-              </div>
-              <hr />
               <div className="table-responsive">
                 <DataTable
                   title="Danh sách đơn vị"

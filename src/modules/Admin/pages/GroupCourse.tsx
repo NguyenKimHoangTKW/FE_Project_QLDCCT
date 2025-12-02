@@ -147,10 +147,10 @@ function GroupCourseInterface() {
               <legend className="float-none w-auto px-3">Chức năng</legend>
               <div className="row">
                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
-                  <button className="btn btn-success" onClick={handleAdd}>
+                  <button className="btn btn-ceo-butterfly" onClick={handleAdd}>
                     <i className="fas fa-plus-circle mr-1" /> Thêm mới
                   </button>
-                  <button className="btn btn-primary">
+                  <button className="btn btn-ceo-blue">
                     <i className="fas fa-plus-circle mr-1" /> Lọc dữ liệu
                   </button>
                 </div>

@@ -220,168 +220,114 @@ export default function () {
                                     </button>
                                 </div>
                             </div>
+                            <hr />
+                            <div className="row g-3">
+
+                                {/* Đang chờ duyệt */}
+                                <div className="col-md-2 col-sm-4 col-6">
+                                    <div
+                                        className="compact-stat-card"
+                                        style={{ color: "#0284c7" }}
+                                        onClick={() => filterByStatus(2)}
+                                    >
+                                        <div className="compact-stat-icon" style={{ background: "#e0f2fe" }}>
+                                            <i className="fas fa-hourglass-half"></i>
+                                        </div>
+                                        <div className="compact-stat-body">
+                                            <span className="compact-stat-title">Chờ duyệt</span>
+                                            <span className="compact-stat-value">{countSylabus.count_cho_duyet}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Trả về chỉnh sửa */}
+                                <div className="col-md-2 col-sm-4 col-6">
+                                    <div
+                                        className="compact-stat-card"
+                                        style={{ color: "#dc2626" }}
+                                        onClick={() => filterByStatus(3)}
+                                    >
+                                        <div className="compact-stat-icon" style={{ background: "#fee2e2" }}>
+                                            <i className="fas fa-exclamation-circle"></i>
+                                        </div>
+                                        <div className="compact-stat-body">
+                                            <span className="compact-stat-title">Trả về</span>
+                                            <span className="compact-stat-value">{countSylabus.count_tra_ve_chinh_sua}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Đã duyệt */}
+                                <div className="col-md-2 col-sm-4 col-6">
+                                    <div
+                                        className="compact-stat-card"
+                                        style={{ color: "#059669" }}
+                                        onClick={() => filterByStatus(4)}
+                                    >
+                                        <div className="compact-stat-icon" style={{ background: "#d1fae5" }}>
+                                            <i className="fas fa-check-circle"></i>
+                                        </div>
+                                        <div className="compact-stat-body">
+                                            <span className="compact-stat-title">Đã duyệt</span>
+                                            <span className="compact-stat-value">{countSylabus.count_da_duyet}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Yêu cầu mở bổ sung */}
+                                <div className="col-md-2 col-sm-4 col-6">
+                                    <div
+                                        className="compact-stat-card"
+                                        style={{ color: "#b45309" }}
+                                        onClick={() => filterByOpenEditFinal(1)}
+                                    >
+                                        <div className="compact-stat-icon" style={{ background: "#fef3c7" }}>
+                                            <i className="fas fa-edit"></i>
+                                        </div>
+                                        <div className="compact-stat-body">
+                                            <span className="compact-stat-title">Yêu cầu mở</span>
+                                            <span className="compact-stat-value">{countSylabus.count_mo_de_cuong_sau_duyet}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Đang mở bổ sung */}
+                                <div className="col-md-2 col-sm-4 col-6">
+                                    <div
+                                        className="compact-stat-card"
+                                        style={{ color: "#4f46e5" }}
+                                        onClick={() => filterByStatus(7)}
+                                    >
+                                        <div className="compact-stat-icon" style={{ background: "#e0e7ff" }}>
+                                            <i className="fas fa-pen-square"></i>
+                                        </div>
+                                        <div className="compact-stat-body">
+                                            <span className="compact-stat-title">Đang mở</span>
+                                            <span className="compact-stat-value">{countSylabus.dang_mo_bo_sung_sau_duyet}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Từ chối mở */}
+                                <div className="col-md-2 col-sm-4 col-6">
+                                    <div
+                                        className="compact-stat-card"
+                                        style={{ color: "#7e22ce" }}
+                                        onClick={() => filterByOpenEditFinal(2)}
+                                    >
+                                        <div className="compact-stat-icon" style={{ background: "#f3e8ff" }}>
+                                            <i className="fas fa-times-circle"></i>
+                                        </div>
+                                        <div className="compact-stat-body">
+                                            <span className="compact-stat-title">Từ chối mở</span>
+                                            <span className="compact-stat-value">{countSylabus.tu_choi_mo_bo_sung_sau_duyet}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
                         </fieldset>
                     </div>
-                    <div className="row gy-4 gx-4">
-
-                        {/* Đang chờ duyệt */}
-                        <div className="col-md-3">
-                            <div className="card shadow-sm stat-card"
-                                style={{
-                                    background: "#ffffff",
-                                    border: "1px solid #e5e7eb",
-                                    borderRadius: "14px",
-                                    padding: "6px",
-                                    cursor: "pointer",
-                                    color: "#0284c7"
-                                }}
-                                onClick={() => filterByStatus(2)}
-                            >
-                                <div className="card-body stat-body text-center py-4">
-
-                                    <h5 className="fw-bold mb-2">
-                                        <i className="fas fa-hourglass-half me-2"></i>
-                                        Đang chờ duyệt
-                                    </h5>
-
-                                    <p className="display-6 fw-bold mb-0">{countSylabus.count_cho_duyet}</p>
-
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Trả về chỉnh sửa */}
-                        <div className="col-md-3">
-                            <div className="card shadow-sm stat-card"
-                                style={{
-                                    background: "#ffffff",
-                                    border: "1px solid #e5e7eb",
-                                    borderRadius: "14px",
-                                    padding: "6px",
-                                    cursor: "pointer",
-                                    color: "#dc2626"
-                                }}
-                                onClick={() => filterByStatus(3)}
-                            >
-                                <div className="card-body stat-body text-center py-4">
-
-                                    <h5 className="fw-bold mb-2">
-                                        <i className="fas fa-exclamation-circle me-2"></i>
-                                        Trả về chỉnh sửa
-                                    </h5>
-
-                                    <p className="display-6 fw-bold mb-0">{countSylabus.count_tra_ve_chinh_sua}</p>
-
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Đã duyệt */}
-                        <div className="col-md-3">
-                            <div className="card shadow-sm stat-card"
-                                style={{
-                                    background: "#ffffff",
-                                    border: "1px solid #e5e7eb",
-                                    borderRadius: "14px",
-                                    padding: "6px",
-                                    cursor: "pointer",
-                                    color: "#059669"
-                                }}
-                                onClick={() => filterByStatus(4)}
-                            >
-                                <div className="card-body stat-body text-center py-4">
-
-                                    <h5 className="fw-bold mb-2">
-                                        <i className="fas fa-check-circle me-2"></i>
-                                        Đã duyệt
-                                    </h5>
-
-                                    <p className="display-6 fw-bold mb-0">{countSylabus.count_da_duyet}</p>
-
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* yêu cầu mở chỉnh sửa bổ sung */}
-                        <div className="col-md-3">
-                            <div className="card shadow-sm stat-card"
-                                style={{
-                                    background: "#ffffff",
-                                    border: "1px solid #e5e7eb",
-                                    borderRadius: "14px",
-                                    padding: "6px",
-                                    cursor: "pointer",
-                                    color: "#b45309"
-                                }}
-                                onClick={() => filterByOpenEditFinal(1)}
-                            >
-                                <div className="card-body stat-body text-center py-4">
-
-                                    <h5 className="fw-bold mb-2">
-                                        <i className="fas fa-edit me-2"></i>
-                                        Yêu cầu mở chỉnh sửa bổ sung
-                                    </h5>
-
-                                    <p className="display-6 fw-bold mb-0">{countSylabus.count_mo_de_cuong_sau_duyet}</p>
-
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* đang mở chỉnh sửa bổ sung */}
-                        <div className="col-md-3">
-                            <div className="card shadow-sm stat-card"
-                                style={{
-                                    background: "#ffffff",
-                                    border: "1px solid #e5e7eb",
-                                    borderRadius: "14px",
-                                    padding: "6px",
-                                    cursor: "pointer",
-                                    color: "#4f46e5"
-                                }}
-                                onClick={() => filterByStatus(7)}
-                            >
-                                <div className="card-body stat-body text-center py-4">
-
-                                    <h5 className="fw-bold mb-2">
-                                        <i className="fas fa-pen-square me-2"></i>
-                                        Đang mở chỉnh sửa bổ sung sau duyệt
-                                    </h5>
-
-                                    <p className="display-6 fw-bold mb-0">{countSylabus.dang_mo_bo_sung_sau_duyet}</p>
-
-                                </div>
-                            </div>
-                        </div>
-
-
-                        <div className="col-md-3">
-                            <div className="card shadow-sm stat-card"
-                                style={{
-                                    background: "#ffffff",
-                                    border: "1px solid #e5e7eb",
-                                    borderRadius: "14px",
-                                    padding: "6px",
-                                    cursor: "pointer",
-                                    color: "#7e22ce"
-                                }}
-                                onClick={() => filterByOpenEditFinal(2)}
-                            >
-                                <div className="card-body stat-body text-center py-4">
-
-                                    <h5 className="fw-bold mb-2">
-                                        <i className="fas fa-times-circle me-2"></i>
-                                        Từ chối mở chỉnh sửa bổ sung sau duyệt
-                                    </h5>
-
-                                    <p className="display-6 fw-bold mb-0">{countSylabus.tu_choi_mo_bo_sung_sau_duyet}</p>
-
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
                     <p className=" text-danger mt-3">Click vào từng trạng thái để lọc dữ liệu</p>
                     <hr />
                     <div className="table-responsive">
@@ -683,6 +629,49 @@ export default function () {
     justify-content:center;
     flex-direction:column;
 }
+    .compact-stat-card {
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    padding: 10px 12px !important;
+    cursor: pointer;
+    background: #ffffff;
+    transition: all .2s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.compact-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,.12);
+}
+
+.compact-stat-icon {
+    font-size: 26px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.compact-stat-body {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.compact-stat-title {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.compact-stat-value {
+    font-size: 20px;
+    font-weight: 700;
+}
+
 
 
 

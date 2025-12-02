@@ -5,7 +5,9 @@ import Loading from "../../../components/ui/Loading";
 import CeoSelect2 from "../../../components/ui/CeoSelect2";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
-export default function StatisticalCLOInterfaceCTDT() {
+import { StatisticalCLODonViAPI } from "../../../api/DonVi/StatisticalCLO";
+import { SweetAlert } from "../../../components/ui/SweetAlert";
+export default function StatisticalCLOInterfaceDonVi() {
     const [selectProgram, setSelectProgram] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [allData, setAllData] = useState<any[]>([]);
@@ -36,17 +38,17 @@ export default function StatisticalCLOInterfaceCTDT() {
         }
     }
     const LoadCTDT = async () => {
-        const res = await ListCTDTPermissionAPI.GetListCTDTPermission();
+        const res = await StatisticalCLODonViAPI.GetListCTDTByDonVi();
         const formattedData = res.map((item: any) => ({
-            value: item.value,
-            label: item.text,
+            value: item.id_program,
+            label: item.name_program,
         }));
         setSelectProgram(formattedData);
         setOptionData((prev) => ({ ...prev, Id_Program: Number(formattedData[0].value) }));
     }
     const LoadSelectStatisticalCLO = async () => {
         setLoading(true);
-        const res = await StatisticalCLOCTDTAPI.LoadSelectProgramLearningOutcome({ Id_Program: Number(optionData.Id_Program) });
+        const res = await StatisticalCLODonViAPI.LoadSelectProgramLearningOutcome({ Id_Program: Number(optionData.Id_Program) });
         const formattedKeyYear = res.keySemester.map((item: any) => ({
             value: item.id_key_year_semester,
             label: item.name_key_year_semester,
@@ -57,9 +59,10 @@ export default function StatisticalCLOInterfaceCTDT() {
     }
     const LoadData = async () => {
         setLoading(true);
-        const res = await StatisticalCLOCTDTAPI.GetListStatisticalCLO({ Id_Program: Number(optionData.Id_Program), id_key_semester: Number(optionData.Id_Key_Year_Semester) });
+        const res = await StatisticalCLODonViAPI.GetListStatisticalCLO({ Id_Program: Number(optionData.Id_Program), id_key_semester: Number(optionData.Id_Key_Year_Semester) });
         if (res.success) {
             setAllData(res.data);
+            SweetAlert("success", res.message);
         }
         setLoading(false);
     }

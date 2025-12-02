@@ -6,16 +6,20 @@ export const YearAPI = {
     axios
       .post(`${URL_API_ADMIN}/year/lay-du-lieu-nam-hoc`, data, {
         headers: { "Content-Type": "application/json" },
+        withCredentials: true,
       })
       .then((res) => res.data),
 
   getById: (id: number) =>
-    axios.get(`${URL_API_ADMIN}/year/${id}`).then((res) => res.data),
+    axios.get(`${URL_API_ADMIN}/year/${id}`, {
+      withCredentials: true,
+    }).then((res) => res.data),
 
   create: (data: { name_year: string }) =>
     axios
       .post(`${URL_API_ADMIN}/year`, data, {
         headers: { "Content-Type": "application/json" },
+        withCredentials: true,
       })
       .then((res) => res.data),
 
@@ -23,9 +27,12 @@ export const YearAPI = {
     axios
       .put(`${URL_API_ADMIN}/year/${id}`, data, {
         headers: { "Content-Type": "application/json" },
+        withCredentials: true,
       })
       .then((res) => res.data),
 
   delete: (id: number) =>
-    axios.delete(`${URL_API_ADMIN}/year/${id}`).then((res) => res.data),
+    axios.delete(`${URL_API_ADMIN}/year/${id}`, {
+      withCredentials: true,
+    }).then((res) => res.data),
 };
