@@ -43,6 +43,7 @@ function SyllabusTempalteInterfaceDonVi() {
         { label: "Ngày tạo", key: "time_cre" },
         { label: "Cập nhật lần cuối", key: "time_up" },
         { label: "Trạng thái", key: "is_default" },
+        { label: "*", key: "*" },
         { label: "*", key: "*" }
     ];
     const ShowData = async () => {
@@ -164,7 +165,7 @@ function SyllabusTempalteInterfaceDonVi() {
                 <div className="card-body">
                     <div className="page-header no-gutters">
                         <h2 className="text-uppercase">
-                            Quản lý Danh sách Khóa học thuộc Đơn vị
+                            Quản lý Danh sách Mẫu đề cương thuộc Đơn vị
                         </h2>
                         <hr />
                         <fieldset className="border rounded-3 p-3">
@@ -199,7 +200,18 @@ function SyllabusTempalteInterfaceDonVi() {
                                             <td data-label="Tên mẫu đề cương">{item.template_name}</td>
                                             <td data-label="Ngày tạo" className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
                                             <td data-label="Cập nhật lần cuối" className="formatSo">{unixTimestampToDate(item.time_up)}</td>
-                                            <td data-label="Trạng thái" className="formatSo">{item.is_default}</td>
+                                            <td data-label="Trạng thái" className="formatSo">{item.allow_input}</td>
+                                            <td data-label="Trạng thái" className="formatSo">
+                                                <div className="d-flex justify-content-center flex-wrap gap-3">
+                                                    <button className="btn btn-sm btn-ceo-butterfly" onClick={() =>
+                                                        window.open(
+                                                            `/donvi/xem-truc-tuyen-mau-de-cuong/${item.id_template}`,
+                                                            "_blank"
+                                                        )
+                                                    } disabled={item.json === false}>
+                                                        <i className="anticon anticon-edit me-1" /> Xem mẫu câu hỏi đề cương đã tạo
+                                                    </button>
+                                                </div></td>
                                             <td data-label="*" className="formatSo">
                                                 <div className="d-flex justify-content-center flex-wrap gap-3">
                                                     <button className="btn btn-sm btn-ceo-butterfly" onClick={() => handleEditSyllabusTemplate(item.id_template)}>

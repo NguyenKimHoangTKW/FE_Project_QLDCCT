@@ -1,18 +1,24 @@
 function CTDTFooter() {
     return (
-        <footer className="footer">
-            <div className="footer-content">
-                <p className="m-b-0">Copyright © 2019 Theme_Nate. All rights reserved.</p>
-                <span>
-                    <a href="" className="text-gray m-r-15">
-                        Term &amp; Conditions
-                    </a>
-                    <a href="" className="text-gray">
-                        Privacy &amp; Policy
-                    </a>
-                </span>
+        <footer className="w-full bg-[#0e7ff7] text-white py-6" style={{ backgroundColor: "#0e7ff7", textAlign: "center" }}>
+            <div className="container mx-auto px-6 text-center space-y-2" style={{ color: "white", paddingLeft: "285px" }}>
+
+                <p className="text-sm font-medium" style={{ color: "white" }}>
+                    © 2025 Trường Đại Học Thủ Dầu Một - Viện đào tạo CNTT, CĐS
+                </p>
+
+                <p className="text-sm flex justify-center items-center gap-2" style={{ color: "white" }}>
+                    <span>📍Trần Văn Ơn, Phường Phú Lợi, TP Hồ Chí Minh</span>
+                </p>
+
+                <p className="text-sm flex justify-center items-center gap-2" style={{ color: "white" }}>
+                    <span>📞 (0274) 3822518-3-114</span>
+                </p>
+
             </div>
+
         </footer>
     )
 }
+
 export default CTDTFooter;

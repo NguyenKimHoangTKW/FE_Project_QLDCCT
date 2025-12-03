@@ -282,7 +282,15 @@ export default function CreateTemplateInterfaceDonVi() {
                                 </div>
                             ))}
                         </div>
-                        <div className="text-center border-top pt-3 d-flex justify-content-center gap-3 flex-wrap sticky-toolbar">
+                        <div className="d-flex justify-content-center gap-3 flex-wrap mt-4 p-3"
+                            style={{
+                                position: "sticky",
+                                bottom: "0",
+                                background: "rgba(255,255,255,0.95)",
+                                backdropFilter: "blur(6px)",
+                                borderRadius: "14px",
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+                            }}>
                             <button
                                 type="button"
                                 className="btn btn-ceo-butterfly"
