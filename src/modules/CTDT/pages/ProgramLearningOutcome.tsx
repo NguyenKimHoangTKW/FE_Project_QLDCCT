@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { ProgramLearningOutcomeAPI } from "../../../api/DonVi/ProgramLearningOutcome";
 import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import { unixTimestampToDate } from "../../../URL_Config";
 import Modal from "../../../components/ui/Modal";
@@ -20,6 +19,7 @@ export default function ProgramLearningOutcomeInterfaceCTDT() {
     const [selectProgram, setSelectProgram] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchText, setSearchText] = useState("");
+    const [rawSearchText, setRawSearchText] = useState("");
     const [selectedKeyYear, setSelectedKeyYear] = useState<any[]>([]);
 
     const headers = [
@@ -93,7 +93,7 @@ export default function ProgramLearningOutcomeInterfaceCTDT() {
                 Description: res.data.description,
                 Id_Program: Number(res.data.id_Program),
                 order_index: Number(res.data.order_index),
-                Id_Key_Year_Semester: Number(res.data.id_Key_Year_Semester),
+                Id_Key_Year_Semester: Number(res.data.id_key_semester)
             });
             setModalOpen(true);
             setModalMode("edit");
@@ -158,7 +158,7 @@ export default function ProgramLearningOutcomeInterfaceCTDT() {
     const LoadData = async () => {
         setLoading(true);
         try {
-            const res = await ProgramLearningOutcomeCTDTAPI.GetListProgramLearningOutcome({ Id_Program: Number(formData.Id_Program), id_key_semester: Number(formData.Id_Key_Year_Semester), Page: page, PageSize: pageSize });
+            const res = await ProgramLearningOutcomeCTDTAPI.GetListProgramLearningOutcome({ Id_Program: Number(formData.Id_Program), id_key_semester: Number(formData.Id_Key_Year_Semester), Page: page, PageSize: pageSize, searchTerm: searchText });
             if (res.success) {
                 setAllData(res.data);
                 setPage(Number(res.currentPage) || 1);
@@ -182,16 +182,6 @@ export default function ProgramLearningOutcomeInterfaceCTDT() {
         }
 
     }
-    const filteredData = allData.filter((item) => {
-        const keyword = searchText.toLowerCase().trim();
-
-        return (
-            item.code?.toLowerCase().includes(keyword) ||
-            item.description?.toLowerCase().includes(keyword) ||
-            unixTimestampToDate(item.time_cre)?.toLowerCase().includes(keyword) ||
-            unixTimestampToDate(item.time_up)?.toLowerCase().includes(keyword)
-        );
-    });
     const handleResetProgramLearningOutcomeFormData = () => {
         setModalOpen(false);
         setModalMode("create");
@@ -207,8 +197,16 @@ export default function ProgramLearningOutcomeInterfaceCTDT() {
         }
     }, [formData.Id_Program]);
     useEffect(() => {
+        const delayDebounce = setTimeout(() => {
+            setSearchText(rawSearchText);
+            setPage(1);
+        }, 500);
+
+        return () => clearTimeout(delayDebounce);
+    }, [rawSearchText]);
+    useEffect(() => {
         LoadData();
-    }, [formData.Id_Program, formData.Id_Key_Year_Semester, page, pageSize]);
+    }, [formData.Id_Program, formData.Id_Key_Year_Semester, page, pageSize, searchText]);
     // Performance Indicators
     const [performanceIndicatorsData, setPerformanceIndicatorsData] = useState<any[]>([]);
     const [performanceIndicatorsTotalRecords, setPerformanceIndicatorsTotalRecords] = useState(0);
@@ -302,7 +300,7 @@ export default function ProgramLearningOutcomeInterfaceCTDT() {
     const handleEditPerformanceIndicators = async (id_PI: number) => {
         const res = await ProgramLearningOutcomeCTDTAPI.InfoPerformanceIndicators({ id_PI: id_PI });
         if (res.success) {
-            setPerformanceIndicatorsFormData((prev) => ({ ...prev, id_PI: id_PI, code_pi: res.data.code, description_pi: res.data.description, order_index: Number(res.data.order_index) }));
+            setPerformanceIndicatorsFormData((prev) => ({ ...prev, id_PI: id_PI, id_key_semester: Number(res.data.id_key_semester), code_pi: res.data.code, description_pi: res.data.description, order_index: Number(res.data.order_index) }));
             setPerformanceIndicatorsModalOpen(true);
             setPerformanceIndicatorsModalMode("edit");
         }
@@ -357,13 +355,6 @@ export default function ProgramLearningOutcomeInterfaceCTDT() {
     const closePerformanceIndicatorsModal = () => {
         setPerformanceIndicatorsModalOpen(false);
         setPerformanceIndicatorsModalMode("create");
-        setPerformanceIndicatorsFormData({
-            id_Plo: null,
-            id_PI: null,
-            order_index_pi: null,
-            code_pi: "",
-            description_pi: "",
-        });
     }
     return (
         <div className="main-content">
@@ -442,8 +433,8 @@ export default function ProgramLearningOutcomeInterfaceCTDT() {
                                     <td colSpan={headers.length} className="text-center text-danger">
                                         Vui lòng chọn chương trình đào tạo để xem danh sách chuẩn đầu ra chương trình đào tạo
                                     </td>
-                                </tr> : filteredData.length > 0 ? (
-                                    filteredData.map((item, index) => (
+                                </tr> : allData.length > 0 ? (
+                                    allData.map((item, index) => (
                                         <tr key={item.id_Plo}>
                                             <td data-label="STT" className="formatSo">{(page - 1) * pageSize + index + 1}</td>
                                             <td data-label="Tên chuẩn đầu ra chương trình đào tạo" className="formatSo">{item.code}</td>
@@ -642,6 +633,49 @@ export default function ProgramLearningOutcomeInterfaceCTDT() {
                     </div>
                 </div>
             </Modal>
+            <div
+                className="shadow-lg d-flex flex-wrap justify-content-center align-items-center gap-3 p-3 mt-4"
+                style={{
+                    position: "sticky",
+                    bottom: 0,
+                    background: "rgba(245, 247, 250, 0.92)",
+                    backdropFilter: "blur(8px)",
+                    borderTop: "1px solid #e5e7eb",
+                    zIndex: 100,
+                }}
+            >
+                {/* Ô tìm kiếm */}
+                <div className="col-md-4">
+                    <label className="ceo-label" style={{ fontWeight: 600, opacity: 0.8 }}>
+                        Tìm kiếm
+                    </label>
+
+                    <div className="input-group">
+                        <span
+                            className="input-group-text"
+                            style={{
+                                background: "#fff",
+                                borderRight: "none",
+                                borderRadius: "10px 0 0 10px",
+                            }}
+                        >
+                            🔍
+                        </span>
+                        <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Nhập từ khóa để tìm kiếm..."
+                            value={rawSearchText}
+                            onChange={(e) => setRawSearchText(e.target.value)}
+                            style={{
+                                borderLeft: "none",
+                                borderRadius: "0 10px 10px 0",
+                                padding: "10px 12px",
+                            }}
+                        />
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }

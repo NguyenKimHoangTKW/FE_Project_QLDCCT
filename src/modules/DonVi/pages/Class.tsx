@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import Loading from "../../../components/ui/Loading";
-import { ListCTDTPermissionAPI } from "../../../api/CTDT/ListCTDTPermissionAPI";
 import CeoSelect2 from "../../../components/ui/CeoSelect2";
-import { ClassCTDTAPI } from "../../../api/CTDT/Class";
 import { unixTimestampToDate } from "../../../URL_Config";
 import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import Swal from "sweetalert2";
@@ -19,6 +17,8 @@ export default function ClassInterfaceDonVi() {
     const [pageSize, setPageSize] = useState(10);
     const [totalRecords, setTotalRecords] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
+    const [searchText, setSearchText] = useState("");
+    const [rawSearchText, setRawSearchText] = useState("");
     const [formData, setFormData] = useState<any>({
         id_class: null,
         name_class: "",
@@ -48,7 +48,7 @@ export default function ClassInterfaceDonVi() {
     const loadDataClass = async () => {
         setLoading(true);
         try {
-            const res = await ClassDVAPI.GetListClass({ id_program: Number(optionData.id_program), Page: page, PageSize: pageSize });
+            const res = await ClassDVAPI.GetListClass({ id_program: Number(optionData.id_program), Page: page, PageSize: pageSize, searchTerm: searchText });
             if (res.success) {
                 setListClass(res.loadClass);
                 setPage(Number(res.currentPage) || 1);
@@ -192,8 +192,16 @@ export default function ClassInterfaceDonVi() {
         LoadListCTDTByDonVi();
     }, []);
     useEffect(() => {
+        const delayDebounce = setTimeout(() => {
+            setSearchText(rawSearchText);
+            setPage(1);
+        }, 500);
+
+        return () => clearTimeout(delayDebounce);
+    }, [rawSearchText]);
+    useEffect(() => {
         loadDataClass();
-    }, [optionData.id_program,page, pageSize]);
+    }, [searchText, page, pageSize]);
     return (
         <div className="main-content">
             <Loading isOpen={loading} />
@@ -363,6 +371,49 @@ export default function ClassInterfaceDonVi() {
                     </div>
                 </form>
             </Modal>
+            <div
+                className="shadow-lg d-flex flex-wrap justify-content-center align-items-center gap-3 p-3 mt-4"
+                style={{
+                    position: "sticky",
+                    bottom: 0,
+                    background: "rgba(245, 247, 250, 0.92)",
+                    backdropFilter: "blur(8px)",
+                    borderTop: "1px solid #e5e7eb",
+                    zIndex: 100,
+                }}
+            >
+                {/* Ô tìm kiếm */}
+                <div className="col-md-4">
+                    <label className="ceo-label" style={{ fontWeight: 600, opacity: 0.8 }}>
+                        Tìm kiếm
+                    </label>
+
+                    <div className="input-group">
+                        <span
+                            className="input-group-text"
+                            style={{
+                                background: "#fff",
+                                borderRight: "none",
+                                borderRadius: "10px 0 0 10px",
+                            }}
+                        >
+                            🔍
+                        </span>
+                        <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Nhập từ khóa để tìm kiếm..."
+                            value={rawSearchText}
+                            onChange={(e) => setRawSearchText(e.target.value)}
+                            style={{
+                                borderLeft: "none",
+                                borderRadius: "0 10px 10px 0",
+                                padding: "10px 12px",
+                            }}
+                        />
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }

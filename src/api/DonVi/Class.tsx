@@ -7,7 +7,7 @@ export const ClassDVAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
-    GetListClass: (data: { id_program: number, Page: number, PageSize: number }) =>
+    GetListClass: (data: { id_program: number, Page: number, PageSize: number, searchTerm: string }) =>
         axios.post(`${URL_API_DONVI}/class/list-class`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,

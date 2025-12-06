@@ -14,6 +14,12 @@ export default function () {
     const [contentRequestEditSyllabus, setContentRequestEditSyllabus] = useState<string>("");
     const [showEditorReturnedContent, setShowEditorReturnedContent] = useState(false);
     const [returnedContent, setReturnedContent] = useState<string>("");
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalRecords, setTotalRecords] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+    const [rawSearchText, setRawSearchText] = useState("");
+    const [loading, setLoading] = useState(false);
     const [countSylabus, setCountSylabus] = useState<{
         count_cho_duyet: number | null;
         count_da_duyet: number | null;
@@ -72,12 +78,15 @@ export default function () {
         const payload = {
             id_program: override?.id_program ?? formData.id_program ?? 0,
             id_status: override?.id_status ?? formData.id_status ?? 0,
-            is_open_edit_final: override?.is_open_edit_final ?? formData.is_open_edit_final ?? 0
+            is_open_edit_final: override?.is_open_edit_final ?? formData.is_open_edit_final ?? 0,
+            PageSize: pageSize,
+            searchTerm: searchText,
+            Page: page,
         };
 
         const res = await BrowseOutlineAPI.BrowseOutline(payload);
         if (res.success) {
-            SweetAlert("success", res.message);
+            SweetAlert("success", "Tải dữ liệu thành công");
             setAllData(res.data);
             setCountSylabus({
                 count_cho_duyet: res.count[0].dang_cho_duyet,
@@ -87,8 +96,11 @@ export default function () {
                 dang_mo_bo_sung_sau_duyet: res.count[0].dang_mo_bo_sung_sau_duyet,
                 tu_choi_mo_bo_sung_sau_duyet: res.count[0].tu_choi_mo_bo_sung,
             });
+            setTotalRecords(Number(res.totalRecords) || 0);
+            setTotalPages(Number(res.totalPages) || 1);
+            setPageSize(Number(res.pageSize) || 10);
         } else {
-            SweetAlert("error", res.message);
+            SweetAlert("error", "Tải dữ liệu thất bại");
             setAllData([]);
             setCountSylabus({
                 count_cho_duyet: res.count[0].dang_cho_duyet,
@@ -98,20 +110,12 @@ export default function () {
                 dang_mo_bo_sung_sau_duyet: res.count[0].dang_mo_bo_sung_sau_duyet,
                 tu_choi_mo_bo_sung_sau_duyet: res.count[0].tu_choi_mo_bo_sung,
             });
+            setTotalRecords(0);
+            setTotalPages(1);
+            setPageSize(10);
+            setTotalRecords(0);
         }
     };
-    const filteredData = allData.filter((item) => {
-        const keyword = searchText.toLowerCase().trim();
-        return item.code_course?.toLowerCase().includes(keyword) ||
-            item.name_course?.toLowerCase().includes(keyword) ||
-            item.semester?.toLowerCase().includes(keyword) ||
-            item.key_year?.toLowerCase().includes(keyword) ||
-            item.program?.toLowerCase().includes(keyword) ||
-            item.code_civil?.toLowerCase().includes(keyword) ||
-            item.name_civil?.toLowerCase().includes(keyword) ||
-            item.email_civil?.toLowerCase().includes(keyword) ||
-            item.version?.toLowerCase().includes(keyword);
-    });
     const filterByStatus = (status: number) => {
         setFormData(prev => ({ ...prev, id_status: status }));
         ShowData({ id_program: Number(formData.id_program), id_status: status, is_open_edit_final: 0 });
@@ -158,9 +162,20 @@ export default function () {
         setShowEditorReturnedContent(true);
     }
     useEffect(() => {
-        ShowData();
+        const delayDebounce = setTimeout(() => {
+            setSearchText(rawSearchText);
+            setPage(1);
+        }, 500);
+
+        return () => clearTimeout(delayDebounce);
+    }, [rawSearchText]);
+    useEffect(() => {
+
         LoadListCTDTByDonVi();
     }, []);
+    useEffect(() => {
+        ShowData();
+    }, [page, pageSize, searchText]);
     useEffect(() => {
         const handleReload = (e: StorageEvent) => {
             if (e.key === "reload_syllabus_list") {
@@ -196,16 +211,6 @@ export default function () {
                                                 text: x.text
                                             }))
                                         ]}
-                                    />
-                                </div>
-                                <div className="col-md-4">
-                                    <label className="ceo-label">Tìm kiếm</label>
-                                    <input
-                                        type="text"
-                                        className="form-control ceo-input"
-                                        placeholder="🔍 Từ khóa bất kỳ để tìm ..."
-                                        value={searchText}
-                                        onChange={(e) => setSearchText(e.target.value)}
                                     />
                                 </div>
                             </div>
@@ -340,8 +345,8 @@ export default function () {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredData.length > 0 ? (
-                                    filteredData.map((item, index) => (
+                                {allData.length > 0 ? (
+                                    allData.map((item, index) => (
                                         <tr key={item.id_syllabus}>
                                             <td data-label="STT" className="formatSo">{index + 1}</td>
                                             <td data-label="Mã môn học" className="formatSo">{item.code_course}</td>
@@ -453,6 +458,27 @@ export default function () {
                                 )}
                             </tbody>
                         </table>
+                    </div>
+                    <div className="d-flex justify-content-between align-items-center mt-3">
+                        <span>
+                            Tổng số: {totalRecords} bản ghi | Trang {page}/{totalPages}
+                        </span>
+                        <div>
+                            <button
+                                className="btn btn-secondary btn-sm mr-2"
+                                disabled={page <= 1}
+                                onClick={() => setPage(page - 1)}
+                            >
+                                Trang trước
+                            </button>
+                            <button
+                                className="btn btn-secondary btn-sm"
+                                disabled={page >= totalPages}
+                                onClick={() => setPage(page + 1)}
+                            >
+                                Trang sau
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -596,6 +622,49 @@ export default function () {
 
                 </div>
             </Modal>
+            <div
+                className="shadow-lg d-flex flex-wrap justify-content-center align-items-center gap-3 p-3 mt-4"
+                style={{
+                    position: "sticky",
+                    bottom: 0,
+                    background: "rgba(245, 247, 250, 0.92)",
+                    backdropFilter: "blur(8px)",
+                    borderTop: "1px solid #e5e7eb",
+                    zIndex: 100,
+                }}
+            >
+                {/* Ô tìm kiếm */}
+                <div className="col-md-4">
+                    <label className="ceo-label" style={{ fontWeight: 600, opacity: 0.8 }}>
+                        Tìm kiếm
+                    </label>
+
+                    <div className="input-group">
+                        <span
+                            className="input-group-text"
+                            style={{
+                                background: "#fff",
+                                borderRight: "none",
+                                borderRadius: "10px 0 0 10px",
+                            }}
+                        >
+                            🔍
+                        </span>
+                        <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Nhập từ khóa để tìm kiếm..."
+                            value={rawSearchText}
+                            onChange={(e) => setRawSearchText(e.target.value)}
+                            style={{
+                                borderLeft: "none",
+                                borderRadius: "0 10px 10px 0",
+                                padding: "10px 12px",
+                            }}
+                        />
+                    </div>
+                </div>
+            </div>
             <style>
                 {`
                 .stat-card {

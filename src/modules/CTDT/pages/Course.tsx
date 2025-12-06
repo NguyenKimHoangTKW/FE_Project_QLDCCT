@@ -12,7 +12,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { PieChart } from '@mui/x-charts/PieChart';
-
+import { FileDown, FileUp, FileText, Clock, Upload } from "lucide-react";
 function CourseInterfaceCtdt() {
   const didFetch = useRef(false);
   const navigate = useNavigate();
@@ -33,6 +33,8 @@ function CourseInterfaceCtdt() {
   const [listSemester, setListSemester] = useState<any[]>([]);
   const [listKeyYearSemesterFilter, setListKeyYearSemesterFilter] = useState<any[]>([]);
   const [listSemesterFilter, setListSemesterFilter] = useState<any[]>([]);
+  const [listUserWriteCourse, setListUserWriteCourse] = useState<any[]>([]);
+  const [showListUserWriteCourse, setShowListUserWriteCourse] = useState(false);
   const [listCourseByKeyYear, setListCourseByKeyYear] = useState<any[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [checkClickKeyYear, setCheckClickKeyYear] = useState(false);
@@ -46,6 +48,7 @@ function CourseInterfaceCtdt() {
   const [selectedIdCourse, setSelectedIdCourse] = useState<number | null>(null);
   const [openViewSyllabus, setOpenViewSyllabus] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [rawSearchText, setRawSearchText] = useState("");
   const [showLogData, setShowLogData] = useState(false);
   const [logData, setLogData] = useState<any[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -82,10 +85,10 @@ function CourseInterfaceCtdt() {
 
   interface OptionFilter {
     id_ctdt: number;
-    id_gr_course: number ;
-    id_isCourse: number ;
-    id_key_year_semester: number ;
-    id_semester: number ;
+    id_gr_course: number;
+    id_isCourse: number;
+    id_key_year_semester: number;
+    id_semester: number;
   }
   const [optionFilter, setOptionFilter] = useState<OptionFilter>({
     id_ctdt: 0,
@@ -224,17 +227,6 @@ function CourseInterfaceCtdt() {
       id_semester: Number(res.semester[0]?.value || 0),
     }));
   }
-  const filteredData = allData.filter((item) => {
-    const keyword = searchText.toLowerCase().trim();
-
-    return (
-      item.code_course?.toLowerCase().includes(keyword) ||
-      item.name_course?.toLowerCase().includes(keyword) ||
-      item.name_program?.toLowerCase().includes(keyword) ||
-      item.name_semester?.toLowerCase().includes(keyword) ||
-      item.name_key_year_semester?.toLowerCase().includes(keyword)
-    );
-  });
 
   const headers = [
     { label: "STT", key: "" },
@@ -316,6 +308,7 @@ function CourseInterfaceCtdt() {
         id_isCourse: Number(optionFilter.id_isCourse || null),
         Page: page,
         PageSize: pageSize,
+        searchTerm: searchText,
       });
       if (res.success) {
         setAllData(res.data);
@@ -556,6 +549,17 @@ function CourseInterfaceCtdt() {
       setLoading(false);
     }
   };
+  const LoadListUserWriteCourse = async (id_course: number) => {
+    const res = await CourseCTDTAPI.LoadListUserWriteCourse({ id_course: Number(id_course) });
+    if (res.success) {
+      setListUserWriteCourse(res.data);
+      setShowListUserWriteCourse(true);
+    }
+    else {
+      SweetAlert("error", res.message);
+      setListUserWriteCourse([]);
+    }
+  }
   const handleExportExcel = async () => {
     setLoading(true);
 
@@ -659,9 +663,17 @@ function CourseInterfaceCtdt() {
     }
   }, [optionFilter.id_ctdt]);
   useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      setSearchText(rawSearchText);
+      setPage(1);
+    }, 500);
+
+    return () => clearTimeout(delayDebounce);
+  }, [rawSearchText]);
+  useEffect(() => {
     ShowData();
     setCheckClickFilter(true);
-  }, [optionFilter.id_ctdt,page, pageSize]);
+  }, [optionFilter.id_ctdt, page, pageSize, searchText]);
   const palette = ['#ffc107', '#28a745'];
   const platforms = [
     { id: 0, value: totalCount, label: "Tống số học phần trong khóa học" },
@@ -762,17 +774,6 @@ function CourseInterfaceCtdt() {
                     ]}
                   />
                 </div>
-
-                <div className="col-md-4">
-                  <label className="ceo-label">Tìm kiếm</label>
-                  <input
-                    type="text"
-                    className="form-control ceo-input"
-                    placeholder="🔍 Nhập từ khóa bất kỳ để tìm..."
-                    value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
-                  />
-                </div>
               </div>
 
               {/* ACTION BUTTONS */}
@@ -795,23 +796,31 @@ function CourseInterfaceCtdt() {
 
 
               {/* KEY YEAR BUTTONS */}
-              {checkClickFilter && filteredData.length > 0 && (
+              {checkClickFilter && allData.length > 0 && (
                 <>
-                  <hr />
-                  <div className="row justify-content-center mt-4">
-                    <div className="col-12 d-flex flex-wrap justify-content-center gap-4">
-                      <button className="btn btn-outline-ceo-primary" onClick={handleClickKeyYearFalse}>
-                        <i className="fas fa-list-ul mb-1 d-block"></i>
-                        Danh sách tổng hợp<br />theo CTĐT
-                      </button>
+                  <hr className="my-4" />
 
-                      <button className="btn btn-outline-ceo-green" onClick={handleClickKeyYearTrue}>
-                        <i className="fas fa-calendar-alt mb-1 d-block"></i>
-                        Danh sách theo học kỳ<br />theo CTĐT
-                      </button>
-                    </div>
+                  <div className="d-flex justify-content-center flex-wrap gap-4">
+
+                    <button
+                      className="ceo-action-btn ceo-blue"
+                      onClick={handleClickKeyYearFalse}
+                    >
+                      <i className="fas fa-list-ul"></i>
+                      <span>Danh sách tổng hợp<br />theo CTĐT</span>
+                    </button>
+
+                    <button
+                      className="ceo-action-btn ceo-green"
+                      onClick={handleClickKeyYearTrue}
+                    >
+                      <i className="fas fa-calendar-alt"></i>
+                      <span>Danh sách theo học kỳ<br />theo CTĐT</span>
+                    </button>
+
                   </div>
                 </>
+
               )}
               <hr />
               {listCourseByKeyYear.length > 0 && (
@@ -951,8 +960,8 @@ function CourseInterfaceCtdt() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredData.length > 0 ? (
-                      filteredData.map((item, index) => (
+                    {allData.length > 0 ? (
+                      allData.map((item, index) => (
                         <tr key={item.id_course}>
                           <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
                           <td>{item.name_key_year_semester}</td>
@@ -1047,7 +1056,7 @@ function CourseInterfaceCtdt() {
             <hr />
             <div className="modal-footer">
               <button type="button" className="btn btn-ceo-green" onClick={handleDownloadTemplate}>Tải file mẫu</button>
-              <button type="button" className="btn btn-ceo-blue">Import</button>
+              <button type="button" className="btn btn-ceo-blue" onClick={handleSubmit}>Import</button>
               <button type="button" className="btn btn-ceo-red" data-dismiss="modal">Đóng</button>
             </div>
           </div>
@@ -1370,6 +1379,22 @@ function CourseInterfaceCtdt() {
               <p>Xem lịch sử thao tác của học phần</p>
             </div>
           </div>
+          {/* Xem danh sách giảng viên phụ trách đề cương */}
+          <div
+            className="action-card edit"
+            onClick={() => {
+              LoadListUserWriteCourse(Number(selectedIdCourse));
+              setOpenFunction(false);
+            }}
+          >
+            <div className="icon-area">
+              <i className="fas fa-users"></i>
+            </div>
+            <div className="text-area">
+              <h5>Xem danh sách giảng viên phụ trách đề cương</h5>
+              <p>Xem danh sách giảng viên phụ trách đề cương của học phần</p>
+            </div>
+          </div>
           {/* Xóa */}
           <div
             className="action-card edit"
@@ -1424,96 +1449,188 @@ function CourseInterfaceCtdt() {
           </table>
         </div>
       </Modal>
-
-
       <Modal
         isOpen={openOptionFilter}
-        title={`CHỨC NĂNG HỌC PHẦN`}
+        title="CHỨC NĂNG HỌC PHẦN"
         onClose={() => setOpenOptionFilter(false)}
       >
         <div className="action-menu">
+
+          {/* Import Excel */}
           <div
-            className="action-card permission"
-            id="exportExcel"
-            data-toggle="modal"
-            data-target="#importExcelModal"
+            className="action-card permission hover-effect"
             onClick={() => {
               setOpenOptionFilter(false);
             }}
           >
             <div className="icon-area permission">
-              <i className="fas fa-file-import"></i>
+              <i className="fas fa-file-import" style={{ color: "#28A745", fontSize: "26px" }}></i>
             </div>
             <div className="text-area">
               <h5>Import dữ liệu môn học từ Excel</h5>
               <p>Import dữ liệu môn học từ file Excel vào chương trình đào tạo này</p>
             </div>
           </div>
-          {/* Chỉnh sửa */}
+
+          {/* Xuất Excel đang hiển thị */}
           <div
-            className="action-card permission"
+            className="action-card permission hover-effect"
             onClick={() => {
               handleExportExcel();
               setOpenOptionFilter(false);
             }}
           >
             <div className="icon-area permission">
-              <i className="fas fa-file-export"></i>
+              <i className="fas fa-file-excel" style={{ color: "#28A745", fontSize: "26px" }}></i>
             </div>
             <div className="text-area">
               <h5>Xuất Excel dữ liệu đang hiển thị</h5>
               <p>Xuất Excel dữ liệu đang hiển thị</p>
             </div>
           </div>
-          {/* Xem chi tiết đề cương đã hoàn thiện */}
+
+          {/* Xuất Excel môn chưa có đề cương */}
           <div
-            className="action-card permission"
+            className="action-card permission hover-effect"
             onClick={() => {
               handleExportExcelIsStatus();
               setOpenOptionFilter(false);
             }}
           >
             <div className="icon-area permission">
-              <i className="fas fa-file-export"></i>
+              <i className="fas fa-file-excel" style={{ color: "#28A745", fontSize: "26px" }}></i>
             </div>
             <div className="text-area">
               <h5>Xuất Excel môn học chưa tồn tại đề cương</h5>
               <p>Xuất Excel môn học chưa tồn tại đề cương</p>
             </div>
           </div>
-          {/* Xuất Word tất cả đề cương */}
+
+          {/* Xuất Word */}
           <div
-            className="action-card permission"
+            className="action-card permission hover-effect"
             onClick={() => {
               handleExportMultipleWord();
               setOpenOptionFilter(false);
             }}
           >
             <div className="icon-area permission">
-              <i className="fas fa-file-word"></i>
+              <i className="fas fa-file-word" style={{ color: "#0078D4", fontSize: "26px" }}></i>
             </div>
             <div className="text-area">
               <h5>Xuất Word tất cả đề cương</h5>
               <p>Xuất Word tất cả đề cương thuộc khóa</p>
             </div>
           </div>
+
+          {/* Thiết lập thời gian */}
           <div
-            className="action-card"
+            className="action-card hover-effect"
             onClick={() => {
               handleOpenSetUpTimeCourse();
               setOpenOptionFilter(false);
             }}
           >
             <div className="icon-area">
-              <i className="fas fa-clock"></i>
+              <i className="fas fa-clock" style={{ color: "#F4B400", fontSize: "26px" }}></i>
             </div>
             <div className="text-area">
               <h5>Thiết lập thời gian mở học phần đề cương</h5>
               <p>Thiết lập thời gian mở học phần đề cương</p>
             </div>
           </div>
+
         </div>
       </Modal>
+
+      <Modal
+        isOpen={showListUserWriteCourse}
+        title="Danh sách yêu cầu tham gia viết đề cương"
+        onClose={() => setShowListUserWriteCourse(false)}
+      >
+        <>
+          <div className="table-responsive">
+
+            {listUserWriteCourse.length > 0 ? (
+              <table className="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>STT</th>
+                    <th>Mã giảng viên</th>
+                    <th>Tên giảng viên</th>
+                    <th>Email</th>
+                    <th>Thuộc CTĐT</th>
+                    <th>Thời gian nhận yêu cầu</th>
+                    <th>Thời gian duyệt yêu cầu</th>
+                    <th>Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {listUserWriteCourse.map((item, index) => (
+                    <tr key={item.id_ApproveUserSyllabus}>
+                      <td>{index + 1}</td>
+                      <td>{item.code_civil}</td>
+                      <td>{item.name_civil}</td>
+                      <td>{item.email}</td>
+                      <td>{item.name_program}</td>
+                      <td>{item.time_accept_request === null ? "" : unixTimestampToDate(item.time_request)}</td>
+                      <td>{item.time_accept_request === null ? "" : unixTimestampToDate(item.time_accept_request)}</td>
+                      <td>{item.is_approve === true ? <span className="badge badge-pill badge-success">Giảng viên viết chính</span> : <span className="badge badge-pill badge-warning">Giảng viên phụ viết</span>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="alert alert-info" style={{ textAlign: "center", marginTop: "20px" }}>
+                Không có yêu cầu tham gia viết đề cương
+              </div>
+            )}
+          </div>
+        </>
+      </Modal>
+      <div
+        className="shadow-lg d-flex flex-wrap justify-content-center align-items-center gap-3 p-3 mt-4"
+        style={{
+          position: "sticky",
+          bottom: 0,
+          background: "rgba(245, 247, 250, 0.92)",
+          backdropFilter: "blur(8px)",
+          borderTop: "1px solid #e5e7eb",
+          zIndex: 100,
+        }}
+      >
+        {/* Ô tìm kiếm */}
+        <div className="col-md-4">
+          <label className="ceo-label" style={{ fontWeight: 600, opacity: 0.8 }}>
+            Tìm kiếm
+          </label>
+
+          <div className="input-group">
+            <span
+              className="input-group-text"
+              style={{
+                background: "#fff",
+                borderRight: "none",
+                borderRadius: "10px 0 0 10px",
+              }}
+            >
+              🔍
+            </span>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Nhập từ khóa để tìm kiếm..."
+              value={rawSearchText}
+              onChange={(e) => setRawSearchText(e.target.value)}
+              style={{
+                borderLeft: "none",
+                borderRadius: "0 10px 10px 0",
+                padding: "10px 12px",
+              }}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

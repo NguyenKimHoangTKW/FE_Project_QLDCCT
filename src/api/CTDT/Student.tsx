@@ -7,7 +7,7 @@ export const GetListStudentCTDTAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
-    GetListStudent: (data: { id_program: number, id_class: number,Page: number, PageSize: number }) =>
+    GetListStudent: (data: { id_program: number, id_class: number,Page: number, PageSize: number,searchTerm: string }) =>
         axios.post(`${URL_API_CTDT}/student/list-student`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,

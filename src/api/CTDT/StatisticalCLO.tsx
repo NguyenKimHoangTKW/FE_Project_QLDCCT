@@ -8,7 +8,7 @@ export const StatisticalCLOCTDTAPI = {
             withCredentials: true,
         }).then((res) => res.data),
 
-    GetListStatisticalCLO: (data: { Id_Program: number, id_key_semester: number }) =>
+    GetListStatisticalCLO: (data: { Id_Program: number, id_key_semester: number ,searchTerm: string}) =>
         axios.post(`${URL_API_CTDT}/statistical-plo/thong-ke-nhap-lieu-plo`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,

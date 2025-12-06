@@ -5,6 +5,7 @@ import Modal from "../../../components/ui/Modal";
 import { CivilServantsCTDTAPI } from "../../../api/CTDT/CivilServants";
 import { ListCTDTPermissionAPI } from "../../../api/CTDT/ListCTDTPermissionAPI";
 import CeoSelect2 from "../../../components/ui/CeoSelect2";
+import Loading from "../../../components/ui/Loading";
 export default function CivilServantsInterfaceDonVi() {
     const [listCTDT, setListCTDT] = useState<any[]>([]);
     const [allData, setAllData] = useState<any[]>([]);
@@ -17,8 +18,10 @@ export default function CivilServantsInterfaceDonVi() {
     const [listSubjectByCivilServant, setListSubjectByCivilServant] = useState<any[]>([]);
     const [modalSubjectByCivilServantOpen, setModalSubjectByCivilServantOpen] = useState(false);
     const [searchText, setSearchText] = useState("");
+    const [rawSearchText, setRawSearchText] = useState("");
     const [openFunction, setOpenFunction] = useState(false);
     const [selectedIdCivilServant, setSelectedIdCivilServant] = useState<number | null>(null);
+    const [loading, setLoading] = useState(false);
     interface FormData {
         id_civilSer: number | null;
         code_civilSer: string;
@@ -75,47 +78,51 @@ export default function CivilServantsInterfaceDonVi() {
         }
     }
     const ShowData = async () => {
-        const res = await CivilServantsCTDTAPI.GetListCivilServantsCTDT({ id_program: Number(formData.id_program || 0), Page: page, PageSize: pageSize });
-        if (res.success) {
-            setAllData(res.data);
-            setTotalRecords(Number(res.totalRecords) || 0);
-            setTotalPages(Number(res.totalPages) || 1);
-            setPageSize(Number(res.pageSize) || 10);
-        } else {
-            SweetAlert("error", res.message);
-            setAllData([]);
-            setTotalRecords(0);
-            setTotalPages(1);
-            setPageSize(10);
+        setLoading(true);
+        try {
+            const res = await CivilServantsCTDTAPI.GetListCivilServantsCTDT({ id_program: Number(formData.id_program || 0), Page: page, PageSize: pageSize, searchTerm: searchText });
+            if (res.success) {
+                setAllData(res.data);
+                setTotalRecords(Number(res.totalRecords) || 0);
+                setTotalPages(Number(res.totalPages) || 1);
+                setPageSize(Number(res.pageSize) || 10);
+            } else {
+                SweetAlert("error", res.message);
+                setAllData([]);
+                setTotalRecords(0);
+                setTotalPages(1);
+                setPageSize(10);
+            }
         }
-    }
-    const filteredData = allData.filter((item) => {
-        const keyword = searchText.toLowerCase().trim();
+        finally {
+            setLoading(false);
+        }
 
-        return (
-            item.code_civilSer?.toLowerCase().includes(keyword) ||
-            item.fullname_civilSer?.toLowerCase().includes(keyword) ||
-            item.email?.toLowerCase().includes(keyword) ||
-            item.programName?.toLowerCase().includes(keyword));
-    });
+    }
     const handleEditCivilServant = async (id_civilSer: number) => {
-        const res = await CivilServantsCTDTAPI.InfoCivilServant({ id_civilSer: id_civilSer });
-        if (res.success) {
-            setFormData((prev) => ({
-                ...prev,
-                id_civilSer: res.data.id_civilSer,
-                code_civilSer: res.data.code_civilSer,
-                fullname_civilSer: res.data.fullname_civilSer,
-                email: res.data.email,
-                birthday: res.data.birthday,
-                id_program: Number(res.data.id_program)
-            }));
-            setModalOpen(true);
-            setModalMode("edit");
-            setFormData(res.data);
+        setLoading(true);
+        try {
+            const res = await CivilServantsCTDTAPI.InfoCivilServant({ id_civilSer: id_civilSer });
+            if (res.success) {
+                setFormData((prev) => ({
+                    ...prev,
+                    id_civilSer: res.data.id_civilSer,
+                    code_civilSer: res.data.code_civilSer,
+                    fullname_civilSer: res.data.fullname_civilSer,
+                    email: res.data.email,
+                    birthday: res.data.birthday,
+                    id_program: Number(res.data.id_program)
+                }));
+                setModalOpen(true);
+                setModalMode("edit");
+                setFormData(res.data);
+            }
+            else {
+                SweetAlert("error", res.message);
+            }
         }
-        else {
-            SweetAlert("error", res.message);
+        finally {
+            setLoading(false);
         }
     }
     const handleAddNewCivilServant = () => {
@@ -123,66 +130,93 @@ export default function CivilServantsInterfaceDonVi() {
         setModalMode("create");
     }
     const handleDeleteCivilServant = async (id_civilSer: number) => {
-        const confirmDel = await SweetAlertDel("Bằng việc đồng ý, bạn sẽ xóao toàn bộ dữ liệu của CBVC này và những dữ liệu liên quan, bạn muốn tiếp tục?");
-        if (confirmDel) {
-            const res = await CivilServantsCTDTAPI.DeleteCivilServant({ id_civilSer: id_civilSer });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                ShowData();
+        setLoading(true);
+        try {
+            const confirmDel = await SweetAlertDel("Bằng việc đồng ý, bạn sẽ xóao toàn bộ dữ liệu của CBVC này và những dữ liệu liên quan, bạn muốn tiếp tục?");
+            if (confirmDel) {
+                const res = await CivilServantsCTDTAPI.DeleteCivilServant({ id_civilSer: id_civilSer });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    ShowData();
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
             }
-            else {
-                SweetAlert("error", res.message);
-            }
+        }
+        finally {
+            setLoading(false);
         }
     }
     const handleSave = async () => {
         if (modalMode === "create") {
-            const res = await CivilServantsCTDTAPI.CreateNewCivilServant({
-                code_civilSer: formData.code_civilSer,
-                fullname_civilSer: formData.fullname_civilSer,
-                email: formData.email,
-                birthday: formData.birthday,
-                id_program: Number(formData.id_program || 0),
-            });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                setModalOpen(false);
-                ShowData();
-            } else {
-                SweetAlert("error", res.message);
+            setLoading(true);
+            try {
+                const res = await CivilServantsCTDTAPI.CreateNewCivilServant({
+                    code_civilSer: formData.code_civilSer,
+                    fullname_civilSer: formData.fullname_civilSer,
+                    email: formData.email,
+                    birthday: formData.birthday,
+                    id_program: Number(formData.id_program || 0),
+                });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    setModalOpen(false);
+                    ShowData();
+                } else {
+                    SweetAlert("error", res.message);
+                }
+            }
+            finally {
+                setLoading(false);
             }
         }
         else {
-            const res = await CivilServantsCTDTAPI.UpdateCivilServant({
-                id_civilSer: Number(formData.id_civilSer),
-                code_civilSer: formData.code_civilSer,
-                fullname_civilSer: formData.fullname_civilSer,
-                email: formData.email,
-                birthday: formData.birthday,
-                id_program: Number(formData.id_program),
-            });
-            if (res.success) {
-                SweetAlert("success", res.message);
-                setModalOpen(false);
-                ShowData();
+            setLoading(true);
+            try {
+                const res = await CivilServantsCTDTAPI.UpdateCivilServant({
+                    id_civilSer: Number(formData.id_civilSer),
+                    code_civilSer: formData.code_civilSer,
+                    fullname_civilSer: formData.fullname_civilSer,
+                    email: formData.email,
+                    birthday: formData.birthday,
+                    id_program: Number(formData.id_program),
+                });
+                if (res.success) {
+                    SweetAlert("success", res.message);
+                    setModalOpen(false);
+                    ShowData();
+                }
+                else {
+                    SweetAlert("error", res.message);
+                }
             }
-            else {
-                SweetAlert("error", res.message);
+            finally{
+                setLoading(false);
             }
         }
     }
     const handleOpenFunction = (id_civilSer: number) => {
         setSelectedIdCivilServant(Number(id_civilSer));
         setOpenFunction(true);
-      }
+    }
+    useEffect(() => {
+        const delayDebounce = setTimeout(() => {
+            setSearchText(rawSearchText);
+            setPage(1);
+        }, 500);
+
+        return () => clearTimeout(delayDebounce);
+    }, [rawSearchText]);
     useEffect(() => {
         ShowData();
-    }, [formData.id_program,page, pageSize]);
+    }, [searchText, page, pageSize]);
     useEffect(() => {
         LoadListCTDTByDonVi();
     }, []);
     return (
         <div className="main-content">
+            <Loading isOpen={loading} />
             <div className="card">
                 <div className="card-body">
                     <div className="page-header no-gutters">
@@ -203,16 +237,6 @@ export default function CivilServantsInterfaceDonVi() {
                                             value: item.value,
                                             text: item.text
                                         }))}
-                                    />
-                                </div>
-                                <div className="col-md-4">
-                                    <label className="ceo-label">Tìm kiếm</label>
-                                    <input
-                                        type="text"
-                                        className="form-control ceo-input"
-                                        placeholder="🔍 Từ khóa bất kỳ để tìm ..."
-                                        value={searchText}
-                                        onChange={(e) => setSearchText(e.target.value)}
                                     />
                                 </div>
                             </div>
@@ -239,8 +263,8 @@ export default function CivilServantsInterfaceDonVi() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredData.length > 0 ? (
-                                    filteredData.map((item, index) => (
+                                {allData.length > 0 ? (
+                                    allData.map((item: any, index: number) => (
                                         <tr key={item.id_civilSer}>
                                             <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
                                             <td className="formatSo">{item.code_civilSer}</td>
@@ -425,6 +449,49 @@ export default function CivilServantsInterfaceDonVi() {
 
                 </div>
             </Modal>
+            <div
+                className="shadow-lg d-flex flex-wrap justify-content-center align-items-center gap-3 p-3 mt-4"
+                style={{
+                    position: "sticky",
+                    bottom: 0,
+                    background: "rgba(245, 247, 250, 0.92)",
+                    backdropFilter: "blur(8px)",
+                    borderTop: "1px solid #e5e7eb",
+                    zIndex: 100,
+                }}
+            >
+                {/* Ô tìm kiếm */}
+                <div className="col-md-4">
+                    <label className="ceo-label" style={{ fontWeight: 600, opacity: 0.8 }}>
+                        Tìm kiếm
+                    </label>
+
+                    <div className="input-group">
+                        <span
+                            className="input-group-text"
+                            style={{
+                                background: "#fff",
+                                borderRight: "none",
+                                borderRadius: "10px 0 0 10px",
+                            }}
+                        >
+                            🔍
+                        </span>
+                        <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Nhập từ khóa để tìm kiếm..."
+                            value={rawSearchText}
+                            onChange={(e) => setRawSearchText(e.target.value)}
+                            style={{
+                                borderLeft: "none",
+                                borderRadius: "0 10px 10px 0",
+                                padding: "10px 12px",
+                            }}
+                        />
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

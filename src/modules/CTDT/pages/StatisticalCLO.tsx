@@ -10,6 +10,8 @@ export default function StatisticalCLOInterfaceCTDT() {
     const [loading, setLoading] = useState(false);
     const [allData, setAllData] = useState<any[]>([]);
     const [selectedKeyYear, setSelectedKeyYear] = useState<any[]>([]);
+    const [searchText, setSearchText] = useState("");
+    const [rawSearchText, setRawSearchText] = useState("");
     interface OptionData {
         Id_Program: number;
         Id_Key_Year_Semester: number;
@@ -57,7 +59,7 @@ export default function StatisticalCLOInterfaceCTDT() {
     }
     const LoadData = async () => {
         setLoading(true);
-        const res = await StatisticalCLOCTDTAPI.GetListStatisticalCLO({ Id_Program: Number(optionData.Id_Program), id_key_semester: Number(optionData.Id_Key_Year_Semester) });
+        const res = await StatisticalCLOCTDTAPI.GetListStatisticalCLO({ Id_Program: Number(optionData.Id_Program), id_key_semester: Number(optionData.Id_Key_Year_Semester), searchTerm: searchText });
         if (res.success) {
             setAllData(res.data);
         }
@@ -118,10 +120,20 @@ export default function StatisticalCLOInterfaceCTDT() {
         LoadCTDT();
     }, []);
     useEffect(() => {
+        const delayDebounce = setTimeout(() => {
+            setSearchText(rawSearchText);
+        }, 500);
+
+        return () => clearTimeout(delayDebounce);
+    }, [rawSearchText]);
+    useEffect(() => {
         if (optionData.Id_Program) {
             LoadSelectStatisticalCLO();
         }
     }, [optionData.Id_Program]);
+    useEffect(() => {
+        LoadData();
+    }, [searchText]);
     return (
         <div className="main-content">
             <Loading isOpen={loading} />
@@ -201,7 +213,7 @@ export default function StatisticalCLOInterfaceCTDT() {
 
                                             <td className="clo-cell" dangerouslySetInnerHTML={{ __html: item.mo_ta }} />
 
-                                            <td className="clo-cell" style={{color: 'black', fontSize: '15px'}} dangerouslySetInnerHTML={{ __html: item.clo }} />
+                                            <td className="clo-cell" style={{ color: 'black', fontSize: '15px' }} dangerouslySetInnerHTML={{ __html: item.clo }} />
                                         </tr>
                                     ))
                                 )}
@@ -209,6 +221,50 @@ export default function StatisticalCLOInterfaceCTDT() {
 
 
                         </table>
+                    </div>
+                </div>
+
+            </div>
+            <div
+                className="shadow-lg d-flex flex-wrap justify-content-center align-items-center gap-3 p-3 mt-4"
+                style={{
+                    position: "sticky",
+                    bottom: 0,
+                    background: "rgba(245, 247, 250, 0.92)",
+                    backdropFilter: "blur(8px)",
+                    borderTop: "1px solid #e5e7eb",
+                    zIndex: 100,
+                }}
+            >
+                {/* Ô tìm kiếm */}
+                <div className="col-md-4">
+                    <label className="ceo-label" style={{ fontWeight: 600, opacity: 0.8 }}>
+                        Tìm kiếm
+                    </label>
+
+                    <div className="input-group">
+                        <span
+                            className="input-group-text"
+                            style={{
+                                background: "#fff",
+                                borderRight: "none",
+                                borderRadius: "10px 0 0 10px",
+                            }}
+                        >
+                            🔍
+                        </span>
+                        <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Nhập từ khóa để tìm kiếm..."
+                            value={rawSearchText}
+                            onChange={(e) => setRawSearchText(e.target.value)}
+                            style={{
+                                borderLeft: "none",
+                                borderRadius: "0 10px 10px 0",
+                                padding: "10px 12px",
+                            }}
+                        />
                     </div>
                 </div>
             </div>

@@ -18,6 +18,7 @@ function KeySemesterInterfaceCtdt() {
     const [pageSize, setPageSize] = useState(10);
     const [allData, setAllData] = useState<any[]>([]);
     const [searchText, setSearchText] = useState("");
+    const [rawSearchText, setRawSearchText] = useState("");
     const [loading, setLoading] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     interface KeySemester {
@@ -58,6 +59,7 @@ function KeySemesterInterfaceCtdt() {
                 id_faculty: Number(formData.id_faculty),
                 Page: page,
                 PageSize: pageSize,
+                searchTerm: searchText,
             });
             if (res.success) {
                 setAllData(res.data);
@@ -79,20 +81,6 @@ function KeySemesterInterfaceCtdt() {
         }
 
     }
-    const filteredData = allData.filter((item) => {
-        const keyword = searchText.toLowerCase().trim();
-
-        return (
-            item.code_key_year_semester?.toLowerCase().includes(keyword) ||
-            item.name_key_year_semester?.toLowerCase().includes(keyword) ||
-            unixTimestampToDate(item.time_cre)?.toLowerCase().includes(keyword) ||
-            unixTimestampToDate(item.time_up)?.toLowerCase().includes(keyword)
-        );
-    });
-    useEffect(() => {
-        if (formData.id_faculty == null) return;
-        ShowData();
-    }, [formData.id_faculty, page, pageSize]);
 
     const handleAddNewKeySemester = () => {
         setShowModal(true);
@@ -254,6 +242,18 @@ function KeySemesterInterfaceCtdt() {
             didFetch.current = true;
         }
     }, []);
+    useEffect(() => {
+        const delayDebounce = setTimeout(() => {
+            setSearchText(rawSearchText);
+            setPage(1);
+        }, 500);
+
+        return () => clearTimeout(delayDebounce);
+    }, [rawSearchText]);
+    useEffect(() => {
+        if (formData.id_faculty == null) return;
+        ShowData();
+    }, [searchText,formData.id_faculty, page, pageSize]);
     return (
         <div className="main-content">
             <Loading isOpen={loading} />
@@ -277,16 +277,6 @@ function KeySemesterInterfaceCtdt() {
                                             value: item.value,
                                             text: item.text
                                         }))}
-                                    />
-                                </div>
-                                <div className="col-md-4">
-                                    <label className="ceo-label">Tìm kiếm</label>
-                                    <input
-                                        type="text"
-                                        className="form-control ceo-input"
-                                        placeholder="🔍 Nhập từ khóa bất kỳ để tìm..."
-                                        value={searchText}
-                                        onChange={(e) => setSearchText(e.target.value)}
                                     />
                                 </div>
                             </div>
@@ -360,8 +350,8 @@ function KeySemesterInterfaceCtdt() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredData.length > 0 ? (
-                                    filteredData.map((item, index) => (
+                                {allData.length > 0 ? (
+                                    allData.map((item: any, index: number) => (
                                         <tr key={item.id_key_year_semester}>
                                             <td data-label="STT" className="formatSo">{(page - 1) * pageSize + index + 1}</td>
                                             <td data-label="Mã khóa học" className="formatSo">{item.code_key_year_semester}</td>
@@ -439,6 +429,49 @@ function KeySemesterInterfaceCtdt() {
                     </div>
                 </form>
             </Modal>
+            <div
+                className="shadow-lg d-flex flex-wrap justify-content-center align-items-center gap-3 p-3 mt-4"
+                style={{
+                    position: "sticky",
+                    bottom: 0,
+                    background: "rgba(245, 247, 250, 0.92)",
+                    backdropFilter: "blur(8px)",
+                    borderTop: "1px solid #e5e7eb",
+                    zIndex: 100,
+                }}
+            >
+                {/* Ô tìm kiếm */}
+                <div className="col-md-4">
+                    <label className="ceo-label" style={{ fontWeight: 600, opacity: 0.8 }}>
+                        Tìm kiếm
+                    </label>
+
+                    <div className="input-group">
+                        <span
+                            className="input-group-text"
+                            style={{
+                                background: "#fff",
+                                borderRight: "none",
+                                borderRadius: "10px 0 0 10px",
+                            }}
+                        >
+                            🔍
+                        </span>
+                        <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Nhập từ khóa để tìm kiếm..."
+                            value={rawSearchText}
+                            onChange={(e) => setRawSearchText(e.target.value)}
+                            style={{
+                                borderLeft: "none",
+                                borderRadius: "0 10px 10px 0",
+                                padding: "10px 12px",
+                            }}
+                        />
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }

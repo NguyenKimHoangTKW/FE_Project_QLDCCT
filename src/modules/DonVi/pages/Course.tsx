@@ -5,7 +5,6 @@ import Modal from "../../../components/ui/Modal";
 import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import Swal from "sweetalert2";
 import Loading from "../../../components/ui/Loading";
-import CeoCombobox from "../../../components/ui/Combobox";
 import CeoSelect2 from "../../../components/ui/CeoSelect2";
 import Stack from "@mui/material/Stack";
 import Box from "@mui/material/Box";
@@ -23,7 +22,6 @@ function CourseInterfaceDonVi() {
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [checkClickFilter, setCheckClickFilter] = useState(false);
   const [allData, setAllData] = useState<any[]>([]);
   const [listUserWriteCourse, setListUserWriteCourse] = useState<any[]>([]);
   const [showListUserWriteCourse, setShowListUserWriteCourse] = useState(false);
@@ -41,6 +39,7 @@ function CourseInterfaceDonVi() {
   const [listKeyYearSemesterFilter, setListKeyYearSemesterFilter] = useState<any[]>([]);
   const [openOptionFilter, setOpenOptionFilter] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [rawSearchText, setRawSearchText] = useState("");
   const [totalCount, setTotalCount] = useState(0);
   const [totalCountIsSyllabus, setTotalCountIsSyllabus] = useState(0);
   const [listSemesterFilter, setListSemesterFilter] = useState<any[]>([]);
@@ -164,6 +163,7 @@ function CourseInterfaceDonVi() {
         id_isCourse: Number(optionFilter.id_isCourse || null),
         Page: page,
         PageSize: pageSize,
+        searchTerm: searchText,
       });
       if (res.success) {
         setAllData(res.data);
@@ -182,19 +182,6 @@ function CourseInterfaceDonVi() {
       setLoading(false);
     }
   }
-  const filteredData = allData.filter((item) => {
-    const keyword = searchText.toLowerCase().trim();
-
-    return (
-      item.code_course?.toLowerCase().includes(keyword) ||
-      item.name_course?.toLowerCase().includes(keyword) ||
-      item.name_program?.toLowerCase().includes(keyword) ||
-      item.name_semester?.toLowerCase().includes(keyword) ||
-      item.name_key_year_semester?.toLowerCase().includes(keyword) ||
-      unixTimestampToDate(item.time_cre)?.toLowerCase().includes(keyword) ||
-      unixTimestampToDate(item.time_up)?.toLowerCase().includes(keyword)
-    );
-  });
 
   const GetListCourseByKeyYear = async () => {
     setLoading(true);
@@ -457,8 +444,16 @@ function CourseInterfaceDonVi() {
     }
   }, []);
   useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      setSearchText(rawSearchText);
+      setPage(1);
+    }, 500);
+
+    return () => clearTimeout(delayDebounce);
+  }, [rawSearchText]);
+  useEffect(() => {
     ShowData();
-  }, [page, pageSize]);
+  }, [searchText, page, pageSize]);
   useEffect(() => {
     GetListCTDTByDonVi();
   }, []);
@@ -555,16 +550,6 @@ function CourseInterfaceDonVi() {
                     ]}
                   />
                 </div>
-                <div className="col-md-6">
-                  <label className="ceo-label">Tìm kiếm</label>
-                  <input
-                    type="text"
-                    className="form-control ceo-input"
-                    placeholder="🔍 Nhập từ khóa bất kỳ để tìm kiếm..."
-                    value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
-                  />
-                </div>
               </div>
               <hr />
               <div className="row">
@@ -581,23 +566,31 @@ function CourseInterfaceDonVi() {
                 </div>
               </div>
               {/* KEY YEAR BUTTONS */}
-              {filteredData.length > 0 && (
+              {allData.length > 0 && (
                 <>
-                  <hr />
-                  <div className="row justify-content-center mt-4">
-                    <div className="col-12 d-flex flex-wrap justify-content-center gap-4">
-                      <button className="btn btn-outline-ceo-primary" onClick={handleClickKeyYearFalse}>
-                        <i className="fas fa-list-ul mb-1 d-block"></i>
-                        Danh sách tổng hợp<br />theo CTĐT
-                      </button>
+                  <hr className="my-4" />
 
-                      <button className="btn btn-outline-ceo-green" onClick={handleClickKeyYearTrue}>
-                        <i className="fas fa-calendar-alt mb-1 d-block"></i>
-                        Danh sách theo học kỳ<br />theo CTĐT
-                      </button>
-                    </div>
+                  <div className="d-flex justify-content-center flex-wrap gap-4">
+
+                    <button
+                      className="ceo-action-btn ceo-blue"
+                      onClick={handleClickKeyYearFalse}
+                    >
+                      <i className="fas fa-list-ul"></i>
+                      <span>Danh sách tổng hợp<br />theo CTĐT</span>
+                    </button>
+
+                    <button
+                      className="ceo-action-btn ceo-green"
+                      onClick={handleClickKeyYearTrue}
+                    >
+                      <i className="fas fa-calendar-alt"></i>
+                      <span>Danh sách theo học kỳ<br />theo CTĐT</span>
+                    </button>
+
                   </div>
                 </>
+
               )}
               <hr />
               {listCourseByKeyYear.length > 0 && (
@@ -763,8 +756,8 @@ function CourseInterfaceDonVi() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredData.length > 0 ? (
-                      filteredData.map((item, index) => (
+                    {allData.length > 0 ? (
+                      allData.map((item: any, index: number) => (
                         <tr key={item.id_course}>
                           <td className="formatSo">{(page - 1) * pageSize + index + 1}</td>
                           <td>{item.name_key_year_semester}</td>
@@ -1137,6 +1130,7 @@ function CourseInterfaceDonVi() {
                     <th>Thuộc CTĐT</th>
                     <th>Thời gian nhận yêu cầu</th>
                     <th>Thời gian duyệt yêu cầu</th>
+                    <th>Trạng thái</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1149,6 +1143,7 @@ function CourseInterfaceDonVi() {
                       <td>{item.name_program}</td>
                       <td>{item.time_accept_request === null ? "" : unixTimestampToDate(item.time_request)}</td>
                       <td>{item.time_accept_request === null ? "" : unixTimestampToDate(item.time_accept_request)}</td>
+                      <td>{item.is_approve === true ? <span className="badge badge-pill badge-success">Giảng viên viết chính</span> : <span className="badge badge-pill badge-warning">Giảng viên phụ viết</span>}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1161,6 +1156,49 @@ function CourseInterfaceDonVi() {
           </div>
         </>
       </Modal>
+      <div
+        className="shadow-lg d-flex flex-wrap justify-content-center align-items-center gap-3 p-3 mt-4"
+        style={{
+          position: "sticky",
+          bottom: 0,
+          background: "rgba(245, 247, 250, 0.92)",
+          backdropFilter: "blur(8px)",
+          borderTop: "1px solid #e5e7eb",
+          zIndex: 100,
+        }}
+      >
+        {/* Ô tìm kiếm */}
+        <div className="col-md-4">
+          <label className="ceo-label" style={{ fontWeight: 600, opacity: 0.8 }}>
+            Tìm kiếm
+          </label>
+
+          <div className="input-group">
+            <span
+              className="input-group-text"
+              style={{
+                background: "#fff",
+                borderRight: "none",
+                borderRadius: "10px 0 0 10px",
+              }}
+            >
+              🔍
+            </span>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Nhập từ khóa để tìm kiếm..."
+              value={rawSearchText}
+              onChange={(e) => setRawSearchText(e.target.value)}
+              style={{
+                borderLeft: "none",
+                borderRadius: "0 10px 10px 0",
+                padding: "10px 12px",
+              }}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

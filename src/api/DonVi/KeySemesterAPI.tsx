@@ -2,7 +2,7 @@ import axios from "axios";
 import { URL_API_DONVI } from "../../URL_Config";
 
 export const KeySemesterAPI = {
-    GetListKeySemester: (data: { id_faculty: number, Page: number, PageSize: number }) =>
+    GetListKeySemester: (data: { id_faculty: number, Page: number, PageSize: number, searchTerm: string }) =>
         axios.post(`${URL_API_DONVI}/key-semester/loads-danh-sach-khoa-hoc`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,

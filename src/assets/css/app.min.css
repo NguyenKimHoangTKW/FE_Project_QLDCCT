@@ -29989,4 +29989,43 @@ legend {
     50% { transform: scale(1.15); opacity: 0.6; }
     100% { transform: scale(1); opacity: 1; }
   }
+  .ceo-action-btn {
+    width: 240px;
+    padding: 18px 12px;
+    border-radius: 12px;
+    border: none;
+    font-weight: 600;
+    text-align: center;
+    font-size: 15px;
+    transition: all 0.25s ease-in-out;
+    background: #ffffff;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .ceo-action-btn i {
+    font-size: 28px;
+  }
+  
+  .ceo-action-btn span {
+    line-height: 1.25;
+  }
+  
+  .ceo-action-btn.ceo-blue {
+    color: #0056B3;
+    border: 2px solid #0056B3;
+  }
+  
+  .ceo-action-btn.ceo-green {
+    color: #007C45;
+    border: 2px solid #007C45;
+  }
+  
+  .ceo-action-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    background: #F7FAFF;
+  }
   

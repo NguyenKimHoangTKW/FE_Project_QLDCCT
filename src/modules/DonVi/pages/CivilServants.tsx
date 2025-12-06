@@ -20,6 +20,7 @@ export default function CivilServantsInterfaceDonVi() {
     const [selectAll, setSelectAll] = useState(false);
     const [permissionOpen, setPermissionOpen] = useState(false);
     const [searchText, setSearchText] = useState("");
+    const [rawSearchText, setRawSearchText] = useState("");
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     interface FormData {
@@ -31,7 +32,7 @@ export default function CivilServantsInterfaceDonVi() {
         id_program: number | null;
     }
     interface OptionFilter {
-        id_program: number ;
+        id_program: number;
     }
     interface Permission {
         id_civilSer: number | null;
@@ -120,20 +121,6 @@ export default function CivilServantsInterfaceDonVi() {
             return updated;
         });
     };
-    const filteredData = allData.filter((item) => {
-        const keyword = searchText.toLowerCase().trim();
-
-        return (
-            item.code_civilSer?.toLowerCase().includes(keyword) ||
-            item.fullname_civilSer?.toLowerCase().includes(keyword) ||
-            item.email?.toLowerCase().includes(keyword) ||
-            item.birthday?.toLowerCase().includes(keyword) ||
-            item.name_program?.toLowerCase().includes(keyword) ||
-            unixTimestampToDate(item.time_cre)?.toLowerCase().includes(keyword) ||
-            unixTimestampToDate(item.time_up)?.toLowerCase().includes(keyword)
-        );
-    });
-
     const LoadListCTDTByDonVi = async () => {
         const res = await CivilServantsDonViAPI.GetListCTDTByDonVi();
         setListCTDT(res);
@@ -174,7 +161,7 @@ export default function CivilServantsInterfaceDonVi() {
     const ShowData = async () => {
         setLoading(true);
         try {
-            const res = await CivilServantsDonViAPI.GetListCivilServants({ id_program: Number(optionFilter.id_program || 0), Page: page, PageSize: pageSize });
+            const res = await CivilServantsDonViAPI.GetListCivilServants({ id_program: Number(optionFilter.id_program || 0), Page: page, PageSize: pageSize, searchTerm: searchText });
             if (res.success) {
                 setAllData(res.data);
                 setTotalRecords(Number(res.totalRecords) || 0);
@@ -354,8 +341,16 @@ export default function CivilServantsInterfaceDonVi() {
         }
     };
     useEffect(() => {
+        const delayDebounce = setTimeout(() => {
+            setSearchText(rawSearchText);
+            setPage(1);
+        }, 500);
+
+        return () => clearTimeout(delayDebounce);
+    }, [rawSearchText]);
+    useEffect(() => {
         ShowData();
-    }, [page, pageSize]);
+    }, [searchText, page, pageSize]);
     useEffect(() => {
         LoadListCTDTByDonVi();
     }, []);
@@ -385,16 +380,6 @@ export default function CivilServantsInterfaceDonVi() {
                                                 text: item.name_program
                                             }))
                                         ]}
-                                    />
-                                </div>
-                                <div className="col-md-4">
-                                    <label className="ceo-label">Tìm kiếm</label>
-                                    <input
-                                        type="text"
-                                        className="form-control ceo-input"
-                                        placeholder="🔍 Nhập từ khóa bất kỳ để tìm..."
-                                        value={searchText}
-                                        onChange={(e) => setSearchText(e.target.value)}
                                     />
                                 </div>
                             </div>
@@ -467,8 +452,8 @@ export default function CivilServantsInterfaceDonVi() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredData.length > 0 ? (
-                                    filteredData.map((item, index) => (
+                                {allData.length > 0 ? (
+                                    allData.map((item: any, index: number) => (
                                         <tr key={item.id_civilSer}>
                                             <td data-label="STT" className="formatSo">{(page - 1) * pageSize + index + 1}</td>
                                             <td data-label="Mã viên chức" className="formatSo">{item.code_civilSer}</td>
@@ -639,6 +624,49 @@ export default function CivilServantsInterfaceDonVi() {
                     </tbody>
                 </table>
             </Modal>
+            <div
+                className="shadow-lg d-flex flex-wrap justify-content-center align-items-center gap-3 p-3 mt-4"
+                style={{
+                    position: "sticky",
+                    bottom: 0,
+                    background: "rgba(245, 247, 250, 0.92)",
+                    backdropFilter: "blur(8px)",
+                    borderTop: "1px solid #e5e7eb",
+                    zIndex: 100,
+                }}
+            >
+                {/* Ô tìm kiếm */}
+                <div className="col-md-4">
+                    <label className="ceo-label" style={{ fontWeight: 600, opacity: 0.8 }}>
+                        Tìm kiếm
+                    </label>
+
+                    <div className="input-group">
+                        <span
+                            className="input-group-text"
+                            style={{
+                                background: "#fff",
+                                borderRight: "none",
+                                borderRadius: "10px 0 0 10px",
+                            }}
+                        >
+                            🔍
+                        </span>
+                        <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Nhập từ khóa để tìm kiếm..."
+                            value={rawSearchText}
+                            onChange={(e) => setRawSearchText(e.target.value)}
+                            style={{
+                                borderLeft: "none",
+                                borderRadius: "0 10px 10px 0",
+                                padding: "10px 12px",
+                            }}
+                        />
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

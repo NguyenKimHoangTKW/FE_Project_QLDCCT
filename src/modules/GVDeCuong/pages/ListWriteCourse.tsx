@@ -19,6 +19,12 @@ function ListWriteCourseDVDC() {
     const [showModalRequestEditSyllabus, setShowModalRequestEditSyllabus] = useState(false);
     const [contentRequestEditSyllabus, setContentRequestEditSyllabus] = useState<string>("");
     const [code_civilSer, setCode_civilSer] = useState<string>("");
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [searchText, setSearchText] = useState("");
+    const [rawSearchText, setRawSearchText] = useState("");
+    const [totalRecords, setTotalRecords] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
     const idCourseRef = useRef<number | null>(null);
     const [isOpen, setIsOpen] = useState(Number);
     const [listTeacher, setListTeacher] = useState<{
@@ -72,10 +78,13 @@ function ListWriteCourseDVDC() {
         { label: "*", key: "*" },
     ];
     const GetListCourse = async () => {
-        const res = await WriteCourseAPI.GetListCourse();
+        const res = await WriteCourseAPI.GetListCourse({ Page: page, PageSize: pageSize, searchTerm: searchText });
         if (res.success) {
             setListCourse(res.data);
-            SweetAlert("success", res.message);
+            SweetAlert("success", "Tải dữ liệu thành công");
+            setTotalRecords(Number(res.totalRecords) || 0);
+            setTotalPages(Number(res.totalPages) || 1);
+            setPageSize(Number(res.pageSize) || 10);
         }
     }
     const formatCountdown = (ms: number) => {
@@ -331,8 +340,16 @@ function ListWriteCourseDVDC() {
         }
     }
     useEffect(() => {
+        const delayDebounce = setTimeout(() => {
+            setSearchText(rawSearchText);
+            setPage(1);
+        }, 500);
+
+        return () => clearTimeout(delayDebounce);
+    }, [rawSearchText]);
+    useEffect(() => {
         GetListCourse();
-    }, []);
+    }, [page, pageSize, searchText]);
     useEffect(() => {
         idCourseRef.current = formData.id_course;
     }, [formData.id_course]);
@@ -414,6 +431,27 @@ function ListWriteCourseDVDC() {
                                 Bạn chưa có học phần được phân để viết đề cương.
                             </div>
                         )}
+                    </div>
+                    <div className="d-flex justify-content-between align-items-center mt-3">
+                        <span>
+                            Tổng số: {totalRecords} bản ghi | Trang {page}/{totalPages}
+                        </span>
+                        <div>
+                            <button
+                                className="btn btn-secondary btn-sm mr-2"
+                                disabled={page <= 1}
+                                onClick={() => setPage(page - 1)}
+                            >
+                                Trang trước
+                            </button>
+                            <button
+                                className="btn btn-secondary btn-sm"
+                                disabled={page >= totalPages}
+                                onClick={() => setPage(page + 1)}
+                            >
+                                Trang sau
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -700,7 +738,7 @@ function ListWriteCourseDVDC() {
                                                                             ) : null}
                                                                         </div>
                                                                     )}
-                                                                     {teacher.code_status === 8 && (
+                                                                    {teacher.code_status === 8 && (
                                                                         <div>
                                                                             <button
                                                                                 className="btn btn-sm btn-ceo-blue w-100 mb-2"
@@ -979,6 +1017,49 @@ function ListWriteCourseDVDC() {
                 <button className="btn btn-sm btn-ceo-blue" onClick={saveRequestEditSyllabus}>Gửi yêu cầu</button>
                 <button className="btn btn-sm btn-ceo-red" onClick={() => setShowModalRequestEditSyllabus(false)}>Hủy</button>
             </Modal>
+            <div
+                className="shadow-lg d-flex flex-wrap justify-content-center align-items-center gap-3 p-3 mt-4"
+                style={{
+                    position: "sticky",
+                    bottom: 0,
+                    background: "rgba(245, 247, 250, 0.92)",
+                    backdropFilter: "blur(8px)",
+                    borderTop: "1px solid #e5e7eb",
+                    zIndex: 100,
+                }}
+            >
+                {/* Ô tìm kiếm */}
+                <div className="col-md-4">
+                    <label className="ceo-label" style={{ fontWeight: 600, opacity: 0.8 }}>
+                        Tìm kiếm
+                    </label>
+
+                    <div className="input-group">
+                        <span
+                            className="input-group-text"
+                            style={{
+                                background: "#fff",
+                                borderRight: "none",
+                                borderRadius: "10px 0 0 10px",
+                            }}
+                        >
+                            🔍
+                        </span>
+                        <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Nhập từ khóa để tìm kiếm..."
+                            value={rawSearchText}
+                            onChange={(e) => setRawSearchText(e.target.value)}
+                            style={{
+                                borderLeft: "none",
+                                borderRadius: "0 10px 10px 0",
+                                padding: "10px 12px",
+                            }}
+                        />
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

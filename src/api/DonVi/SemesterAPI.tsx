@@ -2,7 +2,7 @@ import axios from "axios";
 import { URL_API_DONVI } from "../../URL_Config";
 
 export const SemesterAPIDonVi = {
-    GetListSemester: (data: { id_faculty: number, Page: number, PageSize: number }) =>
+    GetListSemester: (data: { id_faculty: number, Page: number, PageSize: number, searchTerm: string }) =>
         axios
             .post(`${URL_API_DONVI}/semester/loads-danh-sach-hoc-ky`, data, {
                 headers: { "Content-Type": "application/json" },

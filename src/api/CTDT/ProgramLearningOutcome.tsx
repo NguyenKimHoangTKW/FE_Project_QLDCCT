@@ -7,7 +7,7 @@ export const ProgramLearningOutcomeCTDTAPI = {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
-    GetListProgramLearningOutcome: (data: { Id_Program: number, id_key_semester: number,Page: number; PageSize: number }) =>
+    GetListProgramLearningOutcome: (data: { Id_Program: number, id_key_semester: number,Page: number; PageSize: number, searchTerm: string }) =>
         axios.post(`${URL_API_CTDT}/program-learning-outcome/load-danh-sach-chuan-dau-ra-ctdt`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,

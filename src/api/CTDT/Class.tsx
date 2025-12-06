@@ -2,7 +2,7 @@ import axios from "axios";
 import { URL_API_CTDT } from "../../URL_Config";
 
 export const ClassCTDTAPI = {
-    GetListClass: (data: { id_program: number, Page: number, PageSize: number }) =>
+    GetListClass: (data: { id_program: number, Page: number, PageSize: number ,searchTerm: string }) =>
         axios.post(`${URL_API_CTDT}/class/list-class`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,

@@ -66,6 +66,28 @@ export default function StatisticalCLOInterfaceDonVi() {
         }
         setLoading(false);
     }
+    const htmlToPlainText = (html: string | null | undefined) => {
+        if (!html) return "";
+    
+        // Giữ xuống dòng
+        let text = html.replace(/<br\s*\/?>/gi, "\n")
+                       .replace(/<\/p>/gi, "\n");
+    
+        // Xóa toàn bộ thẻ HTML
+        text = text.replace(/<[^>]*>/g, "");
+    
+        // Decode HTML Entities → Text Unicode
+        const txt = document.createElement("textarea");
+        txt.innerHTML = text;
+        text = txt.value;
+    
+        // Loại bỏ ký tự thừa
+        text = text.replace(/\u00a0/g, " "); // nbsp
+        text = text.replace(/\s+/g, " ").trim();
+    
+        return text;
+    };
+    
     const exportExcel = async () => {
         if (allData.length === 0) {
             alert("Không có dữ liệu để xuất Excel!");
@@ -98,10 +120,10 @@ export default function StatisticalCLOInterfaceDonVi() {
             worksheet.addRow([
                 index + 1,
                 item.name_course,
-                item.describe_course?.replace(/<[^>]+>/g, ""),
-                item.mo_ta?.replace(/<[^>]+>/g, ""),
-                item.clo?.replace(/<br>/g, "\n").replace(/<[^>]+>/g, "")
-            ]);
+                htmlToPlainText(item.describe_course),
+                htmlToPlainText(item.mo_ta),
+                htmlToPlainText(item.clo)
+            ]);            
         });
 
         worksheet.columns.forEach((column) => {

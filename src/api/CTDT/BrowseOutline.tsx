@@ -2,7 +2,7 @@ import axios from "axios";
 import { URL_API_CTDT } from "../../URL_Config";
 
 export const BrowseOutlineAPI = {
-    BrowseOutline: (data: { id_program: number, id_status: number, is_open_edit_final: number }) =>
+    BrowseOutline: (data: { id_program: number, id_status: number, is_open_edit_final: number,PageSize: number, searchTerm: string  }) =>
         axios.post(`${URL_API_CTDT}/browse-outline/loads-de-cuong-can-duyet`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,

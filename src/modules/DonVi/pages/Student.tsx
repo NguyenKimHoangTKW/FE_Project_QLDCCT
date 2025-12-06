@@ -19,6 +19,7 @@ export default function StudentInterfaceDonVi() {
     const [listClass, setListClass] = useState<any[]>([]);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [searchText, setSearchText] = useState("");
+    const [rawSearchText, setRawSearchText] = useState("");
     const [listStudent, setListStudent] = useState<any[]>([]);
     interface OptionData {
         id_program: number;
@@ -76,7 +77,7 @@ export default function StudentInterfaceDonVi() {
     const ShowData = async () => {
         setLoading(true);
         try {
-            const res = await StudentDonViAPI.GetListStudent({ id_program: Number(optionData.id_program), id_class: Number(optionData.id_class), Page: page, PageSize: pageSize });
+            const res = await StudentDonViAPI.GetListStudent({ id_program: Number(optionData.id_program), id_class: Number(optionData.id_class), Page: page, PageSize: pageSize, searchTerm: searchText });
             if (res.success) {
                 setListStudent(res.loadClass);
                 setPage(Number(res.currentPage) || 1);
@@ -95,16 +96,6 @@ export default function StudentInterfaceDonVi() {
             setLoading(false);
         }
     }
-    const filteredData = listStudent.filter((item) => {
-        const keyword = searchText.toLowerCase().trim();
-
-        return (
-            item.code_student?.toLowerCase().includes(keyword) ||
-            item.name_student?.toLowerCase().includes(keyword) ||
-            item.name_class?.toLowerCase().includes(keyword) ||
-            item.name_program?.toLowerCase().includes(keyword)
-        );
-    });
     const handleAddNewStudent = async () => {
         setModalOpen(true);
         setModalMode("create");
@@ -242,8 +233,16 @@ export default function StudentInterfaceDonVi() {
         LoadListClass();
     }, [optionData.id_program]);
     useEffect(() => {
+        const delayDebounce = setTimeout(() => {
+            setSearchText(rawSearchText);
+            setPage(1);
+        }, 500);
+
+        return () => clearTimeout(delayDebounce);
+    }, [rawSearchText]);
+    useEffect(() => {
         ShowData();
-    }, [optionData.id_class, page, pageSize]);
+    }, [searchText, page, pageSize]);
     return (
         <div className="main-content">
             <Loading isOpen={loading} />
@@ -282,16 +281,6 @@ export default function StudentInterfaceDonVi() {
                                                 text: item.name_class
                                             })),
                                         ]}
-                                    />
-                                </div>
-                                <div className="col-md-4">
-                                    <label className="ceo-label">Tìm kiếm</label>
-                                    <input
-                                        type="text"
-                                        className="form-control ceo-input"
-                                        placeholder="🔍 Nhập từ khóa bất kỳ để tìm..."
-                                        value={searchText}
-                                        onChange={(e) => setSearchText(e.target.value)}
                                     />
                                 </div>
                             </div>
@@ -366,8 +355,8 @@ export default function StudentInterfaceDonVi() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {filteredData.length > 0 ? (
-                                            filteredData.map((item, index) => (
+                                        {listStudent.length > 0 ? (
+                                            listStudent.map((item: any, index: number) => (
                                                 <tr key={item.id_student}>
                                                     <td data-label="STT" className="formatSo">{(page - 1) * pageSize + index + 1}</td>
                                                     <td data-label="Mã sinh viên" className="formatSo">{item.code_student}</td>
@@ -478,7 +467,49 @@ export default function StudentInterfaceDonVi() {
 
                 </form>
             </Modal>
+            <div
+                className="shadow-lg d-flex flex-wrap justify-content-center align-items-center gap-3 p-3 mt-4"
+                style={{
+                    position: "sticky",
+                    bottom: 0,
+                    background: "rgba(245, 247, 250, 0.92)",
+                    backdropFilter: "blur(8px)",
+                    borderTop: "1px solid #e5e7eb",
+                    zIndex: 100,
+                }}
+            >
+                {/* Ô tìm kiếm */}
+                <div className="col-md-4">
+                    <label className="ceo-label" style={{ fontWeight: 600, opacity: 0.8 }}>
+                        Tìm kiếm
+                    </label>
 
+                    <div className="input-group">
+                        <span
+                            className="input-group-text"
+                            style={{
+                                background: "#fff",
+                                borderRight: "none",
+                                borderRadius: "10px 0 0 10px",
+                            }}
+                        >
+                            🔍
+                        </span>
+                        <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Nhập từ khóa để tìm kiếm..."
+                            value={rawSearchText}
+                            onChange={(e) => setRawSearchText(e.target.value)}
+                            style={{
+                                borderLeft: "none",
+                                borderRadius: "0 10px 10px 0",
+                                padding: "10px 12px",
+                            }}
+                        />
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }

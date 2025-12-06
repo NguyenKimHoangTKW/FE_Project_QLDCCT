@@ -24,7 +24,7 @@ export const CourseDonViAPI = {
         withCredentials: true,
       })
       .then((res) => res.data),
-  GetListCourse: (data: { id_gr_course: number, id_key_year_semester: number, id_semester: number, id_program: number, id_isCourse: number, Page: number; PageSize: number }) =>
+  GetListCourse: (data: { id_gr_course: number, id_key_year_semester: number, id_semester: number, id_program: number, id_isCourse: number, Page: number; PageSize: number, searchTerm: string }) =>
     axios
       .post(`${URL_API_DONVI}/course/loads-danh-sach-mon-hoc-thuoc-don-vi`, data, {
         headers: { "Content-Type": "application/json" },
@@ -77,7 +77,7 @@ export const CourseDonViAPI = {
     })
       .then((res) => res.data);
   },
-  LoadListUserWriteCourse: (data:{id_course:number}) =>
+  LoadListUserWriteCourse: (data: { id_course: number }) =>
     axios.post(`${URL_API_DONVI}/course/loads-danh-sach-giang-vien-viet-de-cuong`, data, {
       headers: { "Content-Type": "application/json" },
       withCredentials: true,
