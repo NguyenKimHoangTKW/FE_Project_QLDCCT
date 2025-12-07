@@ -1,9 +1,7 @@
-import axios from "axios";
-import { URL_API_CTDT } from "../../URL_Config";
+import axiosClient from "../axiosClient";
 export const ListCTDTPermissionAPI = {
     GetListCTDTPermission: () =>
-      axios
-        .get(`${URL_API_CTDT}/permission/loads-ctdt-by-permission`, {   
+      axiosClient.get(`/ctdt/permission/loads-ctdt-by-permission`, {   
           withCredentials: true, 
         }).then((res) => res.data),
   };

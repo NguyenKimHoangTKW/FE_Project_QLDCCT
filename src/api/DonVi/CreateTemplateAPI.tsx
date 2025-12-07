@@ -1,18 +1,17 @@
-import axios from "axios";
-import { URL_API_DONVI } from "../../URL_Config";
+import axiosClient from "../axiosClient";
 
 export const CreateTemplateAPI = {
     GetListData: (data: { id_template: number }) =>
-        axios.post(`${URL_API_DONVI}/syllabustemplate/loads-template-section`, data, {
+        axiosClient.post(`/donvi/syllabustemplate/loads-template-section`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
     GetListCreateTemplate: () =>
-        axios.get(`${URL_API_DONVI}/syllabustemplate/load-selected-template`, {
+        axiosClient.get(`/donvi/syllabustemplate/load-selected-template`, {
             withCredentials: true,
         }).then((res) => res.data),
     GetListOptionContentType: () =>
-        axios.get(`${URL_API_DONVI}/syllabustemplate/load-option-template-section`, {
+        axiosClient.get(`/donvi/syllabustemplate/load-option-template-section`, {
             withCredentials: true,
         }).then((res) => res.data),
 
@@ -25,14 +24,14 @@ export const CreateTemplateAPI = {
         id_contentType: number,
         id_dataBinding: number,
     }) =>
-        axios.post(`${URL_API_DONVI}/syllabustemplate/create-template-section`, data, {
+        axiosClient.post(`/donvi/syllabustemplate/create-template-section`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
     InfoTemplateSection: (data: {
         id_template_section: number,
     }) =>
-        axios.post(`${URL_API_DONVI}/syllabustemplate/info-template-section`, data, {
+        axiosClient.post(`/donvi/syllabustemplate/info-template-section`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
@@ -45,7 +44,7 @@ export const CreateTemplateAPI = {
         id_contentType: number,
         id_dataBinding: number,
     }) =>
-        axios.post(`${URL_API_DONVI}/syllabustemplate/update-template-section`, data, {
+        axiosClient.post(`/donvi/syllabustemplate/update-template-section`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
@@ -53,7 +52,7 @@ export const CreateTemplateAPI = {
     DeleteTemplateSection: (data: {
         id_template_section: number,
     }) =>
-        axios.post(`${URL_API_DONVI}/syllabustemplate/delete-template-section`, data, {
+        axiosClient.post(`/donvi/syllabustemplate/delete-template-section`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
@@ -62,7 +61,7 @@ export const CreateTemplateAPI = {
         id_template: number,
         template_json: string,
     }) =>
-        axios.post(`${URL_API_DONVI}/syllabustemplate/save-template`, data, {
+        axiosClient.post(`/donvi/syllabustemplate/save-template`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
@@ -71,17 +70,17 @@ export const CreateTemplateAPI = {
     PreviewTemplate: (data: {
         id_template: number,
     }) =>
-        axios.post(`${URL_API_DONVI}/syllabustemplate/preview-template`, data, {
+        axiosClient.post(`/donvi/syllabustemplate/preview-template`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
 
     LoadSelectedProgram: () =>
-        axios.get(`${URL_API_DONVI}/syllabustemplate/loads-selected-program`, {
+        axiosClient.get(`/donvi/syllabustemplate/loads-selected-program`, {
             withCredentials: true,
         }).then((res) => res.data),
     ListPLOCourse: () =>
-        axios.get(`${URL_API_DONVI}/syllabustemplate/loads-plo-hoc-phan`, {
+        axiosClient.get(`/donvi/syllabustemplate/loads-plo-hoc-phan`, {
             withCredentials: true,
         }).then((res) => res.data),
 }

@@ -1,5 +1,4 @@
 import { Route, Routes } from "react-router-dom";
-import DanhSachNam from "../pages/Year";
 import CivilServants from "../pages/CivilServants";
 import FacultyInterface from "../pages/Faculty";
 import TrainingProgramInterface from "../pages/TrainingProgram";
@@ -11,7 +10,6 @@ function AdminRoutes() {
   return (
     <Routes>
       <Route path="quan-li-can-bo-vien-chuc" element={<CivilServants />} />
-      <Route path="quan-li-danh-sach-nam" element={<DanhSachNam />}></Route>
       <Route
         path="quan-li-danh-sach-don-vi"
         element={<FacultyInterface />}

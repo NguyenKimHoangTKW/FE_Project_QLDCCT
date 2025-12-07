@@ -20,7 +20,11 @@ function GVDeCuongHeaderLayout() {
 
   const loadCount = async () => {
     const res = await NotificationGVDCAPI.GetNotificationCount();
-    if (res.success) setNotifyCount(res.count);
+    if (res.success){
+      setNotifyCount(res.count);  
+    } else {
+      setNotifyCount(0);
+    }
   };
 
   const readNotification = async (id_notification: number) => {

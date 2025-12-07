@@ -1,99 +1,99 @@
 import axios from "axios";
 import { URL_API_DVDC } from "../../URL_Config";
+import axiosClient from "../axiosClient";
 
 export const TemplateWriteCourseAPI = {
     PreviewTemplate: (data: {
         id_syllabus: number,
     }) =>
-        axios.post(`${URL_API_DVDC}/write-template-syllabus/preview-template`, data, {
+        axiosClient.post(`/gvdc/write-template-syllabus/preview-template`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
     ListPLOCourse: (data: { id_syllabus: number }) =>
-        axios.post(`${URL_API_DVDC}/write-template-syllabus/loads-plo-hoc-phan`, data, {
+        axiosClient.post(`/gvdc/write-template-syllabus/loads-plo-hoc-phan`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
 
     PreviewCourseObjectives: (data: { id_syllabus: number }) =>
-        axios.post(`${URL_API_DVDC}/write-template-syllabus/preview-course-objectives`, data, {
+        axiosClient.post(`/gvdc/write-template-syllabus/preview-course-objectives`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
     PreviewCourseLearningOutcome: (data: { id_syllabus: number }) =>
-        axios.post(`${URL_API_DVDC}/write-template-syllabus/preview-course-learning-outcomes`, data, {
+        axiosClient.post(`/gvdc/write-template-syllabus/preview-course-learning-outcomes`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
     PreviewProgramLearningOutcome: (data: { id_syllabus: number }) =>
-        axios.post(`${URL_API_DVDC}/write-template-syllabus/preview-program-learning-outcome`, data, {
+        axiosClient.post(`/gvdc/write-template-syllabus/preview-program-learning-outcome`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
 
     PreviewLevelContribution: (data: { id_syllabus: number }) =>
-        axios.post(`${URL_API_DVDC}/write-template-syllabus/preview-level-contribution`, data, {
+        axiosClient.post(`/gvdc/write-template-syllabus/preview-level-contribution`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
 
     PreviewMapPLObySyllabus: (data: { id_syllabus: number }) =>
-        axios.post(`${URL_API_DVDC}/write-template-syllabus/load-mapping-clo-by-de-cuong`, data, {
+        axiosClient.post(`/gvdc/write-template-syllabus/load-mapping-clo-by-de-cuong`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
 
     AddNewMappingCLO: (data: { id: number, id_syllabus: number, map_clo: string, description: string }) =>
-        axios.post(`${URL_API_DVDC}/write-template-syllabus/save-mapping-clo`, data, {
+        axiosClient.post(`/gvdc/write-template-syllabus/save-mapping-clo`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
     DeleteMappingCLO: (data: { id: number }) =>
-        axios.post(`${URL_API_DVDC}/write-template-syllabus/delete-mapping-clo`, data, {
+        axiosClient.post(`/gvdc/write-template-syllabus/delete-mapping-clo`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
     SaveMappingCLOPI: (data: any[]) =>
-        axios.post(`${URL_API_DVDC}/write-template-syllabus/save-mapping-clo-pi`, data, {
+        axiosClient.post(`/gvdc/write-template-syllabus/save-mapping-clo-pi`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then(res => res.data),
     GetMappingCLOPI: (data: { id_syllabus: number }) =>
-        axios.post(`${URL_API_DVDC}/write-template-syllabus/get-mapping-clo-pi`, data, {
+        axiosClient.post(`/gvdc/write-template-syllabus/get-mapping-clo-pi`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
     SaveFinalSyllabus: (data: { id_syllabus: number, data: any[] }) =>
-        axios.post(`${URL_API_DVDC}/write-template-syllabus/save-final`, data, {
+        axiosClient.post(`/gvdc/write-template-syllabus/save-final`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),
 
 
     SaveDraftSection: (payload: { id_syllabus: number; section_code: string; content: string }) =>
-        axios
-            .post(`${URL_API_DVDC}/write-template-syllabus/save-draft-section`, payload, { headers: { "Content-Type": "application/json" }, withCredentials: true })
+        axiosClient.post(`/gvdc/write-template-syllabus/save-draft-section`, payload, { headers: { "Content-Type": "application/json" }, withCredentials: true })
             .then(res => res.data),
 
     LoadDrafts: (payload: { id_syllabus: number }) =>
-        axios
-            .post(`${URL_API_DVDC}/write-template-syllabus/load-drafts`, payload, { headers: { "Content-Type": "application/json" }, withCredentials: true })
+        axiosClient
+            .post(`/gvdc/write-template-syllabus/load-drafts`, payload, { headers: { "Content-Type": "application/json" }, withCredentials: true })
             .then(res => res.data),
 
     SaveFinalFromDraft: (payload: { id_syllabus: number,html_export_word: string }) =>
-        axios
-            .post(`${URL_API_DVDC}/write-template-syllabus/save-final-from-draft`, payload, { headers: { "Content-Type": "application/json" }, withCredentials: true })
+        axiosClient
+            .post(`/gvdc/write-template-syllabus/save-final-from-draft`, payload, { headers: { "Content-Type": "application/json" }, withCredentials: true })
             .then(res => res.data),
 
     SaveContentDraft: (data: { id_syllabus: number, draft_json: string }) =>
-        axios.post(`${URL_API_DVDC}/write-template-syllabus/save-content-draft`, data,
+        axiosClient.post(`/gvdc/write-template-syllabus/save-content-draft`, data,
             {
                 headers: { "Content-Type": "application/json" },
                 withCredentials: true
             })
             .then(res => res.data),
     SaveAllContentDraft: (data: { id_syllabus: number, section_json: string}) =>
-        axios.post(`${URL_API_DVDC}/write-template-syllabus/save-sections`, data,
+        axiosClient.post(`/gvdc/write-template-syllabus/save-sections`, data,
             {
                 headers: { "Content-Type": "application/json" },
                 withCredentials: true
@@ -101,7 +101,7 @@ export const TemplateWriteCourseAPI = {
             .then(res => res.data),
 
     LoadContentDraft: (data: { id_syllabus: number }) =>
-        axios.post(`${URL_API_DVDC}/write-template-syllabus/load-draft-section`, data,
+        axiosClient.post(`/gvdc/write-template-syllabus/load-draft-section`, data,
             {
                 headers: { "Content-Type": "application/json" },
                 withCredentials: true

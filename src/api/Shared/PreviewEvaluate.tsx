@@ -1,17 +1,17 @@
-import axios from "axios";
-import { URL_API_SHARED } from "../../URL_Config";
+
+import axiosClient from "../axiosClient";
 
 export const PreviewEvaluateAPI = {
     PreviewCourseObjectives: () =>
-        axios.get(`${URL_API_SHARED}/preview-course-objectives`, {
+        axiosClient.get(`/evaluate/preview-course-objectives`, {
             withCredentials: true,
         }).then((res) => res.data),
     PreviewCourseLearningOutcome: () =>
-        axios.get(`${URL_API_SHARED}/preview-course-learning-outcomes`, {
+        axiosClient.get(`/evaluate/preview-course-learning-outcomes`, {
             withCredentials: true,
         }).then((res) => res.data),
     PreviewProgramLearningOutcome: (data: { id_program: number }) =>
-        axios.post(`${URL_API_SHARED}/preview-program-learning-outcome`, data, {
+        axiosClient.post(`/evaluate/preview-program-learning-outcome`, data, {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
         }).then((res) => res.data),

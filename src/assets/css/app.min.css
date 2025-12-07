@@ -30028,4 +30028,47 @@ legend {
     box-shadow: 0 6px 16px rgba(0,0,0,0.15);
     background: #F7FAFF;
   }
+  /* Vùng bao cảnh báo */
+.alert-ceo-strong {
+    background: linear-gradient(135deg, #ffe9e9, #ffd1d1);
+    border-left: 6px solid #e10c0c;
+    padding: 14px 16px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: fadeIn 0.5s ease-out;
+    box-shadow: 0 4px 12px rgba(200, 0, 0, 0.15);
+  }
   
+  /* Icon lớn */
+  .alert-icon-wrapper {
+    background: #e10c0c;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .alert-icon-shine {
+    color: #fff;
+    font-size: 22px;
+    animation: pulse-glow 1.5s infinite;
+  }
+  
+  /* Title */
+  .alert-title {
+    color: #d60404;
+    font-size: 17px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  /* Nội dung message */
+  .alert-message {
+    color: #5a0000;
+    font-size: 15px;
+    font-weight: 500;
+  }

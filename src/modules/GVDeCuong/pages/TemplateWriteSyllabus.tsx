@@ -33,13 +33,12 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   const [editingSectionIndex, setEditingSectionIndex] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
   const [aiLoadingSection, setAiLoadingSection] = useState<string | null>(null);
-  const [showAIModal, setShowAIModal] = useState(false);
-  const [aiPrompt, setAIPrompt] = useState("");
-  const [aiResult, setAIResult] = useState("");
-  const [currentSection, setCurrentSection] = useState<any>(null);
   const [checkCreate, setCheckCreate] = useState(false);
   const [aiLoading, setAILoading] = useState(false);
+  const [progressAI, setProgressAI] = useState<number>(0);
   const tempContent = useRef<Record<string, string>>({});
+  const [checkBlocked, setCheckBlocked] = useState(false);
+  const [messageBlocked, setMessageBlocked] = useState("");
   const [checkOpen, setCheckOpen] = useState<{
     status?: boolean;
     is_open?: boolean;
@@ -62,7 +61,8 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         setCheckOpen({ status: res.data.status, is_open: res.data.is_open, name_course: res.data.course });
         SweetAlert("success", res.message);
       } else {
-        setCheckOpen({ status: true, is_open: false, name_course: res.data.course });
+        setCheckBlocked(res.is_block_access);
+        setMessageBlocked(res.message);
       }
     } finally {
       setLoading(false);
@@ -148,22 +148,17 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
     }
   };
 
-
   useEffect(() => {
-    const loadAll = async () => {
-      await LoadData();
-      await LoadDraftFromServer();
-    };
-    loadAll();
+    LoadData();
   }, []);
+
   useEffect(() => {
-    if (!editorReady.current) return;
+    if (checkBlocked === false && !editorReady.current) return;
     applyDraftToEditors();
-  }, [draftData, templateSections]);
-
+  }, [draftData, templateSections, checkBlocked]);
 
   useEffect(() => {
-    if (checkOpen.status === false && checkOpen.is_open === true) {
+    if (checkOpen.status === false && checkOpen.is_open === true && checkBlocked === false) {
       const loadAll = async () => {
 
         await LoadPreviewCourseObjectives();
@@ -172,13 +167,12 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         await LoadListPLOCourse();
         await LoadPreviewLevelContribution();
         await LoadPreviewMapPLObySyllabus();
-
-
+       await LoadDraftFromServer();
       };
 
       loadAll();
     }
-  }, [checkOpen.status === false && checkOpen.is_open === true]);
+  }, [checkOpen.status === false && checkOpen.is_open === true && checkBlocked === false]);
   useEffect(() => {
     if (
       checkOpen.status === false &&
@@ -197,78 +191,80 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
 
 
   useEffect(() => {
+    if (checkBlocked === true) return;
+    else {
+      const connect = async () => {
+        const conn = new signalR.HubConnectionBuilder()
+          .withUrl("https://localhost:44314/hubs/syllabus", {
+            withCredentials: true
+          })
+          .withAutomaticReconnect()
+          .build();
+        conn.on("SectionDraftUpdated", (sid, code, content) => {
 
-    const connect = async () => {
-      const conn = new signalR.HubConnectionBuilder()
-        .withUrl("https://localhost:44314/hubs/syllabus", {
-          withCredentials: true
-        })
-        .withAutomaticReconnect()
-        .build();
-      conn.on("SectionDraftUpdated", (sid, code, content) => {
+          if (sid !== Number(id_syllabus)) return;
+          if (editingSection.current === code) return;
 
-        if (sid !== Number(id_syllabus)) return;
-        if (editingSection.current === code) return;
+          const editor = (window as any).tinymce?.get(code);
+          if (!editor) return;
 
-        const editor = (window as any).tinymce?.get(code);
-        if (!editor) return;
+          try {
+            const currentRaw = editor.getContent({ format: "raw" }).trim();
+            const incomingRaw = (content ?? "").trim();
 
-        try {
-          const currentRaw = editor.getContent({ format: "raw" }).trim();
-          const incomingRaw = (content ?? "").trim();
-
-          if (currentRaw !== incomingRaw) {
-            editor.setContent(content, { format: "raw" });
-          }
-        } catch { }
-      });
-
-
-
-      conn.on("UserTypingStatusChanged", (sid, user, section, isTyping) => {
-        if (sid !== Number(id_syllabus)) return;
-
-        setTypingUsers(prev => {
-
-          const copy: Record<string, string[]> = {};
-          for (const k in prev) {
-            copy[k] = [...prev[k]];
-          }
-
-          if (!copy[section])
-            copy[section] = [];
-
-          if (isTyping) {
-
-            if (!copy[section].includes(user)) {
-              copy[section].push(user);
+            if (currentRaw !== incomingRaw) {
+              editor.setContent(content, { format: "raw" });
             }
-
-          } else {
-
-            copy[section] = copy[section].filter(u => u !== user);
-
-            if (copy[section].length === 0) {
-              delete copy[section];
-            }
-          }
-
-          return copy;
+          } catch { }
         });
-      });
-      await conn.start();
-      await conn.invoke("JoinSyllabusGroup", Number(id_syllabus));
-      setHubConnection(conn);
-    };
 
-    connect();
 
-    return () => {
-      if (hubConnection) {
-        hubConnection.invoke("LeaveSyllabusGroup", Number(id_syllabus)).catch(() => { });
-        hubConnection.stop();
-      }
-    };
+
+        conn.on("UserTypingStatusChanged", (sid, user, section, isTyping) => {
+          if (sid !== Number(id_syllabus)) return;
+
+          setTypingUsers(prev => {
+
+            const copy: Record<string, string[]> = {};
+            for (const k in prev) {
+              copy[k] = [...prev[k]];
+            }
+
+            if (!copy[section])
+              copy[section] = [];
+
+            if (isTyping) {
+
+              if (!copy[section].includes(user)) {
+                copy[section].push(user);
+              }
+
+            } else {
+
+              copy[section] = copy[section].filter(u => u !== user);
+
+              if (copy[section].length === 0) {
+                delete copy[section];
+              }
+            }
+
+            return copy;
+          });
+        });
+        await conn.start();
+        await conn.invoke("JoinSyllabusGroup", Number(id_syllabus));
+        setHubConnection(conn);
+      };
+
+      connect();
+
+      return () => {
+        if (hubConnection) {
+          hubConnection.invoke("LeaveSyllabusGroup", Number(id_syllabus)).catch(() => { });
+          hubConnection.stop();
+        }
+      };
+    }
   }, [id_syllabus]);
 
 
@@ -1238,53 +1234,79 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
     handleSaveAllContentDraft(JSON.stringify(updated));
   };
 
-  const runAISuggestStream = async () => {
-    try {
-      setAILoading(true);
-      setAIResult("");
 
-      const res = await fetch(`${URL_API_DVDC}/write-template-syllabus/suggest-stream`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sectionTitle: currentSection.section_name,
-          courseName: checkOpen.name_course,
-          customPrompt: aiPrompt
-        })
-      });
+  const runAISuggestAuto = async (section: any) => {
+    const sectionId = section.section_code;
+    const editor = (window as any).tinymce?.get(sectionId);
 
-      if (!res.ok) {
-        setAIResult("⚠ Lỗi gọi AI (status " + res.status + ")");
-        setAILoading(false);
-        return;
-      }
+    if (!editor) return SweetAlert("error", "Không tìm thấy editor!");
 
-      const reader = res.body?.getReader();
-      if (!reader) {
-        setAIResult("⚠ Trình duyệt không hỗ trợ streaming.");
-        setAILoading(false);
-        return;
-      }
+    setAiLoadingSection(sectionId);
+    setProgressAI(0);
 
-      const decoder = new TextDecoder("utf-8");
-      let done = false;
+    const currentText = editor.getContent({ format: "text" });
 
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-        if (value) {
-          const chunk = decoder.decode(value, { stream: true });
-          setAIResult(prev => prev + chunk);
-        }
-      }
+    const res = await fetch(`${URL_API_DVDC}/write-template-syllabus/suggest-stream`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        sectionTitle: section.section_name,
+        courseName: checkOpen.name_course,
+        currentSectionContent: currentText,
+      }),
+    });
 
-    } catch (err) {
-      console.error(err);
-      setAIResult("⚠ Không thể kết nối AI. Vui lòng thử lại.");
-    } finally {
-      setAILoading(false);
+    if (!res.ok || !res.body) {
+      SweetAlert("error", "Lỗi AI!");
+      setAiLoadingSection(null);
+      setProgressAI(0);
+      return;
     }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let aiResult = "";
+
+    const updateProgress = () => {
+      setProgressAI(prev => Math.min(prev + Math.random() * 10, 95));
+    };
+    let interval = setInterval(updateProgress, 500);
+
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        aiResult += decoder.decode(value, { stream: true });
+      }
+    } finally {
+      clearInterval(interval);
+    }
+
+    // Finish progress
+    setProgressAI(100);
+    setTimeout(() => setProgressAI(0), 800);
+
+    // Insert AI content
+    const finalContent = editor.getContent() + `<p>${aiResult}</p>`;
+    editor.setContent(finalContent);
+
+    setDraftData(prev => ({
+      ...prev,
+      [sectionId]: finalContent,
+    }));
+
+    hubConnection?.invoke(
+      "UpdateSectionDraft",
+      Number(id_syllabus),
+      sectionId,
+      finalContent,
+    );
+
+    setAiLoadingSection(null);
+    SweetAlert("success", "AI đã bổ sung nội dung hoàn tất!");
   };
+
   if (loading)
     return (
       <div className="p-4 text-center">
@@ -1298,159 +1320,185 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
       <div className="container py-4">
         <div className="card card-ceo">
           <div className="card-body">
-            <div className="page-header-ceo mb-3">
-              <h2 className="text-uppercase">Viết đề cương cho môn học <span style={{ color: "red" }}>{checkOpen.name_course}</span></h2>
-              <hr />
-            </div>
-
-            {checkOpen.status === true ? (
-              <div className="alert-ceo">
-                <strong className="text-primary"><i className="fas fa-bell me-2"></i>Thông báo:</strong>
-                <div className="mt-1">Đề cương này đã được duyệt và hoàn chỉnh, không thể thay đổi chỉnh sửa</div>
+            {checkBlocked === true && (
+              <div className="alert-ceo-strong animate-fade-in">
+                <div className="alert-icon-wrapper">
+                  <i className="fas fa-exclamation-triangle alert-icon-shine"></i>
+                </div>
+                <div>
+                  <div className="alert-title fw-bold">
+                    🚨 CẢNH BÁO
+                  </div>
+                  <div className="alert-message mt-1">
+                    {messageBlocked}
+                  </div>
+                </div>
               </div>
 
-            ) : checkOpen.is_open === false ? (
-              <div className="alert-ceo">
-                <strong className="text-primary"><i className="fas fa-bell me-2"></i>Thông báo:</strong>
-                <div className="mt-1">Ngoài thời gian thực hiện viết đề cương</div>
-              </div>
-            ) : (
-              <div className="template-preview">
-                {templateSections.map((section, index) => {
-                  const level = section.section_code.split(".").length - 1;
-                  const levelClass =
-                    level === 0
-                      ? "main-level"
-                      : level === 1
-                        ? "child-level-1"
-                        : "child-level-2";
-                  const allowInput =
-                    section.allow_input?.toLowerCase() === "cho phép nhập liệu";
-                  return (
-                    <div key={index} className={`template-section ${levelClass}`}>
-                      <h6>{section.section_code}. {section.section_name}</h6>
-                      {typingUsers[section.section_code]?.length > 0 && (
-                        <div className="text-primary small fst-italic mb-1" style={{ opacity: 0.8 }}>
-                          👉 {typingUsers[section.section_code].join(", ")} đang nhập...
-                        </div>
-                      )}
-
-
-                      <button
-                        className="btn btn-sm btn-outline-primary"
-                        onClick={() => {
-                          setCurrentSection(section);
-                          setAIPrompt(
-                            `Bạn là chuyên gia giáo dục đại học, có kinh nghiệm biên soạn đề cương chi tiết học phần.
-
-                              Hãy viết một đoạn văn dài, gồm nhiều đoạn, văn phong học thuật – chuẩn mực – logic, có mở đầu – triển khai – kết luận.
-
-                              YÊU CẦU:
-                              Không bullet
-                              Không đánh số
-                              Không gạch đầu dòng
-                              Không liệt kê
-                              Không văn nói
-                              Không dùng từ ngữ đời thường
-                              Không viết ngắn
-                              Tối thiểu khoảng 800–1000 chữ.
-
-                              Viết cho mục: ${section.section_name}
-                              Thuộc học phần: ${checkOpen.name_course}.`
-                          );
-                          setShowAIModal(true);
-                        }}
-                      >
-                        Gợi ý AI
-                      </button>
-
-                      {section.id_template_section === null && (
-                        <>
-                          <button
-                            className="btn btn-sm btn-outline-success ms-2"
-                            onClick={() => addChildSection(section.section_code)}
-                          >
-                            + Thêm tiêu đề con
-                          </button>
-
-                          <button
-                            className="btn btn-sm btn-outline-secondary ms-2"
-                            onClick={() => {
-                              setEditingSectionIndex(index);
-                              setEditName(section.section_name);
-                            }}
-                          >
-                            ✏️
-                          </button>
-
-                          <button
-                            className="btn btn-sm btn-outline-danger ms-2"
-                            onClick={() => deleteSection(index)}
-                          >
-                            🗑 Xóa
-                          </button>
-                        </>
-                      )}
-
-
-                      {allowInput ? (
-                        <div className="template-section-content">
-                          {RenderTableCourseObjectives(section)}
-                          {renderSectionContent(section)}
-                        </div>
-                      ) : (
-                        <div className="template-section-content text-muted fst-italic">
-                          (Phần này không cho phép nhập liệu)
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
             )}
+            {checkBlocked === false && (
+              <>
+                <div className="page-header-ceo mb-3">
+                  <h2 className="text-uppercase">Viết đề cương cho môn học <span style={{ color: "red" }}>{checkOpen.name_course}</span></h2>
+                  <hr />
+                </div>
+
+                {checkOpen.status === true ? (
+                  <div className="alert-ceo">
+                    <strong className="text-primary"><i className="fas fa-bell me-2"></i>Thông báo:</strong>
+                    <div className="mt-1">Đề cương này đã được duyệt và hoàn chỉnh, không thể thay đổi chỉnh sửa</div>
+                  </div>
+
+                ) : checkOpen.is_open === false ? (
+                  <div className="alert-ceo">
+                    <strong className="text-primary"><i className="fas fa-bell me-2"></i>Thông báo:</strong>
+                    <div className="mt-1">Ngoài thời gian thực hiện viết đề cương</div>
+                  </div>
+                ) : (
+                  <div className="template-preview">
+                    {templateSections.map((section, index) => {
+                      const level = section.section_code.split(".").length - 1;
+                      const levelClass =
+                        level === 0
+                          ? "main-level"
+                          : level === 1
+                            ? "child-level-1"
+                            : "child-level-2";
+                      const allowInput =
+                        section.allow_input?.toLowerCase() === "cho phép nhập liệu";
+                      return (
+                        <div key={index} className={`template-section ${levelClass}`}>
+                          <h6>{section.section_code}. {section.section_name}</h6>
+                          {typingUsers[section.section_code]?.length > 0 && (
+                            <div className="text-primary small fst-italic mb-1" style={{ opacity: 0.8 }}>
+                              👉 {typingUsers[section.section_code].join(", ")} đang nhập...
+                            </div>
+                          )}
+                          <button
+                            disabled={aiLoadingSection === section.section_code}
+                            className="btn btn-ai-suggest"
+                            onClick={() => runAISuggestAuto(section)}
+                          >
+                            {aiLoadingSection === section.section_code ? (
+                              <>
+                                <span className="spinner-border spinner-border-sm me-2" />
+                                AI đang tạo nội dung...
+                              </>
+                            ) : (
+                              <>
+                                🤖 Gợi ý AI
+                              </>
+                            )}
+                          </button>
+
+                          {aiLoadingSection === section.section_code && (
+                            <div className="ai-progress mt-2">
+                              <div className="progress" style={{ height: "6px" }}>
+                                <div
+                                  className="progress-bar progress-bar-striped progress-bar-animated"
+                                  role="progressbar"
+                                  style={{ width: `${progressAI}%` }}
+                                ></div>
+                              </div>
+                              <div className="text-primary small mt-1 fw-semibold">
+                                AI đang viết... {Math.floor(progressAI)}%
+                              </div>
+                            </div>
+                          )}
+
+                          {section.id_template_section === null && (
+                            <>
+                              <button
+                                className="btn btn-sm btn-outline-success ms-2"
+                                onClick={() => addChildSection(section.section_code)}
+                              >
+                                + Thêm tiêu đề con
+                              </button>
+
+                              <button
+                                className="btn btn-sm btn-outline-secondary ms-2"
+                                onClick={() => {
+                                  setEditingSectionIndex(index);
+                                  setEditName(section.section_name);
+                                }}
+                              >
+                                ✏️
+                              </button>
+
+                              <button
+                                className="btn btn-sm btn-outline-danger ms-2"
+                                onClick={() => deleteSection(index)}
+                              >
+                                🗑 Xóa
+                              </button>
+                            </>
+                          )}
+
+
+                          {allowInput ? (
+                            <div className="template-section-content">
+                              {RenderTableCourseObjectives(section)}
+                              {renderSectionContent(section)}
+                            </div>
+                          ) : (
+                            <div className="template-section-content text-muted fst-italic">
+                              (Phần này không cho phép nhập liệu)
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
+
           </div>
         </div>
-        <div className="text-center border-top pt-3 d-flex justify-content-center gap-3 flex-wrap sticky-toolbar">
-          {checkOpen.status === false && checkOpen.is_open === true ? (
-            <>
-              <div className="d-flex flex-wrap justify-content-center gap-3">
-                {checkCreate === true ? (
-                  <>
-                    <button
-                      type="button"
-                      className="btn-ceo-primary shadow-sm"
-                      style={{ borderRadius: "10px" }}
-                      onClick={saveFinalSyllabus}
-                    >
-                      <i className="fas fa-save me-2 fs-5"></i>
-                      <span className="fw-semibold">Lưu đề cương</span>
-                    </button>
+        {checkBlocked === false && (
+          <>
+            <div className="text-center border-top pt-3 d-flex justify-content-center gap-3 flex-wrap sticky-toolbar">
+              {checkOpen.status === false && checkOpen.is_open === true ? (
+                <>
+                  <div className="d-flex flex-wrap justify-content-center gap-3">
+                    {checkCreate === true ? (
+                      <>
+                        <button
+                          type="button"
+                          className="btn-ceo-primary shadow-sm"
+                          style={{ borderRadius: "10px" }}
+                          onClick={saveFinalSyllabus}
+                        >
+                          <i className="fas fa-save me-2 fs-5"></i>
+                          <span className="fw-semibold">Lưu đề cương</span>
+                        </button>
 
-                    <button
-                      className="btn btn-lg px-4 btn-outline-primary shadow-sm d-flex align-items-center"
-                      style={{ borderRadius: "10px" }}
-                      onClick={() => setShowAddSection(true)}
-                    >
-                      <i className="fas fa-plus-circle me-2 fs-5"></i>
-                      <span className="fw-semibold">Thêm tiêu đề cha</span>
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <p>Bạn là giảng viên phụ viết đề cương, chỉ có giảng viên tạo đề cương này mới có thể thao tác nộp đề cương</p>
-                  </>
-                )}
+                        <button
+                          className="btn btn-lg px-4 btn-outline-primary shadow-sm d-flex align-items-center"
+                          style={{ borderRadius: "10px" }}
+                          onClick={() => setShowAddSection(true)}
+                        >
+                          <i className="fas fa-plus-circle me-2 fs-5"></i>
+                          <span className="fw-semibold">Thêm tiêu đề cha</span>
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <p>Bạn là giảng viên phụ viết đề cương, chỉ có giảng viên tạo đề cương này mới có thể thao tác nộp đề cương</p>
+                      </>
+                    )}
 
-              </div>
+                  </div>
 
-            </>
-          ) : (
-            <>
-            </>
-          )}
+                </>
+              ) : (
+                <>
+                </>
+              )}
 
-        </div>
-
+            </div>
+          </>
+        )}
       </div>
       <Modal
         isOpen={showAddSection}
@@ -1478,56 +1526,6 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
           </select>
         </div>
       </Modal>
-      <Modal isOpen={showAIModal} onClose={() => setShowAIModal(false)}>
-        <div style={{ minWidth: "600px" }}>
-          <h5 className="mb-3">Gợi ý nội dung bằng AI</h5>
-
-          <label className="fw-bold">Prompt yêu cầu:</label>
-          <textarea
-            className="form-control"
-            rows={4}
-            value={aiPrompt}
-            onChange={e => setAIPrompt(e.target.value)}
-          />
-
-          <button
-            className="btn btn-primary"
-            disabled={aiLoading}
-            onClick={runAISuggestStream}
-          >
-            {aiLoading ? "AI đang viết..." : "Gợi ý AI"}
-          </button>
-
-          <pre className="mt-3" style={{ whiteSpace: "pre-wrap" }}>
-            {aiResult}
-          </pre>
-
-          <hr />
-
-          <label className="fw-bold">Kết quả AI:</label>
-
-          <div className="border p-2" style={{ minHeight: "120px" }}>
-            {aiLoading ? <span className="text-muted">Đang sinh nội dung...</span> : aiResult}
-          </div>
-
-          {aiResult && (
-            <button
-              className="btn btn-success mt-3"
-              onClick={() => {
-                setDraftData(prev => ({
-                  ...prev,
-                  [currentSection.section_code]: aiResult
-                }));
-                setShowAIModal(false);
-              }}
-            >
-              Chèn vào nội dung mục này
-            </button>
-          )}
-
-        </div>
-      </Modal>
-
 
       {editingSectionIndex !== null && (
         <Modal

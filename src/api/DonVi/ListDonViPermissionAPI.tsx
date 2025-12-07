@@ -1,9 +1,8 @@
-import axios from "axios";
-import { URL_API_DONVI } from "../../URL_Config";
+import axiosClient from "../axiosClient";
 export const ListDonViPermissionAPI = {
     GetListDonViPermission: () =>
-      axios
-        .get(`${URL_API_DONVI}/permission/loads-donvi-by-permission`, {   
+      axiosClient
+        .get(`/donvi/permission/loads-donvi-by-permission`, {   
           withCredentials: true, 
         }).then((res) => res.data),
   };
