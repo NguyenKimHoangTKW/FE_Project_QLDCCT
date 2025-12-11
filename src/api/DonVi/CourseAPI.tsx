@@ -16,6 +16,11 @@ export const CourseDonViAPI = {
         withCredentials: true,
       })
       .then((res) => res.data),
+  ListSyllabusByCourseFinal: (data: { id_course: number }) =>
+    axiosClient.post(`/donvi/course/load-list-de-cuong-da-hoan-thien`, data, {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true,
+    }).then((res) => res.data),
   GetListCourseByKeyYear: (data: { id_key_year_semester: number, id_program: number }) =>
     axiosClient
       .post(`/donvi/course/loads-mon-hoc-dang-hoc-ky`, data, {
@@ -31,7 +36,7 @@ export const CourseDonViAPI = {
       })
       .then((res) => res.data),
   AddNewCourse: (data: { code_course: string, id_key_year_semester: number, id_semester: number, id_program: number, name_course: string, id_gr_course: number, credits: number, id_isCourse: number, totalPractice: number, totalTheory: number }) =>
-    axiosClient 
+    axiosClient
       .post(`/donvi/course/them-moi-mon-hoc`, data, {
         headers: { "Content-Type": "application/json" },
         withCredentials: true,

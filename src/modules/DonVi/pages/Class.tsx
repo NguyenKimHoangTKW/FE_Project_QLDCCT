@@ -209,7 +209,7 @@ export default function ClassInterfaceDonVi() {
                 <div className="card-body">
                     <div className="page-header no-gutters">
                         <h2 className="text-uppercase">
-                            Quản lý Danh sách dạng câu hỏi cho đề cương học phần
+                            Quản lý Danh sách lớp học thuộc đơn vị
                         </h2>
                         <hr />
                         <fieldset className="border rounded-3 p-3">

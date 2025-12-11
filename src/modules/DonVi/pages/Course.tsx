@@ -36,12 +36,18 @@ function CourseInterfaceDonVi() {
   const [checkClickKeyYear, setCheckClickKeyYear] = useState(false);
   const [logData, setLogData] = useState<any[]>([]);
   const [showLogData, setShowLogData] = useState(false);
+  const [openViewSyllabus, setOpenViewSyllabus] = useState(false);
   const [listKeyYearSemesterFilter, setListKeyYearSemesterFilter] = useState<any[]>([]);
   const [openOptionFilter, setOpenOptionFilter] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [rawSearchText, setRawSearchText] = useState("");
   const [totalCount, setTotalCount] = useState(0);
   const [totalCountIsSyllabus, setTotalCountIsSyllabus] = useState(0);
+  const [listSyllabusByCourseFinal, setListSyllabusByCourseFinal] = useState<{
+    message?: string;
+    success?: boolean;
+    data?: any[];
+  }>({});
   const [listSemesterFilter, setListSemesterFilter] = useState<any[]>([]);
   interface FormData {
     id_course: number | null;
@@ -425,7 +431,31 @@ function CourseInterfaceDonVi() {
     setOpenOptionFilter(true);
   }
 
-
+  const LoadListSyllabusByCourseFinal = async () => {
+    const res = await CourseDonViAPI.ListSyllabusByCourseFinal({ id_course: Number(selectedIdCourse) });
+    if (res.success) {
+      setListSyllabusByCourseFinal({
+        success: true,
+        data: res.data,
+        message: res.message,
+      });
+    }
+    else {
+      SweetAlert("error", res.message);
+      setListSyllabusByCourseFinal({
+        success: false,
+        data: [],
+        message: res.message,
+      });
+    }
+  }
+  const handleViewSyllabus = () => {
+    setOpenViewSyllabus(true);
+    LoadListSyllabusByCourseFinal();
+  }
+  const handlePreviewSyllabus = (id_syllabus: number) => {
+    window.open(`/donvi/preview-syllabus/${id_syllabus}/false`, "_blank");
+  }
   const LoadListUserWriteCourse = async (id_course: number) => {
     const res = await CourseDonViAPI.LoadListUserWriteCourse({ id_course: Number(id_course) });
     if (res.success) {
@@ -951,7 +981,7 @@ function CourseInterfaceDonVi() {
           <div
             className="action-card edit"
             onClick={() => {
-              handleInfo(Number(selectedIdCourse));
+              handleViewSyllabus();
               setOpenFunction(false);
             }}
           >
@@ -1143,7 +1173,7 @@ function CourseInterfaceDonVi() {
                       <td>{item.name_program}</td>
                       <td>{item.time_accept_request === null ? "" : unixTimestampToDate(item.time_request)}</td>
                       <td>{item.time_accept_request === null ? "" : unixTimestampToDate(item.time_accept_request)}</td>
-                      <td>{item.is_approve === true ? <span className="badge badge-pill badge-success">Giảng viên viết chính</span> : <span className="badge badge-pill badge-warning">Giảng viên phụ viết</span>}</td>
+                      <td>{item.is_key_user === true ? <span className="badge badge-pill badge-success">Giảng viên viết chính</span> : <span className="badge badge-pill badge-warning">Giảng viên phụ viết</span>}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1155,6 +1185,54 @@ function CourseInterfaceDonVi() {
             )}
           </div>
         </>
+      </Modal>
+      <Modal
+        isOpen={openViewSyllabus}
+        title="Xem chi tiết đề cương đã hoàn thiện"
+        onClose={() => setOpenViewSyllabus(false)}
+      >
+        <div className="table-responsive">
+          <table className="table table-bordered">
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Mã giảng viên</th>
+                <th>Họ và tên giảng viên</th>
+                <th>Email</th>
+                <th>Thuộc chương trình đào tạo</th>
+                <th>Mã học phần</th>
+                <th>Tên học phần</th>
+                <th>Version đề cương</th>
+                <th>Thời gian tạo đề cương</th>
+                <th>Thời gian hoàn thành đề cương</th>
+                <th>Trạng thái đề cương</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {listSyllabusByCourseFinal.data?.map((item, index) => (
+                <tr key={item.id_syllabus}>
+                  <td>{index + 1}</td>
+                  <td>{item.code_civilSer}</td>
+                  <td>{item.fullname_civilSer}</td>
+                  <td>{item.email}</td>
+                  <td>{item.name_program}</td>
+                  <td>{item.code_course}</td>
+                  <td>{item.name_course}</td>
+                  <td className="formatSo">{item.version}</td>
+                  <td>{unixTimestampToDate(item.time_cre)}</td>
+                  <td>{unixTimestampToDate(item.time_up)}</td>
+                  <td>{item.status == "Duyệt thành công" ? <span className="text-success">Đã hoàn thành</span> : <span className="text-danger">Chưa hoàn thành</span>}</td>
+                  <td>
+                    <button className="btn btn-sm btn-function-ceo" onClick={() => handlePreviewSyllabus(item.id_syllabus)}>
+                      <i className="fas fa-eye"></i> Xem đề cương
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Modal>
       <div
         className="shadow-lg d-flex flex-wrap justify-content-center align-items-center gap-3 p-3 mt-4"

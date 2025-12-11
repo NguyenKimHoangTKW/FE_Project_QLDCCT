@@ -25,6 +25,8 @@ function UsersList() {
   const [idTypeSelected, setIdTypeSelected] = useState(0);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [showModalType, setShowModalType] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const [rawSearchText, setRawSearchText] = useState("");
   const [selected_typeUserValue, setSelected_typeUserValue] = useState<any[]>(
     []
   );
@@ -50,6 +52,7 @@ function UsersList() {
         id_type_users: Number(idTypeSelected),
         Page: page,
         PageSize: pageSize,
+        searchTerm: searchText,
       });
       if (res.success) {
         setAllData(res.data);
@@ -106,14 +109,7 @@ function UsersList() {
     setModalMode("create");
     setShowModal(true);
   };
-  useEffect(() => {
-    if (!didFetch.current) {
-      GetListTypeUser();
-      showData();
-      didFetch.current = true;
-    }
-  }, []);
-
+  
   const handleSelectChange = (opt: any) => {
     setSelected(opt);
     setIdTypeSelected(opt ? opt.value : null);
@@ -150,7 +146,22 @@ function UsersList() {
       }
     }
   };
-
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      setSearchText(rawSearchText);
+      setPage(1);
+    }, 500);
+    return () => clearTimeout(delayDebounce);
+  }, [rawSearchText]);
+  useEffect(() => {
+    if (!didFetch.current) {
+      GetListTypeUser();
+      didFetch.current = true;
+    }
+  }, []);
+  useEffect(() => {
+    showData();
+  }, [page, pageSize, searchText]);
 
   return (
     <div className="main-content">
@@ -158,7 +169,7 @@ function UsersList() {
       <div className="card">
         <div className="card-body">
           <div className="page-header no-gutters">
-            <h2 className="text-uppercase">Quản lý năm</h2>
+            <h2 className="text-uppercase">Quản lý Danh sách tài khoản toàn trường</h2>
             <hr />
             <fieldset className="border rounded-3 p-3">
               <legend className="float-none w-auto px-3">Chức năng</legend>
@@ -201,10 +212,10 @@ function UsersList() {
                     allData.map((item, index) => (
                       <tr key={item.id_users}>
                         <td data-label="STT" className="formatSo">{(page - 1) * pageSize + index + 1}</td>
-                        <td data-label="Tên tài khoản" className="formatSo">{item.username}</td>
+                        <td data-label="Tên tài khoản">{item.username}</td>
                         <td data-label="Email">{item.email}</td>
                         <td data-label="Quyền tài khoản">{item.name_type_users}</td>
-                        <td data-label="Trạng thái" className="formatSo">{item.status}</td>
+                        <td data-label="Trạng thái">{item.status}</td>
                         <td data-label="Ngày tạo" className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
                         <td data-label="Cập nhật lần cuối" className="formatSo">{unixTimestampToDate(item.time_up)}</td>
                         <td data-label="*" className="formatSo">
@@ -235,6 +246,28 @@ function UsersList() {
                 </tbody>
               </table>
             </div>
+            <div className="ceo-pagination mt-3">
+            <div className="ceo-pagination-info">
+              Tổng số: {totalRecords} bản ghi | Trang {page}/{totalPages}
+            </div>
+
+            <div className="ceo-pagination-actions">
+              <button
+                className="btn btn-outline-primary btn-sm"
+                disabled={page <= 1}
+                onClick={() => setPage(page - 1)}
+              >
+                ← Trang trước
+              </button>
+              <button
+                className="btn btn-outline-primary btn-sm"
+                disabled={page >= totalPages}
+                onClick={() => setPage(page + 1)}
+              >
+                Trang sau →
+              </button>
+            </div>
+          </div>
           </div>
         </div>
       </div>
@@ -264,6 +297,49 @@ function UsersList() {
         </form>
       </Modal>
       {/* EndModal Thêm mới tài khoản*/}
+      <div
+        className="shadow-lg d-flex flex-wrap justify-content-center align-items-center gap-3 p-3 mt-4"
+        style={{
+          position: "sticky",
+          bottom: 0,
+          background: "rgba(245, 247, 250, 0.92)",
+          backdropFilter: "blur(8px)",
+          borderTop: "1px solid #e5e7eb",
+          zIndex: 100,
+        }}
+      >
+        {/* Ô tìm kiếm */}
+        <div className="col-md-4">
+          <label className="ceo-label" style={{ fontWeight: 600, opacity: 0.8 }}>
+            Tìm kiếm
+          </label>
+
+          <div className="input-group">
+            <span
+              className="input-group-text"
+              style={{
+                background: "#fff",
+                borderRight: "none",
+                borderRadius: "10px 0 0 10px",
+              }}
+            >
+              🔍
+            </span>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Nhập từ khóa để tìm kiếm..."
+              value={rawSearchText}
+              onChange={(e) => setRawSearchText(e.target.value)}
+              style={{
+                borderLeft: "none",
+                borderRadius: "0 10px 10px 0",
+                padding: "10px 12px",
+              }}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

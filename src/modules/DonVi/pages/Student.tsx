@@ -43,17 +43,33 @@ export default function StudentInterfaceDonVi() {
     });
     const handleInputChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setOptionData((prev) => ({ ...prev, [name]: value }));
-        if (name === "id_class_value") {
-            setOptionData((prev) => ({ ...prev, id_class: Number(value) }));
-        }
+        const numValue = Number(value);
+    
         if (name === "id_program") {
-            setOptionData((prev) => ({ ...prev, id_program: Number(value) }));
+            setOptionData(prev => ({
+                ...prev,
+                id_program: numValue,
+                id_class: 0 
+            }));
+            return;
         }
+    
+        if (name === "id_class_value") {
+            setOptionData(prev => ({
+                ...prev,
+                id_class: numValue
+            }));
+            return;
+        }
+    
         if (name === "id_class") {
-            setFormData((prev) => ({ ...prev, id_class: Number(value) }));
+            setFormData(prev => ({
+                ...prev,
+                id_class: numValue
+            }));
         }
-    }
+    };
+    
     const LoadListCTDT = async () => {
         const res = await StudentDonViAPI.GetListCTDTByDonVi();
         setListCTDT(res);
@@ -250,7 +266,7 @@ export default function StudentInterfaceDonVi() {
                 <div className="card-body">
                     <div className="page-header no-gutters">
                         <h2 className="text-uppercase">
-                            Quản lý Danh sách dạng câu hỏi cho đề cương học phần
+                            Quản lý Danh sách dạng câu hỏi cho đề cương học phần thuộc đơn vị
                         </h2>
                         <hr />
                         <fieldset className="border rounded-3 p-3">

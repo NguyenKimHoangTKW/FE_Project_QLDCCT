@@ -68,10 +68,10 @@ function CivilServants() {
     const { name, value } = e.target;
     setOptionFilter((prev) => ({ ...prev, [name]: Number(value) }));
     if (name === "id_faculty_filter") {
-      setOptionFilter((prev) => ({ ...prev, id_program: Number(value) }));
+      setOptionFilter((prev) => ({ ...prev, id_faculty: Number(value) }));
     }
     if (name === "id_program_filter") {
-      setOptionFilter((prev) => ({ ...prev, id_faculty: Number(value) }));
+      setOptionFilter((prev) => ({ ...prev, id_program: Number(value) }));
     }
     if (name === "id_program") {
       setFormData((prev) => ({ ...prev, id_program: Number(value) }));
@@ -280,7 +280,7 @@ function CivilServants() {
         <div className="card-body">
           <div className="page-header no-gutters">
             <h2 className="text-uppercase">
-              Quản lý Danh sách Cán bộ viên chức thuộc Đơn vị
+              Quản lý Danh sách Cán bộ viên chức toàn trường
             </h2>
             <hr />
             <fieldset className="border rounded-3 p-3">

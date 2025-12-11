@@ -1,24 +1,25 @@
-import { ListCTDTPermissionAPI } from "../../../api/CTDT/ListCTDTPermissionAPI";
-import { StatisticalCLOCTDTAPI } from "../../../api/CTDT/StatisticalCLO";
 import { useState, useEffect } from "react";
 import Loading from "../../../components/ui/Loading";
 import CeoSelect2 from "../../../components/ui/CeoSelect2";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
-import { StatisticalCLODonViAPI } from "../../../api/DonVi/StatisticalCLO";
 import { SweetAlert } from "../../../components/ui/SweetAlert";
-export default function StatisticalCLOInterfaceDonVi() {
-    const [selectProgram, setSelectProgram] = useState<any[]>([]);
+import { StatisticalCLOAdminAPI } from "../../../api/Admin/StatisticalCLO";
+export default function StatisticalCLOInterfaceAdmin() {
     const [loading, setLoading] = useState(false);
     const [allData, setAllData] = useState<any[]>([]);
+    const [listDonVi, setListDonVi] = useState<any[]>([]);
+    const [listCTDT, setListCTDT] = useState<any[]>([]);
     const [selectedKeyYear, setSelectedKeyYear] = useState<any[]>([]);
-    interface OptionData {
-        Id_Program: number;
-        Id_Key_Year_Semester: number;
+    interface OptionFilter {
+        id_program: number;
+        id_key_year_semester: number;
+        id_faculty: number;
     }
-    const [optionData, setOptionData] = useState<OptionData>({
-        Id_Program: 0,
-        Id_Key_Year_Semester: 0,
+    const [optionFilter, setOptionFilter] = useState<OptionFilter>({
+        id_program: 0,
+        id_key_year_semester: 0,
+        id_faculty: 0,
     });
     const headers = [
         { label: "STT", key: "" },
@@ -29,37 +30,50 @@ export default function StatisticalCLOInterfaceDonVi() {
     ];
     const handleInputChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setOptionData((prev) => ({ ...prev, [name]: Number(value) }));
-        if (name === "Id_Program") {
-            setOptionData((prev) => ({ ...prev, Id_Program: Number(value) }));
+        setOptionFilter((prev) => ({ ...prev, [name]: Number(value) }));
+        if (name === "id_faculty") {
+            setOptionFilter((prev) => ({ ...prev, id_faculty: Number(value) }));
         }
-        if (name === "Id_Key_Year_Semester") {
-            setOptionData((prev) => ({ ...prev, Id_Key_Year_Semester: Number(value) }));
+        if (name === "id_program") {
+            setOptionFilter((prev) => ({ ...prev, id_program: Number(value) }));
+        }
+        if (name === "id_key_year_semester") {
+            setOptionFilter((prev) => ({ ...prev, id_key_year_semester: Number(value) }));
         }
     }
-    const LoadCTDT = async () => {
-        const res = await StatisticalCLODonViAPI.GetListCTDTByDonVi();
-        const formattedData = res.map((item: any) => ({
-            value: item.id_program,
-            label: item.name_program,
-        }));
-        setSelectProgram(formattedData);
-        setOptionData((prev) => ({ ...prev, Id_Program: Number(formattedData[0].value) }));
+    const GetListDonVi = async () => {
+        const res = await StatisticalCLOAdminAPI.GetListDonVi();
+        if (res.success) {
+            setListDonVi(res.data);
+            setOptionFilter((prev) => ({ ...prev, id_faculty: Number(res.data[0].id_faculty) }));
+        }
+        else {
+            setListDonVi([]);
+        }
     }
+    const GetListCTDTByDonVi = async () => {
+        const res = await StatisticalCLOAdminAPI.GetListCTDTByDonVi({ id_faculty: Number(optionFilter.id_faculty) });
+        if (res.success) {
+            setListCTDT(res.data);
+        }
+        else {
+            setListCTDT([]);
+        }
+    }
+
     const LoadSelectStatisticalCLO = async () => {
         setLoading(true);
-        const res = await StatisticalCLODonViAPI.LoadSelectProgramLearningOutcome({ Id_Program: Number(optionData.Id_Program) });
+        const res = await StatisticalCLOAdminAPI.LoadSelectProgramLearningOutcome({ id_faculty: Number(optionFilter.id_faculty) });
         const formattedKeyYear = res.keySemester.map((item: any) => ({
             value: item.id_key_year_semester,
             label: item.name_key_year_semester,
         }));
         setSelectedKeyYear(formattedKeyYear);
-        setOptionData((prev) => ({ ...prev, Id_Key_Year_Semester: Number(formattedKeyYear[0].value) }));
         setLoading(false);
     }
     const LoadData = async () => {
         setLoading(true);
-        const res = await StatisticalCLODonViAPI.GetListStatisticalCLO({ Id_Program: Number(optionData.Id_Program), id_key_semester: Number(optionData.Id_Key_Year_Semester) });
+        const res = await StatisticalCLOAdminAPI.GetListStatisticalCLO({ id_faculty: Number(optionFilter.id_faculty), id_program: Number(optionFilter.id_program), id_key_semester: Number(optionFilter.id_key_year_semester) });
         if (res.success) {
             setAllData(res.data);
             SweetAlert("success", res.message);
@@ -140,13 +154,14 @@ export default function StatisticalCLOInterfaceDonVi() {
     };
 
     useEffect(() => {
-        LoadCTDT();
+        GetListDonVi();
     }, []);
     useEffect(() => {
-        if (optionData.Id_Program) {
+        if (optionFilter.id_faculty) {
+            GetListCTDTByDonVi();
             LoadSelectStatisticalCLO();
         }
-    }, [optionData.Id_Program]);
+    }, [optionFilter.id_faculty]);
     return (
         <div className="main-content">
             <Loading isOpen={loading} />
@@ -154,21 +169,33 @@ export default function StatisticalCLOInterfaceDonVi() {
                 <div className="card-body">
                     <div className="page-header no-gutters">
                         <h2 className="text-uppercase">
-                            Quản lý thống kê mô tả và mục tiêu học phần thuộc đơn vị
+                          Quản lý thống kê mô tả và mục tiêu học phần toàn trường
                         </h2>
                         <hr />
                         <fieldset className="border rounded-3 p-3">
                             <legend className="float-none w-auto px-3">Chức năng</legend>
                             <div className="row mb-3 align-items-end">
+                            <div className="col-md-4">
+                                    <CeoSelect2
+                                        label="Đơn vị"
+                                        name="id_faculty"
+                                        value={optionFilter.id_faculty}
+                                        onChange={handleInputChange}
+                                        options={listDonVi.map((item: any) => ({
+                                            value: item.id_faculty,
+                                            text: item.name_faculty
+                                        }))}
+                                    />
+                                </div>
                                 <div className="col-md-4">
                                     <CeoSelect2
                                         label="Chương trình đào tạo"
-                                        name="Id_Program"
-                                        value={optionData.Id_Program}
+                                        name="id_program"
+                                        value={optionFilter.id_program}
                                         onChange={handleInputChange}
-                                        options={selectProgram.map((item: any) => ({
-                                            value: item.value,
-                                            text: item.label
+                                        options={listCTDT.map((item: any) => ({
+                                            value: item.id_program,
+                                            text: item.name_program
                                         }))}
                                     />
                                 </div>
@@ -176,7 +203,7 @@ export default function StatisticalCLOInterfaceDonVi() {
                                     <CeoSelect2
                                         label="Khóa học"
                                         name="Id_Key_Year_Semester"
-                                        value={optionData.Id_Key_Year_Semester}
+                                        value={optionFilter.id_key_year_semester}
                                         onChange={handleInputChange}
                                         options={selectedKeyYear.map((item: any) => ({
                                             value: item.value,

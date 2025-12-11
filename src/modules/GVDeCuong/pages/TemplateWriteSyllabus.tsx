@@ -167,7 +167,7 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
         await LoadListPLOCourse();
         await LoadPreviewLevelContribution();
         await LoadPreviewMapPLObySyllabus();
-       await LoadDraftFromServer();
+        await LoadDraftFromServer();
       };
 
       loadAll();

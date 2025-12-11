@@ -57,14 +57,6 @@ function UserPermissionPage() {
     },
   ];
 
-  const GetListYear = async () => {
-    const res = await UsersAPI.GetListYear();
-    const formatted = res.map((item: any) => ({
-      value: item.id_year,
-      label: item.name_year,
-    }));
-    setListYear(formatted);
-  };
   const GetListDonVi = async () => {
     const res = await UsersAPI.GetListDonVi({ id_users: Number(id_users) });
     setListDonVi(res);
@@ -147,7 +139,11 @@ function UserPermissionPage() {
       SweetAlert("success", res.message);
     }
   };
-
+  useEffect(() => {
+    if (selectedValue) {
+      handleSelectedChangeValue(selectedValue);
+    }
+  }, [selectedValue]);
   if (loading)
     return (
       <div className="d-flex justify-content-center align-items-center vh-100">

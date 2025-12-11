@@ -141,7 +141,7 @@ export default function StatisticalCLOInterfaceCTDT() {
                 <div className="card-body">
                     <div className="page-header no-gutters">
                         <h2 className="text-uppercase">
-                            Quản lý Danh sách Chuẩn đầu ra chương trình đào tạo
+                            Quản lý thống kê mô tả và mục tiêu học phần trong chương trình đào tạo
                         </h2>
                         <hr />
                         <fieldset className="border rounded-3 p-3">

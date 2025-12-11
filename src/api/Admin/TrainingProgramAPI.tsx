@@ -5,7 +5,7 @@ export const TrainingProgramAPI = {
     axiosClient.get(`/admin/program/loads-select-don-vi`, {
       withCredentials: true,
     }).then((res) => res.data),
-  GetListProgram: (data: { id_faculty: number, Page: number, PageSize: number }) =>
+  GetListProgram: (data: { id_faculty: number, Page: number, PageSize: number ,searchTerm: string}) =>
     axiosClient.post(`/admin/program/loads-ctdt-thuoc-don-vi`, data, {
       headers: { "Content-Type": "application/json" },
       withCredentials: true,

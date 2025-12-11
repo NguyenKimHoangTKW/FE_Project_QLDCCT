@@ -6,7 +6,7 @@ export const UsersAPI = {
         withCredentials: true,
       })
       .then((res) => res.data),
-  getLoadDanhSachUser: ( data: { id_type_users: number, Page: number; PageSize: number }) =>
+  getLoadDanhSachUser: ( data: { id_type_users: number, Page: number; PageSize: number, searchTerm: string }) =>
     axiosClient.post(`/admin/users/loads-danh-sach-users`, data, {
         headers: { "Content-Type": "application/json" },
         withCredentials: true,

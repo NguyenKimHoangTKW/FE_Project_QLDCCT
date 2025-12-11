@@ -1,7 +1,7 @@
 import axiosClient from "../axiosClient";
 
 export const FacultyApi = {
-  GetListFaculty: (data: { Page: number, PageSize: number }) =>
+  GetListFaculty: (data: { Page: number, PageSize: number, searchTerm: string }) =>
     axiosClient.post(`/admin/faculty/loads-don-vi`, data, {
       headers: { "Content-Type": "application/json" },
       withCredentials: true,

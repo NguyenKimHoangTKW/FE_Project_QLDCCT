@@ -5,16 +5,15 @@ import Modal from "../../../components/ui/Modal";
 import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import Loading from "../../../components/ui/Loading";
 import Swal from "sweetalert2";
-import CeoSelect2 from "../../../components/ui/CeoSelect2";
 function FacultyInterface() {
   const [loading, setLoading] = useState(false);
   const [listFaculty, setListFaculty] = useState<any[]>([]);
   const [searchText, setSearchText] = useState("");
+  const [rawSearchText, setRawSearchText] = useState("");
   const [totalRecords, setTotalRecords] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [allData, setAllData] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -43,7 +42,7 @@ function FacultyInterface() {
   const showData = async () => {
     setLoading(true);
     try {
-      const res = await FacultyApi.GetListFaculty({ Page: page, PageSize: pageSize });
+      const res = await FacultyApi.GetListFaculty({ Page: page, PageSize: pageSize, searchTerm: searchText });
       if (res.success) {
         setListFaculty(res.data);
         setTotalRecords(Number(res.totalRecords) || 0);
@@ -188,8 +187,15 @@ function FacultyInterface() {
     }
   };
   useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      setSearchText(rawSearchText);
+      setPage(1);
+    }, 500);
+    return () => clearTimeout(delayDebounce);
+  }, [rawSearchText]);
+  useEffect(() => {
     showData();
-  }, [page, pageSize]);
+  }, [page, pageSize, searchText]);
   return (
     <div className="main-content">
       <Loading isOpen={loading} />
@@ -197,7 +203,7 @@ function FacultyInterface() {
         <div className="card-body">
           <div className="page-header no-gutters">
             <h2 className="text-uppercase">
-              Quản lý Danh sách đơn vị
+              Quản lý Danh sách đơn vị toàn trường
             </h2>
             <hr />
             <fieldset className="border rounded-3 p-3">
@@ -278,7 +284,7 @@ function FacultyInterface() {
                         <tr key={item.id_faculty}>
                           <td data-label="STT" className="formatSo">{(page - 1) * pageSize + index + 1}</td>
                           <td data-label="Mã đơn vị" className="formatSo">{item.code_faciulty}</td>
-                          <td data-label="Tên đơn vị" className="formatSo">{item.name_faculty}</td>
+                          <td data-label="Tên đơn vị">{item.name_faculty}</td>
                           <td data-label="Ngày tạo" className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
                           <td data-label="Cập nhật lần cuối" className="formatSo">{unixTimestampToDate(item.time_up)}</td>
                           <td data-label="*" className="formatSo">
@@ -352,6 +358,49 @@ function FacultyInterface() {
           </div>
         </form>
       </Modal>
+      <div
+                className="shadow-lg d-flex flex-wrap justify-content-center align-items-center gap-3 p-3 mt-4"
+                style={{
+                    position: "sticky",
+                    bottom: 0,
+                    background: "rgba(245, 247, 250, 0.92)",
+                    backdropFilter: "blur(8px)",
+                    borderTop: "1px solid #e5e7eb",
+                    zIndex: 100,
+                }}
+            >
+                {/* Ô tìm kiếm */}
+                <div className="col-md-4">
+                    <label className="ceo-label" style={{ fontWeight: 600, opacity: 0.8 }}>
+                        Tìm kiếm
+                    </label>
+
+                    <div className="input-group">
+                        <span
+                            className="input-group-text"
+                            style={{
+                                background: "#fff",
+                                borderRight: "none",
+                                borderRadius: "10px 0 0 10px",
+                            }}
+                        >
+                            🔍
+                        </span>
+                        <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Nhập từ khóa để tìm kiếm..."
+                            value={rawSearchText}
+                            onChange={(e) => setRawSearchText(e.target.value)}
+                            style={{
+                                borderLeft: "none",
+                                borderRadius: "0 10px 10px 0",
+                                padding: "10px 12px",
+                            }}
+                        />
+                    </div>
+                </div>
+            </div>
     </div>
   );
 }

@@ -50,7 +50,38 @@ function AdminSideNav() {
              🧩 Quản lý Danh sách nhóm học phần
             </NavLink>
           </li>
-
+          <li>
+            <NavLink
+              to="/admin/quan-li-danh-sach-mon-hoc"
+              className={({ isActive }) => isActive ? "active-menu" : ""}
+            >
+              📚 Quản lý Danh sách môn học
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/admin/quan-li-danh-sach-chuan-dau-ra-chuong-trinh-dao-tao"
+              className={({ isActive }) => isActive ? "active-menu" : ""}
+            >
+              🎯 Quản lý Danh sách chuẩn đầu ra chương trình đào tạo
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/admin/quan-li-ma-tran-dong-gop"
+              className={({ isActive }) => isActive ? "active-menu" : ""}
+            >
+              💰 Quản lý Ma trận đóng góp
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/admin/quan-li-thong-ke-nhap-lieu-clo"
+              className={({ isActive }) => isActive ? "active-menu" : ""}
+            >
+              📊 Quản lý Thống kê nhập liệu CLO
+            </NavLink>
+          </li>
           <li>
             <NavLink
               to="#"

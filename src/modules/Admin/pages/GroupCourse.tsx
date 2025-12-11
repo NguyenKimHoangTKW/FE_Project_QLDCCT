@@ -141,7 +141,7 @@ function GroupCourseInterface() {
       <div className="card">
         <div className="card-body">
           <div className="page-header no-gutters">
-            <h2 className="text-uppercase">Quản lý Danh sách Nhóm học phần</h2>
+            <h2 className="text-uppercase">Quản lý Danh sách Nhóm học phần toàn trường</h2>
             <hr />
             <fieldset className="border rounded-3 p-3">
               <legend className="float-none w-auto px-3">Chức năng</legend>
@@ -165,22 +165,6 @@ function GroupCourseInterface() {
                 <tr>
                   {headers.map((h, idx) => (
                     <th key={idx}>{h.label}</th>
-                  ))}
-                </tr>
-                <tr>
-                  {headers.map((h, idx) => (
-                    <th key={idx}>
-                      {h.key ? (
-                        <input
-                          type="text"
-                          className="form-control form-control-sm"
-                          value={filters[h.key] || ""}
-                          onChange={(e) =>
-                            handleFilterChange(h.key, e.target.value)
-                          }
-                        />
-                      ) : null}
-                    </th>
                   ))}
                 </tr>
               </thead>

@@ -12,7 +12,6 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { PieChart } from '@mui/x-charts/PieChart';
-import { FileDown, FileUp, FileText, Clock, Upload } from "lucide-react";
 function CourseInterfaceCtdt() {
   const didFetch = useRef(false);
   const navigate = useNavigate();
@@ -687,7 +686,7 @@ function CourseInterfaceCtdt() {
         <div className="card-body">
           <div className="page-header no-gutters">
             <h2 className="text-uppercase">
-              Quản lý Danh sách Học phần thuộc Chương trình
+              Quản lý Danh sách Học phần thuộc Chương trình đào tạ<object data="" type=""></object>
             </h2>
             <hr />
             <fieldset className="ceo-panel">
@@ -1575,7 +1574,7 @@ function CourseInterfaceCtdt() {
                       <td>{item.name_program}</td>
                       <td>{item.time_accept_request === null ? "" : unixTimestampToDate(item.time_request)}</td>
                       <td>{item.time_accept_request === null ? "" : unixTimestampToDate(item.time_accept_request)}</td>
-                      <td>{item.is_approve === true ? <span className="badge badge-pill badge-success">Giảng viên viết chính</span> : <span className="badge badge-pill badge-warning">Giảng viên phụ viết</span>}</td>
+                      <td>{item.is_key_user === true ? <span className="badge badge-pill badge-success">Giảng viên viết chính</span> : <span className="badge badge-pill badge-warning">Giảng viên phụ viết</span>}</td>
                     </tr>
                   ))}
                 </tbody>

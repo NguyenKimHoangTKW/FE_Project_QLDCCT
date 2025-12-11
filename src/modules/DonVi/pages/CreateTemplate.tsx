@@ -298,7 +298,13 @@ export default function CreateTemplateInterfaceDonVi() {
                             >
                                 <i className="fas fa-plus-circle me-1"></i> Tạo mới tiêu đề
                             </button>
-
+                            <button
+                                type="button"
+                                className="btn btn-ceo-green"
+                                onClick={handleSaveTemplate}
+                            >
+                                <i className="fas fa-save me-1"></i> Lưu câu hỏi
+                            </button>
                             <button
                                 type="button"
                                 id="btnPreviewTemplateCreated"
@@ -310,15 +316,9 @@ export default function CreateTemplateInterfaceDonVi() {
                                     )
                                 }
                             >
-                                <i className="fas fa-eye me-1"></i> Xem trước mẫu đề cương
+                                <i className="fas fa-eye me-1"></i> Xem mẫu đề cương
                             </button>
-                            <button
-                                type="button"
-                                className="btn btn-ceo-green"
-                                onClick={handleSaveTemplate}
-                            >
-                                <i className="fas fa-save me-1"></i> Xuất bản mẫu đề cương
-                            </button>
+
                         </div>
                     </div>
                 </div>
