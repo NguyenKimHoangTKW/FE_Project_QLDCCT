@@ -69,21 +69,22 @@ export default function StatisticalCLOInterfaceDonVi() {
     const htmlToPlainText = (html: string | null | undefined) => {
         if (!html) return "";
     
-        // Giữ xuống dòng
-        let text = html.replace(/<br\s*\/?>/gi, "\n")
-                       .replace(/<\/p>/gi, "\n");
+        let text = html
+            .replace(/<br\s*\/?>/gi, "\n")
+            .replace(/<\/p>/gi, "\n")
+            .replace(/<p[^>]*>/gi, "");
     
-        // Xóa toàn bộ thẻ HTML
         text = text.replace(/<[^>]*>/g, "");
     
-        // Decode HTML Entities → Text Unicode
         const txt = document.createElement("textarea");
         txt.innerHTML = text;
         text = txt.value;
     
-        // Loại bỏ ký tự thừa
-        text = text.replace(/\u00a0/g, " "); // nbsp
-        text = text.replace(/\s+/g, " ").trim();
+        text = text
+            .replace(/\u00a0/g, " ")       
+            .replace(/[ \t]+/g, " ")        
+            .replace(/\n{3,}/g, "\n\n")    
+            .trim();
     
         return text;
     };

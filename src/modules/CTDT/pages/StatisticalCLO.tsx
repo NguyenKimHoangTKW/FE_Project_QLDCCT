@@ -65,6 +65,29 @@ export default function StatisticalCLOInterfaceCTDT() {
         }
         setLoading(false);
     }
+    const htmlToPlainText = (html: string | null | undefined) => {
+        if (!html) return "";
+    
+        let text = html
+            .replace(/<br\s*\/?>/gi, "\n")
+            .replace(/<\/p>/gi, "\n")
+            .replace(/<p[^>]*>/gi, "");
+    
+        text = text.replace(/<[^>]*>/g, "");
+    
+        const txt = document.createElement("textarea");
+        txt.innerHTML = text;
+        text = txt.value;
+    
+        text = text
+            .replace(/\u00a0/g, " ")       
+            .replace(/[ \t]+/g, " ")        
+            .replace(/\n{3,}/g, "\n\n")    
+            .trim();
+    
+        return text;
+    };
+    
     const exportExcel = async () => {
         if (allData.length === 0) {
             alert("Không có dữ liệu để xuất Excel!");
@@ -97,10 +120,10 @@ export default function StatisticalCLOInterfaceCTDT() {
             worksheet.addRow([
                 index + 1,
                 item.name_course,
-                item.describe_course?.replace(/<[^>]+>/g, ""),
-                item.mo_ta?.replace(/<[^>]+>/g, ""),
-                item.clo?.replace(/<br>/g, "\n").replace(/<[^>]+>/g, "")
-            ]);
+                htmlToPlainText(item.describe_course),
+                htmlToPlainText(item.mo_ta),
+                htmlToPlainText(item.clo)
+            ]);            
         });
 
         worksheet.columns.forEach((column) => {

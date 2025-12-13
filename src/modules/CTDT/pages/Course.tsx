@@ -52,6 +52,7 @@ function CourseInterfaceCtdt() {
   const [logData, setLogData] = useState<any[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [totalCountIsSyllabus, setTotalCountIsSyllabus] = useState(0);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [listSyllabusByCourseFinal, setListSyllabusByCourseFinal] = useState<{
     message?: string;
     success?: boolean;
@@ -686,7 +687,7 @@ function CourseInterfaceCtdt() {
         <div className="card-body">
           <div className="page-header no-gutters">
             <h2 className="text-uppercase">
-              Quản lý Danh sách Học phần thuộc Chương trình đào tạ<object data="" type=""></object>
+              Quản lý Danh sách Học phần thuộc Chương trình đào tạo
             </h2>
             <hr />
             <fieldset className="ceo-panel">
@@ -1027,40 +1028,70 @@ function CourseInterfaceCtdt() {
         </div>
       </div>
       {/*Modal Import*/}
-      <div
-        className="modal fade"
-        id="importExcelModal"
-        tabIndex={-1}
-        aria-labelledby="importExcelModalLabel"
-        aria-hidden="true"
-      >
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Import danh sách học phần từ Excel</h5>
-              <button type="button" className="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            <div className="modal-body">
-              <form id="importExcelForm" autoComplete="off">
-                <div className="form-group row">
-                  <label className="col-sm-2 col-form-label">File Excel</label>
-                  <div className="col-sm-10">
-                    <input type="file" className="form-control" name="file" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedFile(e.target.files?.[0] || null)} />
+      {showImportModal && (
+        <div
+          className="modal fade show"
+          tabIndex={-1}
+          style={{ display: "block" }}
+        >
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  Import danh sách học phần từ Excel
+                </h5>
+                <button
+                  type="button"
+                  className="close"
+                  onClick={() => setShowImportModal(false)}
+                >
+                  <span>&times;</span>
+                </button>
+              </div>
+
+              <div className="modal-body">
+                <form autoComplete="off">
+                  <div className="form-group row">
+                    <label className="col-sm-2 col-form-label">File Excel</label>
+                    <div className="col-sm-10">
+                      <input
+                        type="file"
+                        className="form-control"
+                        onChange={(e) =>
+                          setSelectedFile(e.target.files?.[0] || null)
+                        }
+                      />
+                    </div>
                   </div>
-                </div>
-              </form>
-            </div>
-            <hr />
-            <div className="modal-footer">
-              <button type="button" className="btn btn-ceo-green" onClick={handleDownloadTemplate}>Tải file mẫu</button>
-              <button type="button" className="btn btn-ceo-blue" onClick={handleSubmit}>Import</button>
-              <button type="button" className="btn btn-ceo-red" data-dismiss="modal">Đóng</button>
+                </form>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  className="btn btn-ceo-green"
+                  onClick={handleDownloadTemplate}
+                >
+                  Tải file mẫu
+                </button>
+                <button
+                  className="btn btn-ceo-blue"
+                  onClick={handleSubmit}
+                >
+                  Import
+                </button>
+                <button
+                  className="btn btn-ceo-red"
+                  onClick={() => setShowImportModal(false)}
+                >
+                  Đóng
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+
       {/*Modal Import*/}
       <Modal
         isOpen={showModal}
@@ -1163,8 +1194,6 @@ function CourseInterfaceCtdt() {
           </div>
         </form>
       </Modal>
-
-
       <Modal
         isOpen={permissionOpen}
         title="Quản lý quyền hạn"
@@ -1237,7 +1266,6 @@ function CourseInterfaceCtdt() {
           </div>
         </form>
       </Modal>
-
       <Modal
         isOpen={setUpTimeOpen}
         title="Thiết lập thời gian mở học phần đề cương"
@@ -1413,7 +1441,6 @@ function CourseInterfaceCtdt() {
 
         </div>
       </Modal>
-
       <Modal
         isOpen={showLogData}
         onClose={() => setShowLogData(false)}
@@ -1459,6 +1486,7 @@ function CourseInterfaceCtdt() {
           <div
             className="action-card permission hover-effect"
             onClick={() => {
+              setShowImportModal(true);
               setOpenOptionFilter(false);
             }}
           >

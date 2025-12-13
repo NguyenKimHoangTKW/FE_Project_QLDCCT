@@ -329,7 +329,7 @@ export default function ContributionMatrixInterfaceDonVi() {
                             </div>
                         </fieldset>
                     </div>
-                    <div className="table-responsive">
+                    <div className="table-scroll-wrapper">
                         <table className="table table-bordered">
                             <thead>
                                 {listMatrixContribution.length > 0 && listPLoPi.length > 0 ? (
@@ -337,9 +337,6 @@ export default function ContributionMatrixInterfaceDonVi() {
                                         <tr>
                                             <th rowSpan={2}>Mã môn học</th>
                                             <th rowSpan={2}>Tên môn học</th>
-                                            <th rowSpan={2}>Số tín chỉ</th>
-                                            <th rowSpan={2}>Số tiết lý thuyết</th>
-                                            <th rowSpan={2}>Số tiết thực hành</th>
                                             {listPLoPi.map((plo, i) => {
                                                 const span = (plo?.pi?.length ?? 0) || plo?.count_pi || 1;
                                                 return (
@@ -393,9 +390,6 @@ export default function ContributionMatrixInterfaceDonVi() {
                                             <tr key={`course-${idx}-${cIdx}`}>
                                                 <td>{courseItem.code_course}</td>
                                                 <td>{courseItem.name_course}</td>
-                                                <td className="text-center">{courseItem.credits}</td>
-                                                <td className="text-center">{courseItem.totalTheory}</td>
-                                                <td className="text-center">{courseItem.totalPractice}</td>
 
                                                 {headerPiOrder.map((h, piIdx) => {
                                                     const existing = (courseItem.pi || []).find((p: any) => Number(p.id_PI) === h.id_PI);

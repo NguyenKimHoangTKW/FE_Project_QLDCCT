@@ -289,7 +289,7 @@ export default function ClassInterfaceDonVi() {
                     {/*Modal Import*/}
                     <div className="card mt-3">
                         <div className="card-body">
-                            <div className="table-responsive">
+                            <div className="table-scroll-wrapper">
                                 <table className="table table-bordered">
                                     <thead>
                                         <tr>
