@@ -1238,74 +1238,98 @@ export default function TemplateWriteSyllabusInterfaceGVDeCuong() {
   const runAISuggestAuto = async (section: any) => {
     const sectionId = section.section_code;
     const editor = (window as any).tinymce?.get(sectionId);
-
-    if (!editor) return SweetAlert("error", "Không tìm thấy editor!");
-
+  
+    if (!editor) {
+      SweetAlert("error", "Không tìm thấy editor!");
+      return;
+    }
+  
     setAiLoadingSection(sectionId);
     setProgressAI(0);
-
+  
     const currentText = editor.getContent({ format: "text" });
-
-    const res = await fetch(`${URL_API_DVDC}/write-template-syllabus/suggest-stream`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        sectionTitle: section.section_name,
-        courseName: checkOpen.name_course,
-        currentSectionContent: currentText,
-      }),
-    });
-
+  
+    const res = await fetch(
+      `${URL_API_DVDC}/write-template-syllabus/suggest-stream`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          sectionTitle: section.section_name,
+          courseName: checkOpen.name_course,
+          currentSectionContent: currentText,
+        }),
+      }
+    );
+  
     if (!res.ok || !res.body) {
       SweetAlert("error", "Lỗi AI!");
       setAiLoadingSection(null);
       setProgressAI(0);
       return;
     }
-
+  
     const reader = res.body.getReader();
     const decoder = new TextDecoder("utf-8");
+  
     let aiResult = "";
-
+    let isFirstChunk = true;
+  
     const updateProgress = () => {
-      setProgressAI(prev => Math.min(prev + Math.random() * 10, 95));
+      setProgressAI((prev) => Math.min(prev + Math.random() * 8, 95));
     };
-    let interval = setInterval(updateProgress, 500);
-
+    const interval = setInterval(updateProgress, 500);
+  
     try {
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
-        aiResult += decoder.decode(value, { stream: true });
+  
+        const chunk = decoder.decode(value, { stream: true });
+        if (!chunk) continue;
+  
+        aiResult += chunk;
+  
+        // 👉 stream trực tiếp vào editor
+        if (isFirstChunk) {
+          editor.insertContent("<p>");
+          isFirstChunk = false;
+        }
+  
+        editor.insertContent(chunk);
       }
+    } catch (err) {
+      console.error("AI stream error", err);
     } finally {
       clearInterval(interval);
     }
-
-    // Finish progress
+  
+    // đóng đoạn
+    editor.insertContent("</p>");
+  
+    // hoàn tất progress
     setProgressAI(100);
     setTimeout(() => setProgressAI(0), 800);
-
-    // Insert AI content
-    const finalContent = editor.getContent() + `<p>${aiResult}</p>`;
-    editor.setContent(finalContent);
-
-    setDraftData(prev => ({
+  
+    const finalContent = editor.getContent();
+  
+    setDraftData((prev: any) => ({
       ...prev,
       [sectionId]: finalContent,
     }));
-
+  
     hubConnection?.invoke(
       "UpdateSectionDraft",
       Number(id_syllabus),
       sectionId,
-      finalContent,
+      finalContent
     );
-
+  
     setAiLoadingSection(null);
     SweetAlert("success", "AI đã bổ sung nội dung hoàn tất!");
   };
+  
 
   if (loading)
     return (
