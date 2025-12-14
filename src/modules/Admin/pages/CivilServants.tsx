@@ -270,6 +270,7 @@ function CivilServants() {
   }, []);
   useEffect(() => {
     if (optionFilter.id_faculty > 0) {
+      setListCTDT([]);
       LoadListCTDT();
     }
   }, [optionFilter.id_faculty]);

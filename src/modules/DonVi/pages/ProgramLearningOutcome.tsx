@@ -151,6 +151,10 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
         }
     }
     const LoadData = async () => {
+        if(selectedKeyYear.length === 0){
+            SweetAlert("warning", "Đơn vị của bạn không có khóa học, không thể lọc dữ liệu");
+            return;
+        }
         setLoading(true);
         try {
             const res = await ProgramLearningOutcomeAPI.GetListProgramLearningOutcome({ Id_Program: Number(formData.Id_Program), id_key_semester: Number(formData.Id_Key_Year_Semester), Page: page, PageSize: pageSize });
@@ -381,6 +385,11 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
                                     />
                                 </div>
                                 <div className="col-md-4">
+                                    {selectedKeyYear.length === 0 ? (
+                                        <div className="alert alert-warning mb-0" style={{marginTop: "27px"}}>
+                                            ⚠️ Đơn vị của bạn <strong>chưa tạo khóa học</strong>
+                                        </div>
+                                    ) : (
                                     <CeoSelect2
                                         label="Khóa học"
                                         name="Id_Key_Year_Semester"
@@ -391,6 +400,7 @@ export default function ProgramLearningOutcomeInterfaceDonVi() {
                                             text: item.label
                                         }))}
                                     />
+                                    )}
                                 </div>
 
                                 <div className="col-md-4">

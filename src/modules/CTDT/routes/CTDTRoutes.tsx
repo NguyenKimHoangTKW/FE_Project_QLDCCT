@@ -9,6 +9,7 @@ import ClassInterfaceCtdt from "../pages/Class";
 import StudentInterfaceCtdt from "../pages/Student";
 import ProgramLearningOutcomeInterfaceCTDT from "../pages/ProgramLearningOutcome";
 import StatisticalCLOInterfaceCTDT from "../pages/StatisticalCLO";
+import ContributionMatrixInterfaceCTDT from "../pages/ContributionMatrix";
 function CTDTRoutes() {
   return (
     <Routes>
@@ -22,6 +23,7 @@ function CTDTRoutes() {
       <Route path="danh-sach-sinh-vien" element={<StudentInterfaceCtdt />} />
       <Route path="chuan-dau-ra-ctdt" element={<ProgramLearningOutcomeInterfaceCTDT />} />
       <Route path="thong-ke-nhap-lieu-plo-ctdt" element={<StatisticalCLOInterfaceCTDT />} />
+      <Route path="ma-tran-dong-gop-ctdt" element={<ContributionMatrixInterfaceCTDT />} />
     </Routes>
   );
 }

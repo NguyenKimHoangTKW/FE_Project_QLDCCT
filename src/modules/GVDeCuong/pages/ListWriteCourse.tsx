@@ -201,7 +201,7 @@ function ListWriteCourseDVDC() {
 
             setCountdown(formatCountdown(diff));
         }, 1000);
-        setIsOpen(Number(res.data?.is_open));
+        setIsOpen(Number(res.data?.[0]?.is_open || 0));
         if (res.success) {
             setListTeacher({
                 success: true,
@@ -213,7 +213,7 @@ function ListWriteCourseDVDC() {
             setListTeacher({
                 success: false,
                 data: [],
-                message: res.message,
+                message: res.message
             });
         }
 

@@ -285,6 +285,7 @@ function CourseInterfaceCtdt() {
     else {
       setCheckClickKeyYear(true);
       GetListCourseByKeyYear();
+      setAllData([]);
     }
   }
   const handleClickKeyYearFalse = () => {
@@ -294,8 +295,17 @@ function CourseInterfaceCtdt() {
 
   }
   const handleClickFilter = () => {
+    if (listKeyYearSemester.length === 0) {
+      SweetAlert("warning", "Trưởng Đơn vị chưa tạo khóa học, không thể lọc dữ liệu");
+      return;
+    }
+    if (listSemesterFilter.length === 0) {
+      SweetAlert("warning", "Trưởng Đơn vị chưa tạo học kỳ, không thể lọc dữ liệu");
+      return;
+    }
     setCheckClickFilter(true);
     ShowData();
+    SweetAlert("success", "Lọc dữ liệu thành công");
   }
   const ShowData = async () => {
     setLoading(true);
@@ -316,6 +326,8 @@ function CourseInterfaceCtdt() {
         setTotalPages(Number(res.totalPages) || 1);
         setPageSize(Number(res.pageSize) || 10);
         startCountdownForCourses(res.data);
+        setTotalCount(res.total_course);
+        setTotalCountIsSyllabus(res.total_syllabus);
       } else {
         setAllData([]);
         setTotalRecords(0);
@@ -744,35 +756,47 @@ function CourseInterfaceCtdt() {
               {/* HÀNG 2: FILTER */}
               <div className="row g-3">
                 <div className="col-md-4">
-                  <CeoSelect2
-                    label="Khóa học"
-                    name="id_key_year_semester_filter"
-                    value={optionFilter.id_key_year_semester}
-                    onChange={handleInputChange}
-                    options={[
-                      { value: 0, text: "Tất cả" },
-                      ...listKeyYearSemester.map(x => ({
-                        value: x.value,
-                        text: x.text
-                      }))
-                    ]}
-                  />
+                  {listKeyYearSemester.length === 0 ? (
+                    <div className="alert alert-warning mb-0" style={{ marginTop: "27px" }}>
+                      ⚠️ Trưởng Đơn vị chưa tạo khóa học, không thể lọc dữ liệu
+                    </div>
+                  ) : (
+                    <CeoSelect2
+                      label="Khóa học"
+                      name="id_key_year_semester_filter"
+                      value={optionFilter.id_key_year_semester}
+                      onChange={handleInputChange}
+                      options={[
+                        { value: 0, text: "Tất cả" },
+                        ...listKeyYearSemester.map(x => ({
+                          value: x.value,
+                          text: x.text
+                        }))
+                      ]}
+                    />
+                  )}
                 </div>
 
                 <div className="col-md-4">
-                  <CeoSelect2
-                    label="Học kỳ"
-                    name="id_semester_filter"
-                    value={optionFilter.id_semester}
-                    onChange={handleInputChange}
-                    options={[
-                      { value: 0, text: "Tất cả" },
-                      ...listSemesterFilter.map(x => ({
-                        value: x.value,
-                        text: x.text
-                      }))
-                    ]}
-                  />
+                  {listSemesterFilter.length === 0 ? (
+                    <div className="alert alert-warning mb-0" style={{ marginTop: "27px" }}>
+                      ⚠️ Trưởng Đơn vị chưa tạo học kỳ, không thể lọc dữ liệu
+                    </div>
+                  ) : (
+                    <CeoSelect2
+                      label="Học kỳ"
+                      name="id_semester_filter"
+                      value={optionFilter.id_semester}
+                      onChange={handleInputChange}
+                      options={[
+                        { value: 0, text: "Tất cả" },
+                        ...listSemesterFilter.map(x => ({
+                          value: x.value,
+                          text: x.text
+                        }))
+                      ]}
+                    />
+                  )}
                 </div>
               </div>
 
@@ -796,7 +820,7 @@ function CourseInterfaceCtdt() {
 
 
               {/* KEY YEAR BUTTONS */}
-              {checkClickFilter && allData.length > 0 && (
+              {(listCourseByKeyYear.length > 0 || allData.length > 0) && (
                 <>
                   <hr className="my-4" />
 
@@ -823,7 +847,7 @@ function CourseInterfaceCtdt() {
 
               )}
               <hr />
-              {listCourseByKeyYear.length > 0 && (
+              {(listCourseByKeyYear.length > 0 || allData.length > 0) && (
                 <>
                   <Stack direction="row" width="100%" textAlign="center" spacing={2}>
                     <Box flexGrow={1}>
@@ -914,7 +938,24 @@ function CourseInterfaceCtdt() {
                             <td className="text-center">{course.credits}</td>
                             <td >{course.time_open == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-primary">{unixTimestampToDate(course.time_open)}</span>}</td>
                             <td >{course.time_close == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-primary">{unixTimestampToDate(course.time_close)}</span>}</td>
-                            <td>{course.time_close == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-success">{formatCountdown(course.time_close * 1000 - Date.now())}</span>}</td>
+                            <td>
+                              {course.time_close == null ? (
+                                <span className="text-danger">
+                                  Chưa mở thời gian cho môn học
+                                </span>
+                              ) : (() => {
+                                const remainingTime = course.time_close * 1000 - Date.now();
+                                const isExpired = remainingTime <= 0;
+
+                                return (
+                                  <span className={isExpired ? "text-danger" : "text-success"}>
+                                    {isExpired
+                                      ? "Đã hết hạn"
+                                      : formatCountdown(remainingTime)}
+                                  </span>
+                                );
+                              })()}
+                            </td>
                             <td className="formatSo">{course.count_syllabus}</td>
                             <td>{course.is_syllabus == true ? <span className="text-success">Đã hoàn thiện đề cương</span> : <span className="text-danger">Chưa hoàn thiện đề cương</span>}</td>
                             <td>
@@ -977,7 +1018,22 @@ function CourseInterfaceCtdt() {
                           <td>{unixTimestampToDate(item.time_cre)}</td>
                           <td>{unixTimestampToDate(item.time_up)}</td>
                           <td>
-                            {item.time_close == null ? <span className="text-danger">Chưa mở thời gian cho môn học</span> : <span className="text-success">{formatCountdown(item.time_close * 1000 - Date.now())}</span>}
+                            {item.time_close == null ? (
+                              <span className="text-danger">
+                                Chưa mở thời gian cho môn học
+                              </span>
+                            ) : (() => {
+                              const remainingTime = item.time_close * 1000 - Date.now();
+                              const isExpired = remainingTime <= 0;
+
+                              return (
+                                <span className={isExpired ? "text-danger" : "text-success"}>
+                                  {isExpired
+                                    ? "Đã hết hạn"
+                                    : formatCountdown(remainingTime)}
+                                </span>
+                              );
+                            })()}
                           </td>
                           <td className="formatSo">{item.count_syllabus}</td>
                           <td>{item.is_syllabus == true ? <span className="text-success">Đã hoàn thiện đề cương</span> : <span className="text-danger">Chưa hoàn thiện đề cương</span>}</td>

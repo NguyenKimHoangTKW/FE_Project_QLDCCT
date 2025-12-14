@@ -91,6 +91,10 @@ export default function StudentInterfaceDonVi() {
         { label: "*", key: "*" },
     ];
     const ShowData = async () => {
+        if(listClass.length === 0){
+            SweetAlert("warning", "Chương trình đào tạo này không có lớp, không thể lọc dữ liệu");
+            return;
+        }
         setLoading(true);
         try {
             const res = await StudentDonViAPI.GetListStudent({ id_program: Number(optionData.id_program), id_class: Number(optionData.id_class), Page: page, PageSize: pageSize, searchTerm: searchText });
@@ -285,6 +289,11 @@ export default function StudentInterfaceDonVi() {
                                     />
                                 </div>
                                 <div className="col-md-4">
+                                    {listClass.length === 0 ? (
+                                        <div className="alert alert-warning mb-0" style={{marginTop: "15px"}}>
+                                            ⚠️ Chương trình đào tạo này không có lớp, không thể lọc dữ liệu
+                                        </div>
+                                    ) : (
                                     <CeoSelect2
                                         label="Lọc theo lớp"
                                         name="id_class_value"
@@ -298,6 +307,7 @@ export default function StudentInterfaceDonVi() {
                                             })),
                                         ]}
                                     />
+                                    )}
                                 </div>
                             </div>
                             <div className="row">

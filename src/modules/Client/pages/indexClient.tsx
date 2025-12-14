@@ -44,12 +44,8 @@ export default function IndexClient() {
         const blob = new Blob([buffer], { type: "application/pdf" });
         const pdfURL = URL.createObjectURL(blob);
 
-        window.open(pdfURL, "_blank"); // 👉 mở PDF tab mới
+        window.open(pdfURL, "_blank");
     };
-
-
-
-
 
     return (
         <div className="main-content">

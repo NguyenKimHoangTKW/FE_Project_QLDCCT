@@ -1,3 +1,4 @@
+import { ListCTDTPermissionAPI } from "../../../api/CTDT/ListCTDTPermissionAPI";
 import { useEffect, useRef, useState } from "react";
 import { ContributionMatrixAPI } from "../../../api/DonVi/ContributionMatrix";
 import { SweetAlert } from "../../../components/ui/SweetAlert";
@@ -5,25 +6,18 @@ import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import Loading from "../../../components/ui/Loading";
 import CeoSelect2 from "../../../components/ui/CeoSelect2";
-export default function ContributionMatrixInterfaceDonVi() {
-    const [listCtdt, setListCtdt] = useState<any[]>([]);
+import { ContributionMatrixCTDTAPI } from "../../../api/CTDT/ContributionMatrix";
+export default function ContributionMatrixInterfaceCTDT() {
+    const [listCTDT, setListCTDT] = useState<any[]>([]);
     const [listKeyYear, setListKeyYear] = useState<any[]>([]);
     const [listPLoPi, setListPLoPi] = useState<any[]>([]);
     const [listCourse, setListCourse] = useState<any[]>([]);
     const [listMatrixContribution, setListMatrixContribution] = useState<any[]>([]);
     const [listLevelContribution, setListLevelContribution] = useState<any[]>([]);
     const [searchText, setSearchText] = useState("");
+    const [loading, setLoading] = useState(false);
     const headerRef = useRef<HTMLDivElement>(null);
     const bodyRef = useRef<HTMLDivElement>(null);
-    const [loading, setLoading] = useState(false);
-    const GetListCourse = async () => {
-        const res = await ContributionMatrixAPI.GetListCourse({ id_key_year_semester: Number(formData.id_key_year_semester), id_program: Number(formData.id_program) });
-        if (res.success) {
-            setListCourse(res.data);
-        } else {
-            setListCourse([]);
-        }
-    }
     interface FormData {
         id_program: number | null;
         id_key_year_semester: number | null;
@@ -34,16 +28,23 @@ export default function ContributionMatrixInterfaceDonVi() {
     });
     const handleInputChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-        if (name === "id_program") {
-            setFormData((prev) => ({ ...prev, id_program: Number(value) }));
-        }
-        if (name === "id_key_year") {
-            setFormData((prev) => ({ ...prev, id_key_year_semester: Number(value) }));
+        setFormData((prev) => ({ ...prev, [name]: Number(value) }));
+    }
+    const LoadListCTDTByDonVi = async () => {
+        const res = await ListCTDTPermissionAPI.GetListCTDTPermission();
+        setListCTDT(res);
+        setFormData((prev) => ({ ...prev, id_program: res[0].value }));
+    }
+    const GetListCourse = async () => {
+        const res = await ContributionMatrixCTDTAPI.GetListCourse({ id_key_year_semester: Number(formData.id_key_year_semester), id_program: Number(formData.id_program) });
+        if (res.success) {
+            setListCourse(res.data);
+        } else {
+            setListCourse([]);
         }
     }
     const GetListMatrixContribution = async () => {
-        const res = await ContributionMatrixAPI.GetListMatrixContribution({ id_key_year_semester: Number(formData.id_key_year_semester), id_program: Number(formData.id_program) });
+        const res = await ContributionMatrixCTDTAPI.GetListMatrixContribution({ id_key_year_semester: Number(formData.id_key_year_semester), id_program: Number(formData.id_program) });
         if (res.success) {
             setListMatrixContribution(res.data);
             setListLevelContribution(res.levels);
@@ -54,11 +55,9 @@ export default function ContributionMatrixInterfaceDonVi() {
     const GetListOptionContributionMatrix = async () => {
         setLoading(true);
         try {
-            const res = await ContributionMatrixAPI.GetOptionContributionMatrix();
-            setListCtdt(res.ctdt);
-            setFormData((prev) => ({ ...prev, id_program: Number(res.ctdt[0].id_program) }));
+            const res = await ContributionMatrixCTDTAPI.GetOptionContributionMatrix({ id_program: Number(formData.id_program) });
             setListKeyYear(res.key_year);
-            setFormData((prev) => ({ ...prev, id_key_year_semester: Number(res.key_year[0].id_key_year_semester) }));
+            setFormData((prev) => ({ ...prev, id_key_year_semester: Number(res.key_year?.[0]?.id_key_year_semester || 0) }));
         }
         finally {
             setLoading(false);
@@ -68,7 +67,7 @@ export default function ContributionMatrixInterfaceDonVi() {
     const GetListPLoPi = async () => {
         setLoading(true);
         try {
-            const res = await ContributionMatrixAPI.LoadPLoPi({ Id_Program: Number(formData.id_program), id_key_semester: Number(formData.id_key_year_semester) });
+            const res = await ContributionMatrixCTDTAPI.LoadPLoPi({ Id_Program: Number(formData.id_program), id_key_semester: Number(formData.id_key_year_semester) });
             setListPLoPi(res);
         }
         finally {
@@ -128,7 +127,7 @@ export default function ContributionMatrixInterfaceDonVi() {
         });
         setLoading(true);
         try {
-            const res = await ContributionMatrixAPI.SaveMatrix(payload as any);
+            const res = await ContributionMatrixCTDTAPI.SaveMatrix(payload as any);
             if (res.success) {
                 SweetAlert("success", res.message || "Lưu thành công");
             } else {
@@ -256,8 +255,13 @@ export default function ContributionMatrixInterfaceDonVi() {
         })));
 
     useEffect(() => {
-        GetListOptionContributionMatrix();
+        LoadListCTDTByDonVi();
     }, []);
+    useEffect(() => {
+        if (formData.id_program) {
+            GetListOptionContributionMatrix();
+        }
+    }, [formData.id_program]);
     return (
         <div className="main-content">
             <Loading isOpen={loading} />
@@ -277,16 +281,16 @@ export default function ContributionMatrixInterfaceDonVi() {
                                         name="id_program"
                                         value={formData.id_program}
                                         onChange={handleInputChange}
-                                        options={listCtdt.map(item => ({
-                                            value: item.id_program,
-                                            text: item.name_program
+                                        options={listCTDT.map(item => ({
+                                            value: item.value,
+                                            text: item.text
                                         }))}
                                     />
                                 </div>
                                 <div className="col-md-6">
                                     {listKeyYear.length === 0 ? (
                                         <div className="alert alert-warning mb-0" style={{ marginTop: "27px" }}>
-                                            ⚠️ Đơn vị của bạn <strong>chưa tạo khóa học</strong>
+                                            ⚠️ Trưởng Đơn vị của bạn <strong>chưa tạo khóa học</strong>
                                         </div>
                                     ) : (
                                         <CeoSelect2
@@ -341,6 +345,7 @@ export default function ContributionMatrixInterfaceDonVi() {
                             </div>
                         </fieldset>
                     </div>
+
                     <div className="matrix-header-wrapper" ref={headerRef}>
                         <table className="matrix-table">
                             <thead>
@@ -566,6 +571,6 @@ export default function ContributionMatrixInterfaceDonVi() {
                 </button>
             </div>
 
-        </div>
+        </div >
     )
 }

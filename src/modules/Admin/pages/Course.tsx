@@ -63,6 +63,7 @@ function CourseInterfaceAdmin() {
         const res = await CourseAdminAPI.GetListCTDTByDonVi({ id_faculty: Number(optionFilter.id_faculty) });
         if (res.success) {
             setListCTDT(res.data);
+            setOptionFilter((prev) => ({ ...prev, id_program: 0 }));
         }
         else {
             setListCTDT([]);
@@ -151,6 +152,14 @@ function CourseInterfaceAdmin() {
 
     }
     const handleClickFilter = () => {
+        if(listKeyYearSemesterFilter.length === 0){
+            SweetAlert("warning", "Đơn vị này không có khóa học, không thể lọc dữ liệu");
+            return;
+        }
+        if(listSemesterFilter.length === 0){
+            SweetAlert("warning", "Đơn vị này không có học kỳ, không thể lọc dữ liệu");
+            return;
+        }
         setCheckClickFilter(true);
         ShowData();
     }
@@ -290,6 +299,9 @@ function CourseInterfaceAdmin() {
     }, []);
     useEffect(() => {
         if (optionFilter.id_faculty) {
+            setListCTDT([]);
+            setListKeyYearSemesterFilter([]);
+            setListSemesterFilter([]);
             GetListCTDTByDonVi();
             GetDataListOptionCourse();
         }
@@ -387,6 +399,11 @@ function CourseInterfaceAdmin() {
                                     />
                                 </div>
                                 <div className="col-md-4">
+                                    {listKeyYearSemesterFilter.length === 0 ? (
+                                        <div className="alert alert-warning mb-0" style={{marginTop: "27px"}}>
+                                            ⚠️ Đơn vị này <strong>chưa tạo khóa học</strong>
+                                        </div>
+                                    ) : (
                                     <CeoSelect2
                                         label="Khóa học"
                                         name="id_key_year_semester_filter"
@@ -400,9 +417,15 @@ function CourseInterfaceAdmin() {
                                             }))
                                         ]}
                                     />
+                                    )}
                                 </div>
 
                                 <div className="col-md-4">
+                                    {listSemesterFilter.length === 0 ? (
+                                        <div className="alert alert-warning mb-0" style={{marginTop: "27px"}}>
+                                            ⚠️ Đơn vị này <strong>chưa tạo học kỳ</strong>
+                                        </div>
+                                    ) : (
                                     <CeoSelect2
                                         label="Học kỳ"
                                         name="id_semester_filter"
@@ -416,6 +439,7 @@ function CourseInterfaceAdmin() {
                                             }))
                                         ]}
                                     />
+                                    )}
                                 </div>
                             </div>
                             {/* ACTION BUTTONS */}

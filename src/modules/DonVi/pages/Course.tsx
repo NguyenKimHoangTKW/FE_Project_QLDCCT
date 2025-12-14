@@ -176,12 +176,16 @@ function CourseInterfaceDonVi() {
         setTotalRecords(Number(res.totalRecords) || 0);
         setTotalPages(Number(res.totalPages) || 1);
         setPageSize(Number(res.pageSize) || 10);
+        setTotalCount(res.total_course);
+        setTotalCountIsSyllabus(res.total_syllabus);
       } else {
         setAllData([]);
         setTotalRecords(0);
         setTotalPages(1);
         setPageSize(10);
         setTotalRecords(0);
+        setTotalCount(res.total_course);
+        setTotalCountIsSyllabus(res.total_syllabus);
       }
     }
     finally {
@@ -201,6 +205,8 @@ function CourseInterfaceDonVi() {
       }
       else {
         SweetAlert("error", res.message);
+        setTotalCount(res.total_course);
+        setTotalCountIsSyllabus(res.total_syllabus);
       }
     }
     finally {
@@ -215,11 +221,13 @@ function CourseInterfaceDonVi() {
     else {
       setCheckClickKeyYear(true);
       GetListCourseByKeyYear();
+      setAllData([]);
     }
   }
   const handleClickKeyYearFalse = () => {
     setCheckClickKeyYear(false);
     ShowData();
+    setListCourseByKeyYear([]);
   }
   const handleSave = async () => {
     setLoading(true);
@@ -596,7 +604,7 @@ function CourseInterfaceDonVi() {
                 </div>
               </div>
               {/* KEY YEAR BUTTONS */}
-              {allData.length > 0 && (
+              {(allData.length > 0 || listCourseByKeyYear.length > 0) && (
                 <>
                   <hr className="my-4" />
 
@@ -623,7 +631,7 @@ function CourseInterfaceDonVi() {
 
               )}
               <hr />
-              {listCourseByKeyYear.length > 0 && (
+              {(listCourseByKeyYear.length > 0 || allData.length > 0) && (
                 <>
                   <Stack direction="row" width="100%" textAlign="center" spacing={2}>
                     <Box flexGrow={1}>

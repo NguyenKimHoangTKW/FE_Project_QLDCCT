@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ContributionMatrixAPI } from "../../../api/DonVi/ContributionMatrix";
 import { SweetAlert } from "../../../components/ui/SweetAlert";
 import ExcelJS from "exceljs";
@@ -15,7 +15,8 @@ export default function ContributionMatrixInterfaceAdmin() {
     const [listCTDT, setListCTDT] = useState<any[]>([]);
     const [searchText, setSearchText] = useState("");
     const [loading, setLoading] = useState(false);
-
+    const headerRef = useRef<HTMLDivElement>(null);
+    const bodyRef = useRef<HTMLDivElement>(null);
     interface FormData {
         id_faculty: number | null;
         id_program: number | null;
@@ -28,18 +29,18 @@ export default function ContributionMatrixInterfaceAdmin() {
     });
     const handleInputChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-        if (name === "id_program") {
-            setFormData((prev) => ({ ...prev, id_program: Number(value) }));
-        }
-        if (name === "id_key_year") {
-            setFormData((prev) => ({ ...prev, id_key_year_semester: Number(value) }));
-        }
-    }
+
+        setFormData(prev => ({
+            ...prev,
+            [name]: value ? Number(value) : null,
+        }));
+    };
+
     const GetListDonVi = async () => {
         const res = await ContributionMatrixAdminAPI.GetListDonVi();
         if (res.success) {
             setListDonVi(res.data);
+            setFormData((prev) => ({ ...prev, id_faculty: Number(res.data[0].id_faculty) }));
         }
         else {
             setListDonVi([]);
@@ -68,9 +69,9 @@ export default function ContributionMatrixInterfaceAdmin() {
         setLoading(true);
         try {
             const res = await ContributionMatrixAdminAPI.GetOptionContributionMatrix({ id_faculty: Number(formData.id_faculty) });
-           
+
             setListKeyYear(res.key_year);
-            setFormData((prev) => ({ ...prev, id_key_year_semester: Number(res.key_year[0].id_key_year_semester) }));
+            setFormData((prev) => ({ ...prev, id_key_year_semester: Number(res.key_year?.[0]?.id_key_year_semester || 0) }));
         }
         finally {
             setLoading(false);
@@ -88,6 +89,10 @@ export default function ContributionMatrixInterfaceAdmin() {
         }
     }
     const handleFilterData = async () => {
+        if (listKeyYear.length == 0) {
+            SweetAlert("warning", "Đơn vị này không có khóa học, không thể lọc dữ liệu");
+            return;
+        }
         await GetListPLoPi();
         await GetListMatrixContribution();
         SweetAlert("success", "Lọc dữ liệu thành công");
@@ -234,9 +239,17 @@ export default function ContributionMatrixInterfaceAdmin() {
     }, []);
     useEffect(() => {
         if (formData.id_faculty) {
+            setFormData(prev => ({
+                ...prev,
+                id_program: null,
+                id_key_year_semester: null,
+            }));
+
+            setListCTDT([]);
+            setListKeyYear([]);
+
             GetListCTDTByDonVi();
             GetListOptionContributionMatrix();
-
         }
     }, [formData.id_faculty]);
 
@@ -278,19 +291,27 @@ export default function ContributionMatrixInterfaceAdmin() {
                                     />
                                 </div>
                                 <div className="col-md-4">
-                                    <CeoSelect2
-                                        label="Lọc theo Khóa học"
-                                        name="id_key_year_semester"
-                                        value={formData.id_key_year_semester}
-                                        onChange={handleInputChange}
-                                        options={listKeyYear.map(item => ({
-                                            value: item.id_key_year_semester,
-                                            text: item.name_key
-                                        }))}
-                                    />
+                                    {formData.id_faculty && listKeyYear.length === 0 ? (
+                                        <div className="alert alert-warning mb-0" style={{ marginTop: "27px" }}>
+                                            ⚠️ Đơn vị này <strong>chưa tạo khóa học</strong>
+                                        </div>
+                                    ) : (
+                                        <CeoSelect2
+                                            label="Lọc theo Khóa học"
+                                            name="id_key_year_semester"
+                                            value={formData.id_key_year_semester}
+                                            onChange={handleInputChange}
+                                            options={listKeyYear.map(item => ({
+                                                value: item.id_key_year_semester,
+                                                text: item.name_key
+                                            }))}
+                                        />
+                                    )}
                                 </div>
+
+
                             </div>
-                           
+
                             <hr />
                             <div className="row">
                                 <div className="col-12 d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
@@ -301,25 +322,23 @@ export default function ContributionMatrixInterfaceAdmin() {
                             </div>
                         </fieldset>
                     </div>
-                    <div className="table-responsive">
-                        <table className="table table-bordered">
+                    <div className="matrix-header-wrapper" ref={headerRef}>
+                        <table className="matrix-table">
                             <thead>
                                 {listMatrixContribution.length > 0 && listPLoPi.length > 0 ? (
                                     <>
                                         <tr>
-                                            <th rowSpan={2}>Mã môn học</th>
-                                            <th rowSpan={2}>Tên môn học</th>
-                                            <th rowSpan={2}>Số tín chỉ</th>
-                                            <th rowSpan={2}>Số tiết lý thuyết</th>
-                                            <th rowSpan={2}>Số tiết thực hành</th>
+                                            <th rowSpan={2} className="sticky-col-1">Mã môn học</th>
+                                            <th rowSpan={2} className="sticky-col-2">Tên môn học</th>
                                             {listPLoPi.map((plo, i) => {
                                                 const span = (plo?.pi?.length ?? 0) || plo?.count_pi || 1;
                                                 return (
                                                     <th
                                                         key={`plo-${i}`}
                                                         colSpan={span}
-                                                        className="text-center align-middle"
+                                                        className="text-center align-middle plo-header"
                                                     >
+
                                                         {plo.code_plo}
                                                     </th>
                                                 );
@@ -344,6 +363,14 @@ export default function ContributionMatrixInterfaceAdmin() {
 
                                 )}
                             </thead>
+                        </table>
+                    </div>
+                    <div className="matrix-body-wrapper" ref={bodyRef} onScroll={() => {
+                        if (headerRef.current && bodyRef.current) {
+                            headerRef.current.scrollLeft = bodyRef.current.scrollLeft;
+                        }
+                    }}>
+                        <table className="matrix-table">
                             <tbody>
                                 {grouped.map(([semesterName, courses]: any, idx: number) => {
                                     if (courses.length === 0) return null;
@@ -355,47 +382,46 @@ export default function ContributionMatrixInterfaceAdmin() {
                                             0
                                         );
 
-                                        return [
-                                            <tr key={`semester-${idx}`} className="table-secondary">
-                                                <td colSpan={totalCols} className="fw-bold text-start">
-                                                    {semesterName}
+                                    return [
+                                        <tr key={`semester-${idx}`} className="table-secondary">
+                                            <td colSpan={totalCols} className="fw-bold text-start">
+                                                {semesterName}
+                                            </td>
+                                        </tr>,
+                                        ...courses.map((courseItem: any, cIdx: number) => (
+                                            <tr key={`course-${idx}-${cIdx}`}>
+                                                <td className="sticky-col-1">{courseItem.code_course}</td>
+                                                <td className="sticky-col-2" title={courseItem.name_course}>
+                                                    {courseItem.name_course}
                                                 </td>
-                                            </tr>,
-                                            ...courses.map((courseItem: any, cIdx: number) => (
-                                                <tr key={`course-${idx}-${cIdx}`}>
-                                                    <td>{courseItem.code_course}</td>
-                                                    <td>{courseItem.name_course}</td>
-                                                    <td className="text-center">{courseItem.credits}</td>
-                                                    <td className="text-center">{courseItem.totalTheory}</td>
-                                                    <td className="text-center">{courseItem.totalPractice}</td>
-                                        
-                                                    {headerPiOrder.map((h, piIdx) => {
-                                                        const existing = (courseItem.pi || []).find(
-                                                            (p: any) => Number(p.id_PI) === h.id_PI
-                                                        );
-                                        
-                                                        // 🟦 Hiển thị CODE — nếu có
-                                                        const levelCode =
-                                                            existing?.Code ??
-                                                            existing?.code ??
-                                                            existing?.level_code ??
-                                                            "--";
-                                        
-                                                        return (
-                                                            <td
-                                                                key={`pi-${idx}-${cIdx}-${piIdx}`}
-                                                                className="text-center fw-bold"
-                                                                style={{ color: "#0077c2" }}
-                                                            >
-                                                                {levelCode}
-                                                            </td>
-                                                        );
-                                                    })}
-                                        
-                                                </tr>
-                                            )),
-                                        ];
-                                        
+
+                                                {headerPiOrder.map((h, piIdx) => {
+                                                    const existing = (courseItem.pi || []).find(
+                                                        (p: any) => Number(p.id_PI) === h.id_PI
+                                                    );
+
+                                                    // 🟦 Hiển thị CODE — nếu có
+                                                    const levelCode =
+                                                        existing?.Code ??
+                                                        existing?.code ??
+                                                        existing?.level_code ??
+                                                        "--";
+
+                                                    return (
+                                                        <td
+                                                            key={`pi-${idx}-${cIdx}-${piIdx}`}
+                                                            className="text-center fw-bold"
+                                                            style={{ color: "#0077c2" }}
+                                                        >
+                                                            {levelCode}
+                                                        </td>
+                                                    );
+                                                })}
+
+                                            </tr>
+                                        )),
+                                    ];
+
                                 })}
                             </tbody>
                         </table>

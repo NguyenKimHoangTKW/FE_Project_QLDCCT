@@ -30116,27 +30116,190 @@ legend {
     font-size: 15px;
     font-weight: 500;
 }
-.table-scroll-wrapper table {
-    border-collapse: separate !important;
+.side-nav .dropdown-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .side-nav .dropdown-icon {
+    font-size: 12px;
+    margin-left: 8px;
+    transition: transform 0.25s ease;
+    opacity: 0.75;
+  }
+  
+  /* Khi dropdown mở */
+  .side-nav .nav-item.open > .dropdown-toggle .dropdown-icon {
+    transform: rotate(180deg);
+  }
+
+
+  /* ================== BASE TABLE ================== */
+.matrix-table {
+    table-layout: fixed;
+    border-collapse: separate;
     border-spacing: 0;
+    width: 100%;
+    min-width: max-content;
+    font-size: 13px;
 }
 
-.table-scroll-wrapper {
-    max-height: 65vh;
-    /* chiều cao để cuộn */
-    overflow-y: auto;
-}
-
-/* Giữ cố định header */
-.table-scroll-wrapper thead th {
+/* ================== HEADER ================== */
+/* Header chỉ sticky TOP */
+.matrix-header-wrapper {
     position: sticky;
     top: 0;
-    background-color: #ffffff;
-    z-index: 10;
+    z-index: 30;
+    overflow: hidden; /* ❗ không scroll ngang */
+    background: #f8fafc;
 }
 
-/* (khuyến nghị) tránh lệch cột */
-.table-scroll-wrapper th,
-.table-scroll-wrapper td {
+.matrix-header-wrapper table {
+    width: 100%;
+}
+
+.matrix-header-wrapper th {
+    background: linear-gradient(180deg, #f8fafc, #eef2f7);
+    font-weight: 600;
+    font-size: 13px;
+    text-align: center;
+    color: #1f2937;
+    border-bottom: 1px solid #d1d5db;
+}
+
+/* ================== BODY ================== */
+.matrix-body-wrapper {
+    max-height: 65vh;
+    overflow: auto;
+    background: #ffffff;
+}
+
+.matrix-body-wrapper table {
+    width: 100%;
+}
+
+/* ================== TABLE ================== */
+.matrix-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: auto;
+
+    width: max-content;      /* table tự giãn theo số PI */
+    min-width: 1200px;       /* 🔥 ép rộng tối thiểu → sinh scroll */
+    font-size: 13px;
+}
+
+
+/* ================== CELL ================== */
+.matrix-table td.pi-col,
+.matrix-table th.pi-col {
+    padding: 6px 8px;
     white-space: nowrap;
+    box-sizing: border-box;
+    border-bottom: 1px solid #e5e7eb;
+    border-right: 1px solid #f1f5f9;
+}
+.matrix-table th,
+.matrix-table td {
+    border-bottom: 1px solid #e5e7eb;
+    border-right: 1px solid #f1f5f9;
+}
+
+.matrix-table td.pi-col select {
+    margin: 2px 0;      /* 👈 tạo khe hở trên / dưới */
+}
+.matrix-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.matrix-table tbody tr:hover td {
+    background-color: #fefce8;
+}
+
+.matrix-table tbody tr:hover td:first-child {
+    box-shadow: inset 4px 0 0 #6366f1; /* viền trái xanh */
+}
+
+.matrix-table select {
+    border-radius: 8px;
+}
+.pi-col {
+    width: 70px;
+    min-width: 70px;
+    max-width: 70px;
+}
+
+/* ================== STICKY COL 1 ================== */
+.sticky-col-1 {
+    position: sticky;
+    left: 0;
+    z-index: 20;
+    width: 140px;
+    min-width: 140px;
+    max-width: 140px;
+    background: #f9fafb;
+    border-right: 1px solid #d1d5db;
+}
+
+/* ================== STICKY COL 2 ================== */
+.sticky-col-2 {
+    position: sticky;
+    left: 140px;
+    z-index: 19;
+    width: 280px;
+    min-width: 280px;
+    max-width: 280px;
+    background: #ffffff;
+    border-right: 2px solid #d1d5db;
+}
+
+/* 🔥 FIX DÍNH TEXT */
+.sticky-col-2 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ================== PI COLUMN ================== */
+.pi-col {
+    width: 65px;
+    min-width: 65px;
+    max-width: 65px;
+    text-align: center;
+}
+
+/* ================== SELECT ================== */
+.matrix-table select {
+    width: 100%;             /* ❗ ép select nằm gọn trong cell */
+    height: 28px;
+    font-size: 12px;
+    padding: 0 4px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+}
+
+/* ================== BODY WRAPPER ================== */
+.matrix-body-wrapper {
+    max-height: 65vh;
+    overflow-x: auto;        /* 🔥 CHỈNH CHỖ NÀY */
+    overflow-y: auto;
+    background: #ffffff;
+}
+
+
+
+/* ================== SCROLLBAR ================== */
+.matrix-body-wrapper::-webkit-scrollbar {
+    height: 10px;
+    width: 10px;
+}
+
+.matrix-body-wrapper::-webkit-scrollbar-thumb {
+    background: #c7d2fe;
+    border-radius: 6px;
+}
+
+.matrix-body-wrapper::-webkit-scrollbar-track {
+    background: #eef2ff;
 }

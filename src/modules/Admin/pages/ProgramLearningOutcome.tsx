@@ -46,6 +46,7 @@ export default function ProgramLearningOutcomeInterfaceAdmin() {
         const res = await CourseAdminAPI.GetListDonVi();
         if (res.success) {
             setListDonVi(res.data);
+            setOptionFilter((prev) => ({ ...prev, id_faculty: Number(res.data[0].id_faculty) }));
         }
         else {
             setListDonVi([]);
@@ -63,15 +64,7 @@ export default function ProgramLearningOutcomeInterfaceAdmin() {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        if (name === "id_faculty_filter") {
-            setOptionFilter((prev) => ({ ...prev, id_faculty: Number(value) }));
-        }
-        if (name === "id_program_filter") {
-            setOptionFilter((prev) => ({ ...prev, id_program: Number(value) }));
-        }
-        if (name === "id_key_year_semester_filter") {
-            setOptionFilter((prev) => ({ ...prev, id_key_year_semester: Number(value) }));
-        }
+        setOptionFilter((prev) => ({ ...prev, [name]: Number(value) }));
     }
     const LoadSelectProgramLearningOutcome = async () => {
         setLoading(true);
@@ -81,10 +74,14 @@ export default function ProgramLearningOutcomeInterfaceAdmin() {
             label: item.name_key_year_semester,
         }));
         setSelectedKeyYear(formattedKeyYear);
-        setOptionFilter((prev) => ({ ...prev, id_key_year_semester: Number(formattedKeyYear[0].value) }));
+        setOptionFilter((prev) => ({ ...prev, id_key_year_semester: Number(formattedKeyYear?.[0]?.value || 0) }));
         setLoading(false);
     }
     const LoadData = async () => {
+        if(selectedKeyYear.length === 0){
+            SweetAlert("warning", "Đơn vị này không có khóa học, không thể lọc dữ liệu");
+            return;
+        }
         setLoading(true);
         try {
             const res = await ProgramLearningOutcomeAdminAPI.GetListProgramLearningOutcome({ Id_Program: Number(optionFilter.id_program), id_key_semester: Number(optionFilter.id_key_year_semester), Page: page, PageSize: pageSize, searchTerm: searchText });
@@ -127,15 +124,17 @@ export default function ProgramLearningOutcomeInterfaceAdmin() {
     }, []);
     useEffect(() => {
         if (optionFilter.id_faculty) {
+            setListCTDT([]);
+            setSelectedKeyYear([]);
             GetListCTDTByDonVi();
             LoadSelectProgramLearningOutcome();
         }
     }, [optionFilter.id_faculty]);
     useEffect(() => {
-        if (optionFilter.id_program && optionFilter.id_key_year_semester) {
+        if(selectedKeyYear.length > 0){
             LoadData();
         }
-    }, [optionFilter.id_program, optionFilter.id_key_year_semester, page, pageSize, searchText]);
+    }, [ page, pageSize, searchText]);
     // Performance Indicators
     const [performanceIndicatorsData, setPerformanceIndicatorsData] = useState<any[]>([]);
     const [performanceIndicatorsTotalRecords, setPerformanceIndicatorsTotalRecords] = useState(0);
@@ -218,6 +217,11 @@ export default function ProgramLearningOutcomeInterfaceAdmin() {
                                     />
                                 </div>
                                 <div className="col-md-4">
+                                    {selectedKeyYear.length === 0 ? (
+                                        <div className="alert alert-warning mb-0" style={{marginTop: "26px"}}>
+                                            ⚠️ Đơn vị này <strong>chưa tạo khóa học</strong>
+                                        </div>
+                                    ) : (
                                     <CeoSelect2
                                         label="Khóa học"
                                         name="id_key_year_semester_filter"
@@ -228,6 +232,7 @@ export default function ProgramLearningOutcomeInterfaceAdmin() {
                                             text: item.label
                                         }))}
                                     />
+                                    )}
                                 </div>
 
                                 <div className="col-md-4">
@@ -262,11 +267,7 @@ export default function ProgramLearningOutcomeInterfaceAdmin() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {optionFilter.id_program == 0 ? <tr>
-                                    <td colSpan={headers.length} className="text-center text-danger">
-                                        Vui lòng chọn đơn vị và chương trình đào tạo để xem danh sách chuẩn đầu ra chương trình đào tạo
-                                    </td>
-                                </tr> : filteredData.length > 0 ? (
+                                {filteredData.length > 0 ? (
                                     filteredData.map((item, index) => (
                                         <tr key={item.id_Plo}>
                                             <td data-label="STT" className="formatSo">{(page - 1) * pageSize + index + 1}</td>
@@ -290,7 +291,7 @@ export default function ProgramLearningOutcomeInterfaceAdmin() {
                                         <td
                                             colSpan={headers.length}
                                             className="text-center text-danger">
-                                            Không có dữ liệu chuẩn đầu ra chương trình đào tạo trong chương trình này
+                                            Không có dữ liệu chuẩn đầu ra chương trình đào tạo
                                         </td>
                                     </tr>
                                 )}

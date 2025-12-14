@@ -58,6 +58,10 @@ export default function StatisticalCLOInterfaceDonVi() {
         setLoading(false);
     }
     const LoadData = async () => {
+        if(selectedKeyYear.length === 0){
+            SweetAlert("warning", "Đơn vị của bạn không có khóa học, không thể lọc dữ liệu");
+            return;
+        }
         setLoading(true);
         const res = await StatisticalCLODonViAPI.GetListStatisticalCLO({ Id_Program: Number(optionData.Id_Program), id_key_semester: Number(optionData.Id_Key_Year_Semester) });
         if (res.success) {
@@ -68,27 +72,27 @@ export default function StatisticalCLOInterfaceDonVi() {
     }
     const htmlToPlainText = (html: string | null | undefined) => {
         if (!html) return "";
-    
+
         let text = html
             .replace(/<br\s*\/?>/gi, "\n")
             .replace(/<\/p>/gi, "\n")
             .replace(/<p[^>]*>/gi, "");
-    
+
         text = text.replace(/<[^>]*>/g, "");
-    
+
         const txt = document.createElement("textarea");
         txt.innerHTML = text;
         text = txt.value;
-    
+
         text = text
-            .replace(/\u00a0/g, " ")       
-            .replace(/[ \t]+/g, " ")        
-            .replace(/\n{3,}/g, "\n\n")    
+            .replace(/\u00a0/g, " ")
+            .replace(/[ \t]+/g, " ")
+            .replace(/\n{3,}/g, "\n\n")
             .trim();
-    
+
         return text;
     };
-    
+
     const exportExcel = async () => {
         if (allData.length === 0) {
             alert("Không có dữ liệu để xuất Excel!");
@@ -124,7 +128,7 @@ export default function StatisticalCLOInterfaceDonVi() {
                 htmlToPlainText(item.describe_course),
                 htmlToPlainText(item.mo_ta),
                 htmlToPlainText(item.clo)
-            ]);            
+            ]);
         });
 
         worksheet.columns.forEach((column) => {
@@ -174,16 +178,22 @@ export default function StatisticalCLOInterfaceDonVi() {
                                     />
                                 </div>
                                 <div className="col-md-4">
-                                    <CeoSelect2
-                                        label="Khóa học"
-                                        name="Id_Key_Year_Semester"
-                                        value={optionData.Id_Key_Year_Semester}
-                                        onChange={handleInputChange}
-                                        options={selectedKeyYear.map((item: any) => ({
-                                            value: item.value,
-                                            text: item.label
-                                        }))}
-                                    />
+                                    {selectedKeyYear.length === 0 ? (
+                                        <div className="alert alert-warning mb-0" style={{ marginTop: "27px" }}>
+                                            ⚠️ Đơn vị của bạn <strong>chưa tạo khóa học</strong>
+                                        </div>
+                                    ) : (
+                                        <CeoSelect2
+                                            label="Khóa học"
+                                            name="Id_Key_Year_Semester"
+                                            value={optionData.Id_Key_Year_Semester}
+                                            onChange={handleInputChange}
+                                            options={selectedKeyYear.map((item: any) => ({
+                                                value: item.value,
+                                                text: item.label
+                                            }))}
+                                        />
+                                    )}
                                 </div>
                             </div>
                             <hr />
@@ -227,7 +237,7 @@ export default function StatisticalCLOInterfaceDonVi() {
 
                                             <td className="clo-cell" dangerouslySetInnerHTML={{ __html: item.mo_ta }} />
 
-                                            <td className="clo-cell" style={{color: 'black', fontSize: '15px'}} dangerouslySetInnerHTML={{ __html: item.clo }} />
+                                            <td className="clo-cell" style={{ color: 'black', fontSize: '15px' }} dangerouslySetInnerHTML={{ __html: item.clo }} />
                                         </tr>
                                     ))
                                 )}

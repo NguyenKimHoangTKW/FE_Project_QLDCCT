@@ -5,6 +5,7 @@ import Loading from "../../../components/ui/Loading";
 import CeoSelect2 from "../../../components/ui/CeoSelect2";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
+import { SweetAlert } from "../../../components/ui/SweetAlert";
 export default function StatisticalCLOInterfaceCTDT() {
     const [selectProgram, setSelectProgram] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
@@ -58,6 +59,10 @@ export default function StatisticalCLOInterfaceCTDT() {
         setLoading(false);
     }
     const LoadData = async () => {
+        if(selectedKeyYear.length === 0){
+            SweetAlert("warning", "Trưởng Đơn vị chưa tạo khóa học, không thể lọc dữ liệu");
+            return;
+        }
         setLoading(true);
         const res = await StatisticalCLOCTDTAPI.GetListStatisticalCLO({ Id_Program: Number(optionData.Id_Program), id_key_semester: Number(optionData.Id_Key_Year_Semester), searchTerm: searchText });
         if (res.success) {
@@ -67,27 +72,27 @@ export default function StatisticalCLOInterfaceCTDT() {
     }
     const htmlToPlainText = (html: string | null | undefined) => {
         if (!html) return "";
-    
+
         let text = html
             .replace(/<br\s*\/?>/gi, "\n")
             .replace(/<\/p>/gi, "\n")
             .replace(/<p[^>]*>/gi, "");
-    
+
         text = text.replace(/<[^>]*>/g, "");
-    
+
         const txt = document.createElement("textarea");
         txt.innerHTML = text;
         text = txt.value;
-    
+
         text = text
-            .replace(/\u00a0/g, " ")       
-            .replace(/[ \t]+/g, " ")        
-            .replace(/\n{3,}/g, "\n\n")    
+            .replace(/\u00a0/g, " ")
+            .replace(/[ \t]+/g, " ")
+            .replace(/\n{3,}/g, "\n\n")
             .trim();
-    
+
         return text;
     };
-    
+
     const exportExcel = async () => {
         if (allData.length === 0) {
             alert("Không có dữ liệu để xuất Excel!");
@@ -123,7 +128,7 @@ export default function StatisticalCLOInterfaceCTDT() {
                 htmlToPlainText(item.describe_course),
                 htmlToPlainText(item.mo_ta),
                 htmlToPlainText(item.clo)
-            ]);            
+            ]);
         });
 
         worksheet.columns.forEach((column) => {
@@ -155,7 +160,9 @@ export default function StatisticalCLOInterfaceCTDT() {
         }
     }, [optionData.Id_Program]);
     useEffect(() => {
-        LoadData();
+        if(selectedKeyYear.length > 0){
+            LoadData();
+        }
     }, [searchText]);
     return (
         <div className="main-content">
@@ -183,16 +190,22 @@ export default function StatisticalCLOInterfaceCTDT() {
                                     />
                                 </div>
                                 <div className="col-md-4">
-                                    <CeoSelect2
-                                        label="Khóa học"
-                                        name="Id_Key_Year_Semester"
-                                        value={optionData.Id_Key_Year_Semester}
-                                        onChange={handleInputChange}
-                                        options={selectedKeyYear.map((item: any) => ({
-                                            value: item.value,
-                                            text: item.label
-                                        }))}
-                                    />
+                                    {selectedKeyYear.length === 0 ? (
+                                        <div className="alert alert-warning mb-0" style={{ marginTop: "15px" }}>
+                                            ⚠️ Trưởng Đơn vị chưa tạo khóa học, không thể lọc dữ liệu
+                                        </div>
+                                    ) : (
+                                        <CeoSelect2
+                                            label="Khóa học"
+                                            name="Id_Key_Year_Semester"
+                                            value={optionData.Id_Key_Year_Semester}
+                                            onChange={handleInputChange}
+                                            options={selectedKeyYear.map((item: any) => ({
+                                                value: item.value,
+                                                text: item.label
+                                            }))}
+                                        />
+                                    )}
                                 </div>
                             </div>
                             <hr />

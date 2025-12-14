@@ -156,6 +156,10 @@ export default function ProgramLearningOutcomeInterfaceCTDT() {
         }
     }
     const LoadData = async () => {
+        if(selectedKeyYear.length === 0){
+            SweetAlert("warning", "Trưởng Đơn vị chưa tạo khóa học, không thể lọc dữ liệu");
+            return;
+        }
         setLoading(true);
         try {
             const res = await ProgramLearningOutcomeCTDTAPI.GetListProgramLearningOutcome({ Id_Program: Number(formData.Id_Program), id_key_semester: Number(formData.Id_Key_Year_Semester), Page: page, PageSize: pageSize, searchTerm: searchText });
@@ -205,8 +209,10 @@ export default function ProgramLearningOutcomeInterfaceCTDT() {
         return () => clearTimeout(delayDebounce);
     }, [rawSearchText]);
     useEffect(() => {
-        LoadData();
-    }, [formData.Id_Program, formData.Id_Key_Year_Semester, page, pageSize, searchText]);
+        if(selectedKeyYear.length > 0){
+            LoadData();
+        }
+    }, [page, pageSize, searchText]);
     // Performance Indicators
     const [performanceIndicatorsData, setPerformanceIndicatorsData] = useState<any[]>([]);
     const [performanceIndicatorsTotalRecords, setPerformanceIndicatorsTotalRecords] = useState(0);
@@ -382,16 +388,22 @@ export default function ProgramLearningOutcomeInterfaceCTDT() {
                                     />
                                 </div>
                                 <div className="col-md-4">
-                                    <CeoSelect2
-                                        label="Khóa học"
-                                        name="Id_Key_Year_Semester"
-                                        value={formData.Id_Key_Year_Semester}
-                                        onChange={handleInputChange}
-                                        options={selectedKeyYear.map((item: any) => ({
-                                            value: item.value,
-                                            text: item.label
-                                        }))}
-                                    />
+                                    {selectedKeyYear.length === 0 ? (
+                                        <div className="alert alert-warning mb-0" style={{ marginTop: "27px" }}>
+                                            ⚠️ Đơn vị của bạn <strong>chưa tạo khóa học</strong>
+                                        </div>
+                                    ) : (
+                                        <CeoSelect2
+                                            label="Khóa học"
+                                            name="Id_Key_Year_Semester"
+                                            value={formData.Id_Key_Year_Semester}
+                                            onChange={handleInputChange}
+                                            options={selectedKeyYear.map((item: any) => ({
+                                                value: item.value,
+                                                text: item.label
+                                            }))}
+                                        />
+                                    )}
                                 </div>
 
                                 <div className="col-md-4">

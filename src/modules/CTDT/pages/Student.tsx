@@ -75,6 +75,10 @@ export default function StudentCTDTInterface() {
         { label: "*", key: "*" },
     ];
     const ShowData = async () => {
+        if (listClass.length === 0) {
+            SweetAlert("warning", "Chương trình đào tạo này không có lớp, không thể lọc dữ liệu");
+            return;
+        }
         setLoading(true);
         try {
             const res = await GetListStudentCTDTAPI.GetListStudent({ id_program: Number(optionData.id_program), id_class: Number(optionData.id_class), Page: page, PageSize: pageSize, searchTerm: searchText });
@@ -241,8 +245,10 @@ export default function StudentCTDTInterface() {
         return () => clearTimeout(delayDebounce);
     }, [rawSearchText]);
     useEffect(() => {
-        ShowData();
-    }, [optionData.id_class, page, pageSize, searchText]);
+        if (listClass.length > 0) {
+            ShowData();
+        }
+    }, [page, pageSize, searchText]);
     return (
         <div className="main-content">
             <Loading isOpen={loading} />
@@ -269,19 +275,25 @@ export default function StudentCTDTInterface() {
                                     />
                                 </div>
                                 <div className="col-md-4">
-                                    <CeoSelect2
-                                        label="Lọc theo lớp"
-                                        name="id_class_value"
-                                        value={optionData.id_class}
-                                        onChange={handleInputChange}
-                                        options={[
-                                            { value: 0, text: "Tất cả" },
-                                            ...listClass.map(item => ({
-                                                value: item.id_class,
-                                                text: item.name_class
-                                            })),
-                                        ]}
-                                    />
+                                    {listClass.length === 0 ? (
+                                        <div className="alert alert-warning mb-0" style={{ marginTop: "15px" }}>
+                                            ⚠️ Chương trình đào tạo này không có lớp, không thể lọc dữ liệu
+                                        </div>
+                                    ) : (
+                                        <CeoSelect2
+                                            label="Lọc theo lớp"
+                                            name="id_class_value"
+                                            value={optionData.id_class}
+                                            onChange={handleInputChange}
+                                            options={[
+                                                { value: 0, text: "Tất cả" },
+                                                ...listClass.map(item => ({
+                                                    value: item.id_class,
+                                                    text: item.name_class
+                                                })),
+                                            ]}
+                                        />
+                                    )}
                                 </div>
                             </div>
                             <div className="row">

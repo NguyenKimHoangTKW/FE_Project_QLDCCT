@@ -69,9 +69,14 @@ export default function StatisticalCLOInterfaceAdmin() {
             label: item.name_key_year_semester,
         }));
         setSelectedKeyYear(formattedKeyYear);
+        setOptionFilter((prev) => ({ ...prev, id_key_year_semester: Number(formattedKeyYear?.[0]?.value || 0) }));
         setLoading(false);
     }
     const LoadData = async () => {
+        if(selectedKeyYear.length === 0){
+            SweetAlert("warning", "Đơn vị này không có khóa học, không thể lọc dữ liệu");
+            return;
+        }
         setLoading(true);
         const res = await StatisticalCLOAdminAPI.GetListStatisticalCLO({ id_faculty: Number(optionFilter.id_faculty), id_program: Number(optionFilter.id_program), id_key_semester: Number(optionFilter.id_key_year_semester) });
         if (res.success) {
@@ -158,6 +163,8 @@ export default function StatisticalCLOInterfaceAdmin() {
     }, []);
     useEffect(() => {
         if (optionFilter.id_faculty) {
+            setListCTDT([]);
+            setSelectedKeyYear([]);
             GetListCTDTByDonVi();
             LoadSelectStatisticalCLO();
         }
@@ -200,6 +207,11 @@ export default function StatisticalCLOInterfaceAdmin() {
                                     />
                                 </div>
                                 <div className="col-md-4">
+                                    {selectedKeyYear.length === 0 ? (
+                                        <div className="alert alert-warning mb-0" style={{marginTop: "27px"}}>
+                                            ⚠️ Đơn vị này <strong>chưa tạo khóa học</strong>
+                                        </div>
+                                    ) : (
                                     <CeoSelect2
                                         label="Khóa học"
                                         name="Id_Key_Year_Semester"
@@ -210,6 +222,7 @@ export default function StatisticalCLOInterfaceAdmin() {
                                             text: item.label
                                         }))}
                                     />
+                                    )}
                                 </div>
                             </div>
                             <hr />

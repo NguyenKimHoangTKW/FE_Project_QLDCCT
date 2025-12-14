@@ -7,14 +7,13 @@ import Select from "react-select";
 import { SweetAlert, SweetAlertDel } from "../../../components/ui/SweetAlert";
 import { useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
+import CeoSelect2 from "../../../components/ui/CeoSelect2";
 function UsersList() {
   const navigate = useNavigate();
   const didFetch = useRef(false);
-  const [filters, setFilters] = useState<{ [key: string]: string }>({});
   const [allData, setAllData] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [listType, setListType] = useState([]);
-  const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
@@ -22,26 +21,22 @@ function UsersList() {
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<any>(null);
   const [selectedValue, setSelectedValue] = useState<any>(null);
-  const [idTypeSelected, setIdTypeSelected] = useState(0);
+  const [idTypeSelected, setIdTypeSelected] = useState<number>(0);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
-  const [showModalType, setShowModalType] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [rawSearchText, setRawSearchText] = useState("");
-  const [selected_typeUserValue, setSelected_typeUserValue] = useState<any[]>(
-    []
-  );
   interface UserInput {
     id_users: number | null;
     Username: string;
     email: string;
-    id_type_users: number | null;
+    id_type_users: number;
     status: number | null;
   }
   const [formData, setFormData] = useState<UserInput>({
     Username: "",
     email: "",
     id_users: null,
-    id_type_users: null,
+    id_type_users: 0,
     status: null,
   });
 
@@ -74,7 +69,6 @@ function UsersList() {
     { label: "Tên tài khoản", key: "Username" },
     { label: "Email", key: "email" },
     { label: "Quyền tài khoản", key: "name_type_users" },
-    { label: "Trạng thái", key: "status" },
     { label: "Ngày tạo", key: "time_cre" },
     { label: "Cập nhật lần cuối", key: "time_up" },
     { label: "*", key: "*" },
@@ -87,6 +81,7 @@ function UsersList() {
         label: item.name,
       }));
       setListType(formatted);
+      setSelectedValue(0);
     } else {
       setListType([]);
     }
@@ -110,11 +105,6 @@ function UsersList() {
     setShowModal(true);
   };
   
-  const handleSelectChange = (opt: any) => {
-    setSelected(opt);
-    setIdTypeSelected(opt ? opt.value : null);
-  };
-
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -132,7 +122,7 @@ function UsersList() {
       }
     }
   };
-  const handleDelete = async (id: Number) => {
+  const handleDelete = async (id: number) => {
     const confirm = await SweetAlertDel(
       "Bằng việc đồng ý, bạn sẽ xóa dữ liệu tài khoản này và các dữ liệu liên quan khác, bạn muốn xóa?"
     );
@@ -175,13 +165,19 @@ function UsersList() {
               <legend className="float-none w-auto px-3">Chức năng</legend>
               <div className="row mb-3">
                 <div className="col-md-6">
-                  <label className="form-label">Lọc theo Quyền tài khoản</label>
-                  <Select
-                    options={listType}
-                    value={selected}
-                    onChange={handleSelectChange}
-                    placeholder="Chọn quyền..."
-                    isClearable
+ 
+                  <CeoSelect2
+                    label="Lọc theo Quyền tài khoản"
+                    name="selected_typeUser"
+                    options={[
+                      { value: 0, text: "Tất cả" },
+                      ...listType.map((item: any) => ({
+                        value: item.value,
+                        text: item.label
+                      })),
+                    ]}
+                    value={selectedValue}
+                    onChange={handleInputChange}
                   />
                 </div>
               </div>
@@ -215,7 +211,6 @@ function UsersList() {
                         <td data-label="Tên tài khoản">{item.username}</td>
                         <td data-label="Email">{item.email}</td>
                         <td data-label="Quyền tài khoản">{item.name_type_users}</td>
-                        <td data-label="Trạng thái">{item.status}</td>
                         <td data-label="Ngày tạo" className="formatSo">{unixTimestampToDate(item.time_cre)}</td>
                         <td data-label="Cập nhật lần cuối" className="formatSo">{unixTimestampToDate(item.time_up)}</td>
                         <td data-label="*" className="formatSo">
